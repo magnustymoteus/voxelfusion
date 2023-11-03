@@ -1,0 +1,3 @@
+[submodule "MTMDTuringMachine"]
+	path = MTMDTuringMachine
+	url = https://github.com/magnustymoteus/MTMDTuringMachine
