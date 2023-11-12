@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/MTMDTuringMachine" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/context-free-grammar" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mtmd-turing-machine" vcs="Git" />
   </component>
 </project>
