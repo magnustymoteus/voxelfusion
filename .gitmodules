@@ -1,3 +1,9 @@
 [submodule "MTMDTuringMachine"]
 	path = MTMDTuringMachine
 	url = https://github.com/magnustymoteus/MTMDTuringMachine
+[submodule "context-free-grammar"]
+	path = context-free-grammar
+	url = https://github.com/magnustymoteus/context-free-grammar.git
+[submodule "mtmd-turing-machine"]
+	path = mtmd-turing-machine
+	url = https://github.com/magnustymoteus/mtmd-turing-machine.git
