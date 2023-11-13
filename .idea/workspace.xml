@@ -3,6 +3,17 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="CMakePresetLoader"><![CDATA[{
+  "useNewFormat": true
+}]]></component>
+  <component name="CMakeReloadState">
+    <option name="reloaded" value="true" />
+  </component>
+  <component name="CMakeRunConfigurationManager">
+    <generated>
+      <config projectName="voxelfusion" targetName="voxelfusion" />
+    </generated>
+  </component>
   <component name="CMakeSettings">
     <configurations>
       <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
@@ -10,7 +21,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="test">
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/voxelfusion.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/voxelfusion.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/AugmentedCFG/AugmentedCFG.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/AugmentedCFG/AugmentedCFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/CFG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/CFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/input/CFG.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/input/CFG.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/input/CFG2.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/input/CFG2.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/input/input-ll1-2.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/input/input-ll1-2.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/input/input-ll1.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/input/input-ll1.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/utils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CFG/utils.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/MTMDTuringMachine.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/MTMDTuringMachine.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/TMTape.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/TMTape.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/main.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Parser/CLR1Parser/CLR1Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Parser/CLR1Parser/CLR1Parser.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Parser/LL1Parser/LL1Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/LL1Parser/LL1Parser.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Parser/LL1Parser/LL1Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/LL1Parser/LL1Parser.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,8 +55,14 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/MTMDTuringMachine" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="CLion" />
+    <option name="majorVersion" value="2023" />
+    <option name="minorVersion" value="1" />
   </component>
   <component name="ProjectId" id="2XfIvacv2WvTP9FUNT4XKrtBdSQ" />
   <component name="ProjectViewState">
@@ -36,7 +77,7 @@
     "WebServerToolWindowFactoryState": "false",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "last_opened_file_path": "//wsl$/Ubuntu/home/magnustymoteus/ClionProjects/CFG",
+    "last_opened_file_path": "//wsl$/Ubuntu/home/magnustymoteus/ClionProjects/voxelfusion",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -45,6 +86,24 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="\\wsl$\Ubuntu\home\magnustymoteus\ClionProjects\voxelfusion\src\CFG" />
+      <recent name="\\wsl$\Ubuntu\home\magnustymoteus\ClionProjects\voxelfusion\src" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="voxelfusion" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file:////wsl.localhost/Ubuntu/home/magnustymoteus/ClionProjects/voxelfusion/src" PASS_PARENT_ENVS_2="true" PROJECT_NAME="voxelfusion" TARGET_NAME="voxelfusion" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="voxelfusion" RUN_TARGET_NAME="voxelfusion">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -56,6 +115,7 @@
       <workItem from="1699013940059" duration="260000" />
       <workItem from="1699014213243" duration="282000" />
       <workItem from="1699014503921" duration="3085000" />
+      <workItem from="1699831864887" duration="4568000" />
     </task>
     <task id="LOCAL-00001" summary="added gitignore">
       <created>1699014579723</created>
@@ -83,6 +143,12 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VCPKGProject">
+    <isAutomaticEditVcpkgJson value="false" />
+    <isAutomaticCheckingOnLaunch value="false" />
+    <isAutomaticFoundErrors value="true" />
+    <isAutomaticFoundErrors value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="added gitignore" />

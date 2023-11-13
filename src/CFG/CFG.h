@@ -9,7 +9,7 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "LL1Parser.h"
+#include "Parser/LL1Parser/LL1Parser.h"
 
 #define EOS_MARKER "<EOS>"
 

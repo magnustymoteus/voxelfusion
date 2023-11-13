@@ -5,14 +5,13 @@
 #include <fstream>
 #include <iostream>
 
-#include "json.hpp"
+#include "lib/json.hpp"
 
-#include "utils.h"
+#include "CFGUtils.h"
 
 #include "CFG.h"
 
 using nlohmann::json;
-using namespace CFGUtils;
 
 
 bool hasConflicts(const std::set<std::string> &variables, const std::set<std::string> &terminals) {
@@ -86,7 +85,7 @@ std::string CFG::bodyToStr(const std::vector<std::string> &body) {
     std::string result;
     if(!body.empty()) {
         result += "`";
-        for (int i = 0; i < body.size(); i++) {
+        for (unsigned int i = 0; i < body.size(); i++) {
             if (i > 0) result += " ";
             result += body[i];
         }
@@ -96,17 +95,17 @@ std::string CFG::bodyToStr(const std::vector<std::string> &body) {
 }
 void CFG::print() const {
     std::cout << "V = ";
-    printSet(getVariables());
+    CFGUtils::print(getVariables());
 
     std::cout << "T = ";
-    printSet(getTerminals());
+    CFGUtils::print(getTerminals());
 
     std::cout << "P = {\n";
     for (std::pair<std::string, CFGProductionBodies> currentRule: production_rules) {
         sort(currentRule.second.begin(), currentRule.second.end());
-        for (int i=0; i < currentRule.second.size(); i++) {
+        for (unsigned int i=0; i < currentRule.second.size(); i++) {
             std::cout << "\t" << currentRule.first << " -> `";
-            for (int j=0; j < currentRule.second[i].size(); j++) {
+            for (unsigned int j=0; j < currentRule.second[i].size(); j++) {
                 std::cout << currentRule.second[i][j];
                 if(j+1 != currentRule.second[i].size()) std::cout << " ";
             }
@@ -158,31 +157,31 @@ void CFG::computeFollowSet(const std::string &variable,
 
     /* FOLLOW(A) = {a|S ⇒* αAaβ where α, β can be any strings} */
     if(variable == getStartingVariable())
-        insertIfNotASubset(followSets[variable],{EOS_MARKER}, setHasChanged);
+        CFGUtils::insertIfNotASubset(followSets[variable],{EOS_MARKER}, setHasChanged);
     if(production_rules.find(variable) != production_rules.end()) {
         for (const CFGProductionBody &currentBody: getProductionBodies(variable)) {
-            for (int i = 0; i < currentBody.size(); i++) {
+            for (unsigned int i = 0; i < currentBody.size(); i++) {
                 const std::string &current = currentBody[i];
                 const bool &currentIsTerminal = isTerminal(current);
                 if (i != currentBody.size() - 1 && !currentIsTerminal) {
                     bool hasEpsilon = false;
-                    for (int j = i + 1; j < currentBody.size(); j++) {
+                    for (unsigned int j = i + 1; j < currentBody.size(); j++) {
                         const std::string &currentNext = currentBody[j];
                         std::set<std::string> firstSet = computeFirstSet(currentNext);
                         hasEpsilon = firstSet.find("") != firstSet.end();
                         firstSet.erase("");
-                        insertIfNotASubset(followSets[current], firstSet, setHasChanged);
+                        CFGUtils::insertIfNotASubset(followSets[current], firstSet, setHasChanged);
                         if (!hasEpsilon) break;
                     }
                     if (hasEpsilon) {
-                        insertIfNotASubset(followSets[current], followSets[variable], setHasChanged);
+                        CFGUtils::insertIfNotASubset(followSets[current], followSets[variable], setHasChanged);
                     }
 
                 }
                     /* If production is of form A → αB, then Follow (B) ={FOLLOW (A)}. */
                 else if (!currentIsTerminal && !current.empty()) {
                     const std::set<std::string> &followSet = followSets[variable];
-                    insertIfNotASubset(followSets[current], followSet, setHasChanged);
+                    CFGUtils::insertIfNotASubset(followSets[current], followSet, setHasChanged);
                 }
             }
         }

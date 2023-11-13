@@ -32,23 +32,16 @@ struct AugmentedProductions {
 
 typedef std::map<std::string, AugmentedProductions> ItemSet;
 
-class AugmentedCFG {
+class AugmentedCFG : public CFG {
 private:
-    ItemSet startingItemSet;
-    std::map<ItemSet, std::map<std::string, ItemSet>> itemSetTransitionMap;
-    std::string startingVariable;
-    const CFG &grammar;
-
+    ItemSet itemSet;
+    std::string augmentedStartingVariable;
 
 public:
-    explicit AugmentedCFG(const CFG &cfg);
+    explicit AugmentedCFG(const std::string &jsonPath);
 
-    [[nodiscard]] ItemSet getStartingItemSet() const;
-    [[nodiscard]] std::string getStartingVariable() const;
-    [[nodiscard]] ItemSet getItemSet(const ItemSet &itemSet, const std::string &symbol) const;
-
-    static void print(const ItemSet &itemSet);
-    static ItemSet computeClosure(const ItemSet &itemSet);
+    [[nodiscard]] std::string getAugmentedStartingVariable() const;
+    [[nodiscard]] ItemSet getItemSet() const;
 };
 
 

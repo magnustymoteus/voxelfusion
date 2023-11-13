@@ -4,14 +4,13 @@
 
 #include "LL1Parser.h"
 
-#include "CFG.h"
-#include "utils.h"
+#include "CFG/CFG.h"
+#include "CFG/CFGUtils.h"
 
 #include <iostream>
 
-using namespace CFGUtils;
 
-LL1Parser::LL1Parser(const CFG &cfg) : firstSets(cfg.computeFirstSets()), followSets(cfg.computeFollowSets()), cfg(cfg)
+LL1Parser::LL1Parser(const CFG &cfg) : followSets(cfg.computeFollowSets()), firstSets(cfg.computeFirstSets()), cfg(cfg)
 {}
 
 
@@ -109,10 +108,10 @@ void LL1Parser::print() const {
 
 
     std::cout << " >> FIRST: ";
-    printSets(firstSets);
+    CFGUtils::print(firstSets);
 
     std::cout << " >> FOLLOW: ";
-    printSets(followSets);
+    CFGUtils::print(followSets);
 
     std::cout << ">>> Table is built.\n\n-------------------------------------\n\n";
     printParsingTable(parsingTable, columnWidths);
