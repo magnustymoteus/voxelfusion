@@ -12,6 +12,7 @@
 #include "Parser/LL1Parser/LL1Parser.h"
 
 #define EOS_MARKER "<EOS>"
+#define ERR_MARKER "<ERR>"
 
 typedef std::vector<std::string> CFGProductionBody;
 typedef std::vector<CFGProductionBody> CFGProductionBodies;

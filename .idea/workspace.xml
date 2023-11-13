@@ -3,9 +3,9 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
-  <component name="CMakePresetLoader"><![CDATA[{
-  "useNewFormat": true
-}]]></component>
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
   <component name="CMakeReloadState">
     <option name="reloaded" value="true" />
   </component>
@@ -20,32 +20,18 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="test">
-      <change afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/voxelfusion.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/voxelfusion.iml" afterDir="false" />
+    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="more folder organization, set up CMakeLists.txt, better design pattern for AugmentedCFG">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/AugmentedCFG/AugmentedCFG.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/AugmentedCFG/AugmentedCFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/CFG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/CFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/input/CFG.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/input/CFG.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/input/CFG2.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/input/CFG2.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/input/input-ll1-2.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/input/input-ll1-2.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/input/input-ll1.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/input/input-ll1.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/utils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CFG/utils.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/MTMDTuringMachine.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/MTMDTuringMachine.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/TMTape.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/TMTape.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MTMDTuringMachine/main.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser/CLR1Parser/CLR1Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser/CLR1Parser/CLR1Parser.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser/LL1Parser/LL1Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/LL1Parser/LL1Parser.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser/LL1Parser/LL1Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/LL1Parser/LL1Parser.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CFG/AugmentedCFG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CFG/AugmentedCFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CFG/CFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CFG/CFGUtils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CFG/CFGUtils.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Parser/LL1Parser/LL1Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/LL1Parser/LL1Parser.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,23 +55,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "last_opened_file_path": "//wsl$/Ubuntu/home/magnustymoteus/ClionProjects/voxelfusion",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "settings.editor.selected.configurable": "fileTemplates",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;//wsl$/Ubuntu/home/magnustymoteus/ClionProjects/voxelfusion&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;fileTemplates&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="\\wsl$\Ubuntu\home\magnustymoteus\ClionProjects\voxelfusion\src\CFG" />
@@ -115,7 +101,9 @@
       <workItem from="1699013940059" duration="260000" />
       <workItem from="1699014213243" duration="282000" />
       <workItem from="1699014503921" duration="3085000" />
-      <workItem from="1699831864887" duration="4568000" />
+      <workItem from="1699831864887" duration="4704000" />
+      <workItem from="1699868739122" duration="29000" />
+      <workItem from="1699874145736" duration="5242000" />
     </task>
     <task id="LOCAL-00001" summary="added gitignore">
       <created>1699014579723</created>
@@ -138,7 +126,14 @@
       <option name="project" value="LOCAL" />
       <updated>1699018132733</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="more folder organization, set up CMakeLists.txt, better design pattern for AugmentedCFG">
+      <created>1699836759038</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1699836759038</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -153,6 +148,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="added gitignore" />
     <MESSAGE value="test" />
-    <option name="LAST_COMMIT_MESSAGE" value="test" />
+    <MESSAGE value="more folder organization, set up CMakeLists.txt, better design pattern for AugmentedCFG" />
+    <option name="LAST_COMMIT_MESSAGE" value="more folder organization, set up CMakeLists.txt, better design pattern for AugmentedCFG" />
   </component>
 </project>

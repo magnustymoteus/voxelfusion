@@ -18,12 +18,15 @@ struct AugmentedProductionBody {
 
     bool operator<(const AugmentedProductionBody &body) const;
 };
+typedef std::vector<AugmentedProductionBody> AugmentedProductionBodies;
+
 struct AugmentedProductions {
-    std::vector<AugmentedProductionBody> bodies;
+    AugmentedProductionBodies bodies;
     std::set<std::string> lookaheads;
 
-    AugmentedProductions(const std::vector<AugmentedProductionBody> &bodies, const std::set<std::string> &lookaheads) :
+    explicit AugmentedProductions(const std::vector<AugmentedProductionBody> &bodies, const std::set<std::string> &lookaheads={}) :
     bodies(bodies), lookaheads(lookaheads) {}
+    explicit AugmentedProductions(const CFGProductionBodies &bodies);
 
     [[nodiscard]] std::vector<AugmentedProductionBody> getBodies() const {return bodies;}
     [[nodiscard]] std::set<std::string> getLookaheads() const {return lookaheads;}
@@ -42,6 +45,7 @@ public:
 
     [[nodiscard]] std::string getAugmentedStartingVariable() const;
     [[nodiscard]] ItemSet getItemSet() const;
+    [[nodiscard]] ItemSet computeClosure(const ItemSet &itemSet) const;
 };
 
 

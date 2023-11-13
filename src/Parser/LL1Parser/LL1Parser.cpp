@@ -31,7 +31,7 @@ LL1ParsingTable LL1Parser::getParsingTable() const {
     // initialize all cells to <ERR>
     for(const std::string &currentVariable : cfg.getVariables()) {
         for(const std::string &currentTerminal : getTerminalsWithEOS(cfg.getTerminals())) {
-            parsingTable[currentVariable][currentTerminal] = "<ERR>";
+            parsingTable[currentVariable][currentTerminal] = ERR_MARKER;
         }
     }
     // loop over all variables and terminals to find

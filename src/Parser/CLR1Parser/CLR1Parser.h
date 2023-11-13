@@ -9,9 +9,7 @@ class CLR1Parser {
 private:
     std::map<ItemSet, std::map<std::string, ItemSet>> itemSetTransitionMap;
 public:
-    explicit CLR1Parser(const CFG &cfg);
-    [[nodiscard]] ItemSet getItemSet(const ItemSet &itemSet, const std::string &symbol) const;
-
+    explicit CLR1Parser(const AugmentedCFG &);
 };
 
 

@@ -16,10 +16,19 @@ namespace CFGUtils {
 
     void print(const std::map<std::string, std::set<std::string>> &sets);
 
+    void print(const ItemSet &itemSet);
+
+    void print(const CFGProductionBody &body);
+
+    void print(const CFGProductionBodies &bodies);
+
+    void print(const AugmentedProductionBody &augmentedBody);
+
+    void print(const AugmentedProductionBodies &augmentedBodies);
+
     void insertIfNotASubset(std::set<std::string> &a, const std::set<std::string> &b, bool &hasChanged);
 
-    void print(const std::vector<std::string> &body);
 
-    void print(const ItemSet &itemSet);
+    bool addToItemSet(ItemSet &itemSet, const std::pair<std::string, AugmentedProductions> &newProductions);
 }
 #endif //CFG_UTILS_H

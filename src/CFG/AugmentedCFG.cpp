@@ -1,7 +1,7 @@
 //
 
 #include "AugmentedCFG.h"
-
+#include "CFG/CFGUtils.h"
 
 bool AugmentedProductionBody::operator<(const AugmentedProductionBody &body) const {
     return getContent() < body.getContent();
@@ -29,6 +29,23 @@ augmentedStartingVariable(getStartingVariable()+"'") {
     }
 }
 
+ItemSet AugmentedCFG::computeClosure(const ItemSet &givenItemSet) const {
+    ItemSet result = givenItemSet;
+    for(const auto &currentProductions : result) {
+        for(const auto &currentBody : currentProductions.second.getBodies()) {
+            const std::string readSymbol = currentBody.getContent()[currentBody.getReadingIndex()];
+            if(!isTerminal(readSymbol)) {
+                const AugmentedProductions productions(getProductionBodies(readSymbol));
+                const bool &changed = CFGUtils::addToItemSet(result, {readSymbol, productions});
+                if (changed) {
+                    const ItemSet &newItemSet = computeClosure(result);
+                    result.insert(newItemSet.begin(), newItemSet.end());
+                }
+            }
+        }
+    }
+    return result;
+}
 
 std::string AugmentedCFG::getAugmentedStartingVariable() const {
     return augmentedStartingVariable;
@@ -36,4 +53,13 @@ std::string AugmentedCFG::getAugmentedStartingVariable() const {
 
 ItemSet AugmentedCFG::getItemSet() const {
     return itemSet;
+}
+
+AugmentedProductions::AugmentedProductions(const CFGProductionBodies &givenBodies) : lookaheads({}) {
+    std::vector<AugmentedProductionBody> newBodies;
+    for(const CFGProductionBody &currentBody : givenBodies) {
+        AugmentedProductionBody newBody(currentBody);
+        newBodies.push_back(newBody);
+    }
+    bodies = newBodies;
 }
