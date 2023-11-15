@@ -20,17 +20,17 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="more folder organization, set up CMakeLists.txt, better design pattern for AugmentedCFG">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="itemset closure progress&#10;to do: fix computeClosure recursion">
+      <change afterPath="$PROJECT_DIR$/src/lib/invariants.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CFG/AugmentedCFG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CFG/AugmentedCFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CFG/CFG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CFG/CFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CFG/CFGUtils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CFG/CFGUtils.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Parser/LL1Parser/LL1Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/LL1Parser/LL1Parser.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -103,7 +103,9 @@
       <workItem from="1699014503921" duration="3085000" />
       <workItem from="1699831864887" duration="4704000" />
       <workItem from="1699868739122" duration="29000" />
-      <workItem from="1699874145736" duration="5242000" />
+      <workItem from="1699874145736" duration="8896000" />
+      <workItem from="1699954114907" duration="7483000" />
+      <workItem from="1700073587478" duration="9986000" />
     </task>
     <task id="LOCAL-00001" summary="added gitignore">
       <created>1699014579723</created>
@@ -133,7 +135,14 @@
       <option name="project" value="LOCAL" />
       <updated>1699836759038</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="itemset closure progress&#10;to do: fix computeClosure recursion">
+      <created>1699879847229</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1699879847229</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -149,6 +158,7 @@
     <MESSAGE value="added gitignore" />
     <MESSAGE value="test" />
     <MESSAGE value="more folder organization, set up CMakeLists.txt, better design pattern for AugmentedCFG" />
-    <option name="LAST_COMMIT_MESSAGE" value="more folder organization, set up CMakeLists.txt, better design pattern for AugmentedCFG" />
+    <MESSAGE value="itemset closure progress&#10;to do: fix computeClosure recursion" />
+    <option name="LAST_COMMIT_MESSAGE" value="itemset closure progress&#10;to do: fix computeClosure recursion" />
   </component>
 </project>

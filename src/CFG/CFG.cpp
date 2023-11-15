@@ -139,7 +139,13 @@ std::set<std::string> CFG::computeFirstSet(const std::string &variable) const {
     }
     return result;
 }
+// TODO: change computation of first sets so it's more adaptable for augmented CFG
+/*std::set<std::string> CFG::computeFirstSet(const CFGProductionBody &sententialForm) const {
+    if(isTerminal(sententialForm[0])) return {sententialForm[0]};
+    else if(sententialForm.size() >= 1) {
 
+    }
+}*/
 
 std::map<std::string, std::set<std::string>> CFG::computeFirstSets() const {
     std::map<std::string, std::set<std::string>> result;

@@ -2,6 +2,7 @@
 
 #include "AugmentedCFG.h"
 #include "CFG/CFGUtils.h"
+#include <iostream>
 
 bool AugmentedProductionBody::operator<(const AugmentedProductionBody &body) const {
     return getContent() < body.getContent();
@@ -31,15 +32,15 @@ augmentedStartingVariable(getStartingVariable()+"'") {
 
 ItemSet AugmentedCFG::computeClosure(const ItemSet &givenItemSet) const {
     ItemSet result = givenItemSet;
-    for(const auto &currentProductions : result) {
-        for(const auto &currentBody : currentProductions.second.getBodies()) {
-            const std::string readSymbol = currentBody.getContent()[currentBody.getReadingIndex()];
-            if(!isTerminal(readSymbol)) {
-                const AugmentedProductions productions(getProductionBodies(readSymbol));
-                const bool &changed = CFGUtils::addToItemSet(result, {readSymbol, productions});
-                if (changed) {
-                    const ItemSet &newItemSet = computeClosure(result);
-                    result.insert(newItemSet.begin(), newItemSet.end());
+    bool changed = true;
+    while(changed) {
+        changed = false;
+        for (const auto &currentProductions: result) {
+            for (const auto &currentBody: currentProductions.second.getBodies()) {
+                const std::string readSymbol = currentBody.getContent()[currentBody.getReadingIndex()];
+                if (!isTerminal(readSymbol)) {
+                    const AugmentedProductions productions(getProductionBodies(readSymbol));
+                    changed = changed || CFGUtils::addToItemSet(result, {readSymbol, productions});
                 }
             }
         }

@@ -82,13 +82,9 @@ bool CFGUtils::addToItemSet(ItemSet &itemSet, const std::pair<std::string, Augme
     }
     else {
         const AugmentedProductions &productionsRhs = newProductions.second;
-        const std::set<std::string> &newLookaheads = productionsRhs.getLookaheads();
+        const std::set<std::string> &newLookaheads = newProductions.second.getLookaheads();
         AugmentedProductions &productions = itemSet.at(head);
-        CFGUtils::print(productions.getBodies());
         AugmentedProductionBodies newBodies;
-
-        std::cout << "ORIGINAL: " << std::endl;
-        CFGUtils::print(productions.getBodies());
 
         for(const AugmentedProductionBody &currentNewBody : productionsRhs.getBodies()) {
             bool insertCurrentNewBody = true;
@@ -100,12 +96,12 @@ bool CFGUtils::addToItemSet(ItemSet &itemSet, const std::pair<std::string, Augme
             if(insertCurrentNewBody) newBodies.push_back(currentNewBody);
         }
 
-        const unsigned int capturedBodiesSize = productions.getLookaheads().size();
+        const unsigned int capturedBodiesSize = productions.getBodies().size();
 
         productions.bodies.insert(productions.bodies.begin(), newBodies.begin(), newBodies.end());
-        std::cout << "NEW: " << std::endl;
-        CFGUtils::print(productions.getBodies());
         productions.lookaheads.insert(newLookaheads.begin(), newLookaheads.end());
-        return capturedBodiesSize == productions.getBodies().size();
+
+
+        return capturedBodiesSize != productions.getBodies().size();
     }
 }

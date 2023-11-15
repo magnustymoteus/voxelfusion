@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 
+// use pointers over references because a cell may be a nullptr
+
 struct TMTapeCell {
     std::string symbol;
     std::shared_ptr<TMTapeCell> left;
@@ -37,7 +39,7 @@ public:
 };
 
 enum TMTapeDimension {Tape1D=1,Tape2D=2,Tape3D=3};
-enum TMTapeDirection {Left,Right,Up,Down,Front,Back};
+enum TMTapeDirection {Left,Right,Up,Down,Front,Back, Stationary};
 
 class TMTape {
 public:

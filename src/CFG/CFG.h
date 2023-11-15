@@ -51,7 +51,7 @@ public:
     [[nodiscard]] std::string getStartingVariable() const;
     [[nodiscard]] CFGProductionBodies getProductionBodies(const std::string &productionHead) const;
 
-    [[nodiscard]] std::set<std::string> computeFirstSet(const std::string &variable) const;
+    [[nodiscard]] std::set<std::string> computeFirstSet(const CFGProductionBody &sententialForm) const;
 
     [[nodiscard]] std::map<std::string, std::set<std::string>> computeFirstSets() const;
 
