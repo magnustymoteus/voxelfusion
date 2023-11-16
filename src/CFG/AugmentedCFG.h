@@ -35,6 +35,7 @@ struct AugmentedProductions {
 
 typedef std::map<std::string, AugmentedProductions> ItemSet;
 
+// TODO: finish computeClosure
 class AugmentedCFG : public CFG {
 private:
     ItemSet itemSet;

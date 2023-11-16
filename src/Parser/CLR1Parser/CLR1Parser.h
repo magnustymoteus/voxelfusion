@@ -5,6 +5,7 @@
 
 #include "CFG/AugmentedCFG.h"
 
+// TODO: generate item sets, ...
 class CLR1Parser {
 private:
     std::map<ItemSet, std::map<std::string, ItemSet>> itemSetTransitionMap;

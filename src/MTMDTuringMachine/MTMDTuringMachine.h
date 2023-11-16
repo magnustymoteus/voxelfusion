@@ -16,6 +16,7 @@
  * Amount of replacement and replaced symbols in every transition is equal to the amount of tapes
  * ...
 * */
+// TODO: invariants (pre- and post- conditions), halting states
 class MTMDTuringMachine {
 private:
     const std::string blankSymbol = "B";
