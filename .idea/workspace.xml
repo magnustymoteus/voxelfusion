@@ -20,17 +20,15 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="itemset closure progress&#10;to do: fix computeClosure recursion">
-      <change afterPath="$PROJECT_DIR$/src/lib/invariants.h" afterDir="false" />
+    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="turing machine, ACFG, CFG">
+      <change afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/FiniteControl.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/FiniteControl.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CFG/AugmentedCFG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CFG/CFG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CFG/CFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CFG/CFGUtils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFGUtils.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/invariants.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/invariants.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -79,9 +77,9 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration name="voxelfusion" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file:////wsl.localhost/Ubuntu/home/magnustymoteus/ClionProjects/voxelfusion/src" PASS_PARENT_ENVS_2="true" PROJECT_NAME="voxelfusion" TARGET_NAME="voxelfusion" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="voxelfusion" RUN_TARGET_NAME="voxelfusion">
@@ -105,7 +103,8 @@
       <workItem from="1699868739122" duration="29000" />
       <workItem from="1699874145736" duration="8896000" />
       <workItem from="1699954114907" duration="7483000" />
-      <workItem from="1700073587478" duration="9986000" />
+      <workItem from="1700073587478" duration="10188000" />
+      <workItem from="1700133236143" duration="14647000" />
     </task>
     <task id="LOCAL-00001" summary="added gitignore">
       <created>1699014579723</created>
@@ -142,7 +141,14 @@
       <option name="project" value="LOCAL" />
       <updated>1699879847229</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="turing machine, ACFG, CFG">
+      <created>1700084264486</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1700084264486</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -159,6 +165,14 @@
     <MESSAGE value="test" />
     <MESSAGE value="more folder organization, set up CMakeLists.txt, better design pattern for AugmentedCFG" />
     <MESSAGE value="itemset closure progress&#10;to do: fix computeClosure recursion" />
-    <option name="LAST_COMMIT_MESSAGE" value="itemset closure progress&#10;to do: fix computeClosure recursion" />
+    <MESSAGE value="turing machine, ACFG, CFG" />
+    <option name="LAST_COMMIT_MESSAGE" value="turing machine, ACFG, CFG" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="CMakeRunConfiguration">
+        <watch expression="control.transitions" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>

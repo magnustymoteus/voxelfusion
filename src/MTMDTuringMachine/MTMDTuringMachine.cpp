@@ -4,19 +4,39 @@
 
 #include "MTMDTuringMachine.h"
 
-MTMDTuringMachine::MTMDTuringMachine(const std::set<State> &states, const State& startingState,
+MTMDTuringMachine::MTMDTuringMachine(const std::set<std::string> &tapeAlphabet,
                                      const std::set<std::string> &inputAlphabet,
-                                     const std::set<std::string> &tapeAlphabet, const TMTapes &tapes,
-                                     const FiniteControl &control,
+                                     TMTapes &tapes,
+                                     FiniteControl &control,
                                      void (*updateCallback) (
                                              const TMTapes &tapes,
-                                             const TransitionImage &image))
-                                     : states(states), startingState(startingState),
-                                     currentState(std::make_shared<const State>(startingState)),
-                                     inputAlphabet(inputAlphabet), tapeAlphabet(tapeAlphabet),
-                                     tapes(tapes), control(control),
+                                             const TransitionDomain &domain, const TransitionImage &image)) :
+                                     tapeAlphabet(tapeAlphabet), inputAlphabet(inputAlphabet),
+                                     tapes(std::move(tapes)), control(std::move(control)),
                                      updateCallback(updateCallback)
                                       {
 
 }
 
+void MTMDTuringMachine::doTransition() {
+    const std::vector<std::string> &currentSymbols = getCurrentTapeSymbols();
+    const TransitionDomain domain(control.currentState, currentSymbols);
+    const auto& foundDomain = control.transitions.find(domain);
+    if(foundDomain != control.transitions.end()) {
+        const TransitionImage &image = foundDomain->second;
+        control.setCurrentState(image.state);
+        for(unsigned int i=0;i<tapes.size();i++) {
+            tapes[i].replaceCurrentSymbol(image.replacementSymbols[i]);
+        }
+        if(updateCallback) updateCallback(tapes, domain, image);
+    }
+}
+
+std::vector<std::string> MTMDTuringMachine::getCurrentTapeSymbols() const {
+    std::vector<std::string> currentSymbols;
+    currentSymbols.reserve(tapes.size());
+    for(const TMTape &currentTape : tapes) {
+        currentSymbols.push_back(currentTape.tapeHead->symbol);
+    }
+    return currentSymbols;
+}

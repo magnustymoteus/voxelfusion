@@ -5,11 +5,11 @@
 
 #include <cassert>
 
-#define PRECONDITION(assertion, what) \
-	if (!(assertion)) assert (what, __FILE__, __LINE__)
+#define PRECONDITION(assertion) \
+	assert(assertion)
 
-#define POSTCONDITION(assertion, what) \
-	if (!(assertion)) assert (what, __FILE__, __LINE__)
+#define POSTCONDITION(assertion) \
+	assert (what)
 
 
 #endif //VOXELFUSION_INVARIANTS_H
