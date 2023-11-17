@@ -17,7 +17,6 @@ MTMDTuringMachine::MTMDTuringMachine(const std::set<std::string> &tapeAlphabet,
                                       {
 
 }
-#include <iostream>
 void MTMDTuringMachine::doTransition() {
     const std::vector<std::string> &currentSymbols = getCurrentTapeSymbols();
     const TransitionDomain domain(control.currentState, currentSymbols);

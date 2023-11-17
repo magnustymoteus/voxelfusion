@@ -16,7 +16,7 @@
  * Amount of replacement and replaced symbols in every transition is equal to the amount of tapes
  * ...
 * */
-// TODO: invariants (pre- and post- conditions), halting states
+// TODO: invariants (pre- and post- conditions), halting states, testing for multi tape scenarios
 class MTMDTuringMachine {
 private:
     const std::set<std::string> tapeAlphabet;

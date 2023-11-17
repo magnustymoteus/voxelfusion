@@ -16,3 +16,11 @@ FiniteControl::FiniteControl(const std::set<StatePointer> &states,
         initialState(findStartingState(states)),
         currentState(findStartingState(states)),
         transitions(transitions) {}
+
+bool TransitionDomain::operator<(const TransitionDomain &other) const {
+    if(state < other.state) return true;
+    if(other.state < state) return false;
+
+    if(replacedSymbols < other.replacedSymbols) return true;
+    return false;
+}

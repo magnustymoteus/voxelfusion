@@ -20,15 +20,16 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="added todo">
+    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="functional multi dimensional tape">
+      <change afterPath="$PROJECT_DIR$/README.MD" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/docs.cfg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/FiniteControl.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/FiniteControl.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/FiniteControl.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/FiniteControl.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTapeCell.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTapeCell.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,6 +44,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectApplicationVersion">
     <option name="ide" value="CLion" />
     <option name="majorVersion" value="2023" />
@@ -53,23 +57,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;//wsl$/Ubuntu/home/magnustymoteus/ClionProjects/voxelfusion&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;fileTemplates&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "last_opened_file_path": "//wsl$/Ubuntu/home/magnustymoteus/ClionProjects/voxelfusion",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "fileTemplates",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="\\wsl$\Ubuntu\home\magnustymoteus\ClionProjects\voxelfusion\src\CFG" />
@@ -106,7 +111,7 @@
       <workItem from="1700073587478" duration="10188000" />
       <workItem from="1700133236143" duration="37516000" />
       <workItem from="1700216651213" duration="12028000" />
-      <workItem from="1700235557148" duration="3107000" />
+      <workItem from="1700235557148" duration="24994000" />
     </task>
     <task id="LOCAL-00001" summary="added gitignore">
       <created>1699014579723</created>
@@ -164,7 +169,14 @@
       <option name="project" value="LOCAL" />
       <updated>1700149537557</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="functional multi dimensional tape">
+      <created>1700238723075</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1700238723075</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -184,13 +196,16 @@
     <MESSAGE value="turing machine, ACFG, CFG" />
     <MESSAGE value="Functional turing Machine with a callback function, example in main.cpp" />
     <MESSAGE value="added todo" />
-    <option name="LAST_COMMIT_MESSAGE" value="added todo" />
+    <MESSAGE value="functional multi dimensional tape" />
+    <option name="LAST_COMMIT_MESSAGE" value="functional multi dimensional tape" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
       <configuration name="CMakeRunConfiguration">
         <watch expression="control.transitions" />
         <watch expression="this" />
+        <watch expression="tape2d-&gt;cells[1]" />
+        <watch expression="this-&gt;cells" />
       </configuration>
     </watches-manager>
   </component>

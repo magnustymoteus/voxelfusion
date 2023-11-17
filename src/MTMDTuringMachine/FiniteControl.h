@@ -26,7 +26,7 @@ struct TransitionDomain {
     TransitionDomain(const StatePointer &state, const std::vector<std::string> &replacedSymbols) :
             state(*state), replacedSymbols(replacedSymbols) {}
 
-    bool operator<(const TransitionDomain &other) const {return state < other.state;}
+    bool operator<(const TransitionDomain &other) const;
 };
 struct TransitionImage {
     /* Invariants:
