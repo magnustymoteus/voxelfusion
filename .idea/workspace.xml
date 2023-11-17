@@ -20,12 +20,16 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="Functional turing Machine with a callback function, example in main.cpp">
+    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="added todo">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CFG/AugmentedCFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/AugmentedCFG.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CFG/CFG.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CFG/CFG.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/FiniteControl.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/FiniteControl.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parser/CLR1Parser/CLR1Parser.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTapeCell.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTapeCell.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,7 +104,9 @@
       <workItem from="1699874145736" duration="8896000" />
       <workItem from="1699954114907" duration="7483000" />
       <workItem from="1700073587478" duration="10188000" />
-      <workItem from="1700133236143" duration="15324000" />
+      <workItem from="1700133236143" duration="37516000" />
+      <workItem from="1700216651213" duration="12028000" />
+      <workItem from="1700235557148" duration="3107000" />
     </task>
     <task id="LOCAL-00001" summary="added gitignore">
       <created>1699014579723</created>
@@ -151,7 +157,14 @@
       <option name="project" value="LOCAL" />
       <updated>1700149159104</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="added todo">
+      <created>1700149537557</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1700149537557</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,12 +183,14 @@
     <MESSAGE value="itemset closure progress&#10;to do: fix computeClosure recursion" />
     <MESSAGE value="turing machine, ACFG, CFG" />
     <MESSAGE value="Functional turing Machine with a callback function, example in main.cpp" />
-    <option name="LAST_COMMIT_MESSAGE" value="Functional turing Machine with a callback function, example in main.cpp" />
+    <MESSAGE value="added todo" />
+    <option name="LAST_COMMIT_MESSAGE" value="added todo" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
       <configuration name="CMakeRunConfiguration">
         <watch expression="control.transitions" />
+        <watch expression="this" />
       </configuration>
     </watches-manager>
   </component>

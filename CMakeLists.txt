@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "-Werror -Wall")
 
 file(GLOB_RECURSE LIB src/lib/*.cpp)
 file(GLOB_RECURSE CFG src/CFG/*.cpp)
-file(GLOB_RECURSE TM src/MTMDTuringMachine/*cpp)
+file(GLOB_RECURSE TM src/MTMDTuringMachine/*.cpp )
 file(GLOB_RECURSE PARSER src/Parser/*.cpp)
 
 include_directories(src)

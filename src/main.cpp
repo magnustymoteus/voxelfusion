@@ -4,7 +4,6 @@
 #include <iostream>
 
 using namespace std;
-
 void printTransition(const TMTapes &tapes, const TransitionDomain &domain, const TransitionImage &image) {
     std::cout << domain.state.name << " -> " << image.state.name << std::endl;
     for(const std::string &currentDomainSymbol : domain.replacedSymbols) {
@@ -29,19 +28,24 @@ int main() {
     CFGUtils::print(aCfg.computeClosure(nextItemSet));*/
 
     // example
-    TMTapeCell3D currentCell("0");
-    TMTape tape3d(currentCell);
+    auto *tape2d = new TMTape2D();
+    (*tape2d)[0][0].symbol = "C";
+    (*tape2d)[1][3].symbol = "A";
+    (*tape2d)[-1][-5].symbol = "C";
+    (*tape2d)[-1][0].symbol= "L";
+    tape2d->print();
     const StatePointer startState = std::make_shared<const State>("q0", true, false);
     const StatePointer state2  = std::make_shared<const State>("q1", false, false);
 
-    std::set<std::shared_ptr<const State>> states  = {startState, state2};
+    std::set<StatePointer> states  = {startState, state2};
     FiniteControl control(states, {
         {
             TransitionDomain(startState, {"0"}),
-            TransitionImage(state2, {"1"}, {Up})
+            TransitionImage(state2, {"1"}, {Front})
         }});
-    TMTapes tapes = {tape3d};
-    MTMDTuringMachine tm({"0", "1"}, {"0", "1"},tapes, control, printTransition);
+    TMTapes tapes = {tape2d};
+    MTMDTuringMachine tm({"0", "1"}, {"0", "1"}, tapes, control, printTransition);
     tm.doTransition();
+    delete tape2d;
     return 0;
 }

@@ -8,26 +8,56 @@
 #include <vector>
 #include "TMTapeCell.h"
 
-enum TMTapeDimension {Tape1D=1,Tape2D=2,Tape3D=3};
-enum TMTapeDirection {Left='L',Right='R',Up='U',Down='D',Front='F',Back='B', Stationary='S'};
+enum TMTapeDirection {Left='L',Right='R',Up='U',Down='D',Front='F',Back='B',Stationary='S'};
 
 class TMTape {
 public:
-    std::shared_ptr<TMTapeCell> tapeHead;
-    TMTapeDimension dimension;
-
-    explicit TMTape(const TMTapeCell &startCell)
-    : tapeHead(std::make_shared<TMTapeCell>(startCell)), dimension(Tape1D) {}
-    explicit TMTape(const TMTapeCell2D &startCell)
-    : tapeHead(std::make_shared<TMTapeCell2D>(startCell)), dimension(Tape2D) {}
-    explicit TMTape(const TMTapeCell3D &startCell)
-    : tapeHead(std::make_shared<TMTapeCell3D>(startCell)), dimension(Tape3D) {}
-
-    void replaceCurrentSymbol(const std::string &newSymbol) {tapeHead->symbol = newSymbol;}
-    [[nodiscard]] TMTapeDimension getDimension() const {return dimension;}
-
+    virtual ~TMTape() = default;
+    virtual std::string getCurrentSymbol() const = 0;
+    virtual bool moveTapeHead(const TMTapeDirection &direction) = 0;
+    virtual void replaceCurrentSymbol(const std::string &newSymbol) = 0;
 };
+class TMTape1D final : public TMTape {
+public:
+    std::vector<TMTapeCell> cells;
+    signed long currentIndex;
 
-typedef std::vector<TMTape> TMTapes;
+    TMTape1D() : cells({TMTapeCell()}), currentIndex(0) {}
 
+    std::string getCurrentSymbol() const final;
+    bool moveTapeHead(const TMTapeDirection &direction) final;
+    void replaceCurrentSymbol(const std::string &newSymbol) final;
+    void print() const;
+
+    TMTapeCell& operator[](const signed long &index);
+};
+class TMTape2D final : public TMTape {
+public:
+    std::vector<TMTape1D> cells;
+    signed long currentIndex;
+
+    TMTape2D() : cells({TMTape1D()}), currentIndex(0) {}
+
+    std::string getCurrentSymbol() const final;
+    bool moveTapeHead(const TMTapeDirection &direction) final;
+    void replaceCurrentSymbol(const std::string &newSymbol) final;
+    void print() const;
+
+
+    TMTape1D& operator[](const signed long &index);
+};
+class TMTape3D final : public TMTape {
+public:
+    std::vector<TMTape2D> cells;
+    signed long currentIndex;
+
+    TMTape3D() : cells({TMTape2D()}), currentIndex(0) {}
+
+    std::string getCurrentSymbol() const final;
+    bool moveTapeHead(const TMTapeDirection &direction) final;
+    void replaceCurrentSymbol(const std::string &newSymbol) final;
+
+    TMTape2D& operator[](const signed long &index);
+};
+typedef std::vector<TMTape*> TMTapes;
 #endif //MTMDTURINGMACHINE_TMTAPE_H

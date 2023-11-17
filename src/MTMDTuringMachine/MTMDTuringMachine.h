@@ -19,21 +19,19 @@
 // TODO: invariants (pre- and post- conditions), halting states
 class MTMDTuringMachine {
 private:
-    const std::string blankSymbol = "B";
     const std::set<std::string> tapeAlphabet;
     const std::set<std::string> inputAlphabet;
 
-    std::vector<TMTape> tapes;
+    TMTapes tapes;
     FiniteControl control;
 
     // called every transition (if it's not nullptr)
     void (*updateCallback) (const TMTapes &tapes, const TransitionDomain &domain, const TransitionImage &image);
 public:
-
     MTMDTuringMachine(const std::set<std::string> &tapeAlphabet,
                       const std::set<std::string> &inputAlphabet,
-                      TMTapes &tapes,
-                      FiniteControl &control,
+                      const TMTapes &tapes,
+                      const FiniteControl &control,
   void (*updateCallback) (const TMTapes &tapes, const TransitionDomain &domain, const TransitionImage &image) = nullptr);
 
   void doTransition();
