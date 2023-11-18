@@ -4,7 +4,8 @@
 #include <iostream>
 
 using namespace std;
-void printTransition(const TMTapes &tapes, const TransitionDomain &domain, const TransitionImage &image) {
+template<class ...TMTapeType>
+void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDomain &domain, const TransitionImage &image) {
     std::cout << domain.state.name << " -> " << image.state.name << std::endl;
     for(const std::string &currentDomainSymbol : domain.replacedSymbols) {
         std::cout << currentDomainSymbol << " ";
@@ -32,7 +33,7 @@ int main() {
     auto *tape2d = new TMTape2D();
     (*tape2d)[0][0].symbol = "D";
     (*tape2d)[-1][1].symbol = "A";
-    tape2d->print();
+    //tape2d->print();
     const StatePointer startState = std::make_shared<const State>("q0", true, false);
     const StatePointer state2  = std::make_shared<const State>("q1", false, false);
     const StatePointer state3  = std::make_shared<const State>("q2", false, false);
@@ -51,8 +52,8 @@ int main() {
                 TransitionImage(state3, {"1"}, {Right}),
         }
         });
-    TMTapes tapes = {tape2d};
-    MTMDTuringMachine tm({"0", "1"}, {"0", "1"}, tapes, control, printTransition);
+    std::tuple<TMTape2D*> tapes = std::make_tuple(tape2d);
+    MTMDTuringMachine<TMTape2D> tm({"0", "1"}, {"0", "1"}, tapes, control, printTransition);
 
     tm.doTransition();
     tape2d->print();
