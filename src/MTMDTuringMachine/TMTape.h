@@ -10,7 +10,6 @@
 
 enum TMTapeDirection {Left='L',Right='R',Up='U',Down='D',Front='F',Back='B',Stationary='S'};
 
-
 class TMTape {
 public:
     virtual ~TMTape() = default;

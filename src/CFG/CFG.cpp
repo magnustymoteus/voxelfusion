@@ -42,8 +42,8 @@ CFG::CFG(const std::string &jsonPath){
     std::ifstream input(jsonPath);
     json j = json::parse(input);
 
-    variables = j["Variables"];
-    terminals = j["Terminals"];
+    variables = j["Variables"].get<std::set<std::string>>();
+    terminals = j["Terminals"].get<std::set<std::string>>();
     const json &productions = j["Productions"];
     for(const json &currentProduction : productions) {
         const std::string &head = currentProduction["head"];
