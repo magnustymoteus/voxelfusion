@@ -53,11 +53,11 @@ public:
       if(foundDomain != control.transitions.end()) {
           const TransitionImage &image = foundDomain->second;
           control.setCurrentState(image.state);
-          unsigned int i=0;
-          std::apply([&](auto&&... currentTape){
+          int i=0;
+            std::apply([&](auto&&... currentTape){
               ((currentTape->replaceCurrentSymbol(image.replacementSymbols[i]),
                       currentTape->moveTapeHead(image.directions[i]),
-                      i++), ...);
+                     i++), ...);
               }, tapes);
          if(updateCallback) updateCallback(tapes, domain, image);
      }

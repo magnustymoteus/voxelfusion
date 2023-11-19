@@ -22,14 +22,7 @@ void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDom
 }
 
 int main() {
-    /*AugmentedCFG aCfg("CFG/input/CFG.json");
-    ItemSet nextItemSet;
-    nextItemSet.insert({"T", aCfg.getItemSet().at("T")});
-    CFGUtils::print(aCfg.getItemSet());
-    std::cout << std::endl;
-    CFGUtils::print(aCfg.computeClosure(nextItemSet));*/
-
-    // example
+    auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
     auto *tape1d {new TMTape1D()};
     (*tape2d)[0][0].symbol = "D";
@@ -40,22 +33,21 @@ int main() {
 
     std::set<StatePointer> states  = {startState, state2, state3};
     FiniteControl control(states, {
-        {
-            TransitionDomain(startState, {"D", "B"}),
-            TransitionImage(state2, {"1", "0"}, {Right, Left})
-        },
-        {
-            TransitionDomain(state2, {"B", "B"}),
-            TransitionImage(state3, {"0", "1"}, {Up, Left}),
-        },
-        {            TransitionDomain(state3, {"A", "B"}),
-                TransitionImage(state3, {"1", "0"}, {Right, Left}),
-        }
-        });
+            {
+                         TransitionDomain(startState, {"B", "D", "B"}),
+                    TransitionImage(state2, {"1", "1", "0"}, {Left, Right, Left})
+            },
+            {
+                         TransitionDomain(state2, {"B", "B", "B"}),
+                    TransitionImage(state3, {"1", "0", "1"}, {Up, Up, Left}),
+            },
+            {            TransitionDomain(state3, {"B", "A", "B"}),
+                    TransitionImage(state3, {"B", "1", "0"}, {Front, Right, Left}),
+            }
+    });
     // tuple needs to have pointers of tapes
-    std::tuple<TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape2d, tape1d);
-    MTMDTuringMachine<TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, printTransition);
-
+    std::tuple<TMTape3D*, TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape3d, tape2d, tape1d);
+    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, printTransition);
 
     tape2d->print();
     tape1d->print();
@@ -72,6 +64,7 @@ int main() {
     tape2d->print();
     tape1d->print();
 
+    delete tape3d;
     delete tape2d;
     delete tape1d;
     return 0;
