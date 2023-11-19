@@ -1,8 +1,9 @@
 //#include "CFG/AugmentedCFG.h"
 //#include "CFG/CFGUtils.h"
 #include "MTMDTuringMachine/MTMDTuringMachine.h"
+#include "Visualisation/VisualisationManager.h"
+#include <thread>
 #include <iostream>
-
 using namespace std;
 void printTransition(const TMTapes &tapes, const TransitionDomain &domain, const TransitionImage &image) {
     std::cout << domain.state.name << " -> " << image.state.name << std::endl;
@@ -20,6 +21,14 @@ void printTransition(const TMTapes &tapes, const TransitionDomain &domain, const
     std::cout << std::endl;
 }
 
+void updateVisualisation(const TMTapes &tapes, const TransitionDomain &domain, const TransitionImage &image) {
+    VisualisationManager* v = VisualisationManager::getInstance();
+    v->setTape(dynamic_cast<TMTape3D*>(tapes.at(0)));
+
+    std::chrono::milliseconds timespan(1000);
+    std::this_thread::sleep_for(timespan);
+}
+
 int main() {
     /*AugmentedCFG aCfg("CFG/input/CFG.json");
     ItemSet nextItemSet;
@@ -33,6 +42,11 @@ int main() {
     (*tape2d)[0][0].symbol = "D";
     (*tape2d)[-1][1].symbol = "A";
     tape2d->print();
+    delete tape2d;
+
+    auto tape3d = new TMTape3D();
+    (*tape3d)[0][0][0].symbol = "D";
+    (*tape3d)[0][0][1].symbol = "A";
     const StatePointer startState = std::make_shared<const State>("q0", true, false);
     const StatePointer state2  = std::make_shared<const State>("q1", false, false);
     const StatePointer state3  = std::make_shared<const State>("q2", false, false);
@@ -44,25 +58,23 @@ int main() {
             TransitionImage(state2, {"1"}, {Right})
         },
         {
-            TransitionDomain(state2, {"B"}),
-            TransitionImage(state3, {"0"}, {Up}),
+            TransitionDomain(state2, {"A"}),
+            TransitionImage(state3, {"0"}, {Right}),
         },
-        {            TransitionDomain(state3, {"A"}),
+        {            TransitionDomain(state3, {"B"}),
                 TransitionImage(state3, {"1"}, {Right}),
         }
         });
-    TMTapes tapes = {tape2d};
-    MTMDTuringMachine tm({"0", "1"}, {"0", "1"}, tapes, control, printTransition);
+    VisualisationManager* v = VisualisationManager::getInstance();
 
-    tm.doTransition();
-    tape2d->print();
+    TMTapes tapes = {tape3d};
+    MTMDTuringMachine tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
 
-    tm.doTransition();
-    tape2d->print();
+    for (int i = 0; i < 5; ++i) {
+        tm.doTransition();
+    }
 
-    tm.doTransition();
-    tape2d->print();
-
-    delete tape2d;
+    delete tape3d;
+    v->waitForExit();
     return 0;
 }
