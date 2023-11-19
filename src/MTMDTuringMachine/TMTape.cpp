@@ -5,6 +5,7 @@
 #include "TMTape.h"
 
 #include <iostream>
+#include <algorithm>
 
 int translateIndex(const unsigned long &size, const unsigned int &index) {
     return static_cast<int>(size/2+index);
