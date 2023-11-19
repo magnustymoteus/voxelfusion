@@ -66,7 +66,7 @@ Visualisation::Visualisation() {
     // Compile shader from files
     shaderProgram = new Shader("vertex.glsl", "fragment.glsl");
     TMTape3D tape;
-    rebuild(tape);
+    rebuild(&tape);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -95,17 +95,17 @@ bool Visualisation::update() {
     return true;
 }
 
-void Visualisation::rebuild(TMTape3D &tape) {
+void Visualisation::rebuild(TMTape3D *tape) {
     //https://stackoverflow.com/questions/15821969/what-is-the-proper-way-to-modify-opengl-vertex-buffer
     vertices.clear();
     indices.clear();
 
-    const long greatest2DSize = static_cast<long>(std::max_element(tape.cells.begin(), tape.cells.end(),
+    const long greatest2DSize = static_cast<long>(std::max_element(tape->cells.begin(), tape->cells.end(),
                                                                  [](const TMTape2D &a, const TMTape2D &b) {
                                                                      return a.cells.size() < b.cells.size();
                                                                  })->cells.size());
-    for (long x = 0; x < tape.cells.size(); x++) {
-        TMTape2D& currentCellRow = tape.cells[x];
+    for (long x = 0; x < tape->cells.size(); x++) {
+        TMTape2D& currentCellRow = tape->cells[x];
         const long greatestSize = static_cast<long>(std::max_element(currentCellRow.cells.begin(), currentCellRow.cells.end(),
                                                                      [](const TMTape1D &a, const TMTape1D &b) {
                                                                          return a.cells.size() < b.cells.size();

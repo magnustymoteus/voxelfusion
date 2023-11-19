@@ -9,7 +9,7 @@ VisualisationManager::VisualisationManager() {
             bool rebuild = false;
             updates.dequeue(rebuild);
             if(rebuild){
-                v.rebuild(*tape);
+                v.rebuild(tape);
             }
             go = v.update();
         }

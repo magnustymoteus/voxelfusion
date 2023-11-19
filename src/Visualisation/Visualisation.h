@@ -33,6 +33,6 @@ class Visualisation {
 public:
     Visualisation();
     bool update();
-    void rebuild(TMTape3D &tape);
+    void rebuild(TMTape3D *tape);
     ~Visualisation();
 };
