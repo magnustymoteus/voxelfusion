@@ -2,3 +2,4 @@
 cmake-build-debug
 src/lib/glm
 src/lib/GLFW
+*.bin
