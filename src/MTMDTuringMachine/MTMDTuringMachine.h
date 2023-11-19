@@ -45,6 +45,7 @@ public:
             updateCallback(updateCallback){
         static_assert(std::conjunction<std::is_base_of<TMTape,TMTapeType>...>(), "TM was not given tapes!");
     }
+    std::tuple<TMTapeType*...> getTapes() const {return tapes;}
   void doTransition() {
       const std::vector<std::string> &currentSymbols = getCurrentTapeSymbols();
       const TransitionDomain domain(control.currentState, currentSymbols);
