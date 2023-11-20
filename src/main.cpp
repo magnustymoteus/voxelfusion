@@ -1,6 +1,8 @@
 //#include "CFG/AugmentedCFG.h"
 //#include "CFG/CFGUtils.h"
 #include "MTMDTuringMachine/MTMDTuringMachine.h"
+#include "Visualisation/VisualisationManager.h"
+#include <thread>
 #include <iostream>
 
 using namespace std;
@@ -20,6 +22,14 @@ void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDom
     }
     std::cout << std::endl;
 }
+template<class ...TMTapeType>
+void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const TransitionDomain &domain, const TransitionImage &image) {
+    VisualisationManager* v = VisualisationManager::getInstance();
+    v->setTape(std::get<0>(tapes));
+
+    std::chrono::milliseconds timespan(1000);
+    std::this_thread::sleep_for(timespan);
+}
 
 int main() {
     auto *tape3d {new TMTape3D()};
@@ -30,24 +40,29 @@ int main() {
     const StatePointer startState = std::make_shared<const State>("q0", true, false);
     const StatePointer state2  = std::make_shared<const State>("q1", false, false);
     const StatePointer state3  = std::make_shared<const State>("q2", false, false);
+    const StatePointer state4  = std::make_shared<const State>("q3", false, false);
 
     std::set<StatePointer> states  = {startState, state2, state3};
     FiniteControl control(states, {
-            {
-                         TransitionDomain(startState, {"B", "D", "B"}),
-                    TransitionImage(state2, {"1", "1", "0"}, {Left, Right, Left})
-            },
-            {
-                         TransitionDomain(state2, {"B", "B", "B"}),
-                    TransitionImage(state3, {"1", "0", "1"}, {Up, Up, Left}),
-            },
-            {            TransitionDomain(state3, {"B", "A", "B"}),
-                    TransitionImage(state3, {"B", "1", "0"}, {Front, Right, Left}),
-            }
-    });
+        {
+            TransitionDomain(startState, {"B", "D", "B"}),
+            TransitionImage(state2, {"1", "1", "0"}, {Left, Right, Left})
+        },
+        {
+            TransitionDomain(state2, {"B", "B", "B"}),
+            TransitionImage(state3, {"1", "0", "1"}, {Up, Up, Left}),
+        },
+        {            TransitionDomain(state3, {"B", "A", "B"}),
+                TransitionImage(state4, {"1", "1", "0"}, {Front, Right, Left}),
+        },
+        {            TransitionDomain(state4, {"B", "B", "B"}),
+                TransitionImage(state4, {"1", "B", "B"}, {Front, Right, Left}),
+        }
+        });
     // tuple needs to have pointers of tapes
     std::tuple<TMTape3D*, TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape3d, tape2d, tape1d);
-    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, printTransition);
+    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
+    VisualisationManager* v = VisualisationManager::getInstance();
 
     tape2d->print();
     tape1d->print();
@@ -63,7 +78,11 @@ int main() {
     tm.doTransition();
     tape2d->print();
     tape1d->print();
+    for (int i = 0; i < 10; ++i) {
+        tm.doTransition();
+    }
 
+    v->waitForExit();
     delete tape3d;
     delete tape2d;
     delete tape1d;
