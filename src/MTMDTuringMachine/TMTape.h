@@ -17,6 +17,7 @@ public:
     virtual std::string getCurrentSymbol() const = 0;
     virtual bool moveTapeHead(const TMTapeDirection &direction) = 0;
     virtual void replaceCurrentSymbol(const std::string &newSymbol) = 0;
+    virtual unsigned int getElementSize() const = 0;
 
     int currentIndex;
 
@@ -32,6 +33,7 @@ public:
     std::string getCurrentSymbol() const final;
     bool moveTapeHead(const TMTapeDirection &direction) final;
     void replaceCurrentSymbol(const std::string &newSymbol) final;
+    unsigned int getElementSize() const final;
     void print() const;
 
     TMTapeCell& operator[](const signed int &index);
@@ -47,6 +49,7 @@ public:
     std::string getCurrentSymbol() const final;
     bool moveTapeHead(const TMTapeDirection &direction) final;
     void replaceCurrentSymbol(const std::string &newSymbol) final;
+    unsigned int getElementSize() const final;
     void print() const;
 
 
@@ -63,6 +66,7 @@ public:
     std::string getCurrentSymbol() const final;
     bool moveTapeHead(const TMTapeDirection &direction) final;
     void replaceCurrentSymbol(const std::string &newSymbol) final;
+    unsigned int getElementSize() const final;
 
     TMTape2D& operator[](const signed int &index);
     TMTape2D at(const signed int &index) const;

@@ -3,45 +3,23 @@
 //
 
 #include "TMTape.h"
+#include "TMTapeUtils.h"
 
 #include <iostream>
 #include <algorithm>
 
-int translateIndex(const int &size, const int index) {
-    return size/2+index;
-}
-template<class TMTapeElement>
-void expandTape(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int addedSize) {
-    cells.insert(cells.begin(), addedSize, std::make_shared<TMTapeElement>());
-    cells.insert(cells.end(), addedSize, std::make_shared<TMTapeElement>());
-}
 
-template<class TMTapeElement>
-TMTapeElement getTapeElementNoExpand(const std::vector<std::shared_ptr<TMTapeElement>> &cells, const int index) {
-    const int size = cells.size();
-    if(-size/2 > index || size/2 < index)
-        return TMTapeElement();
-    return *cells[translateIndex(cells.size(), index)];
-}
-template<class TMTapeElement>
-TMTapeElement& getTapeElement(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int index) {
-    const int size = (cells.size());
-    if(-size/2 > index || size/2 < index) {
-        const int amountToInsert = std::abs(index) - (size / 2);
-        expandTape(cells, amountToInsert);
-    }
-    return *cells[translateIndex(cells.size(), index)];
-}
+TMTapeCell & TMTape1D::operator[](const int &index) {return TMTapeUtils::getTapeElement(cells, index);}
+TMTape1D & TMTape2D::operator[](const int &index) {return TMTapeUtils::getTapeElement(cells, index);}
+TMTape2D &TMTape3D::operator[](const int &index) {return TMTapeUtils::getTapeElement(cells, index);}
 
+TMTapeCell TMTape1D::at(const int &index) const {return TMTapeUtils::getTapeElementNoExpand(cells, index);}
+TMTape1D TMTape2D::at(const int &index) const {return TMTapeUtils::getTapeElementNoExpand(cells, index);}
+TMTape2D TMTape3D::at(const int &index) const {return TMTapeUtils::getTapeElementNoExpand(cells, index);}
 
-TMTapeCell & TMTape1D::operator[](const int &index) {return getTapeElement(cells, index);}
-TMTape1D & TMTape2D::operator[](const int &index) {return getTapeElement(cells, index);}
-TMTape2D &TMTape3D::operator[](const int &index) {return getTapeElement(cells, index);}
-
-TMTapeCell TMTape1D::at(const int &index) const {return getTapeElementNoExpand(cells, index);}
-TMTape1D TMTape2D::at(const int &index) const {return getTapeElementNoExpand(cells, index);}
-TMTape2D TMTape3D::at(const int &index) const {return getTapeElementNoExpand(cells, index);}
-
+unsigned int TMTape1D::getElementSize() const {return cells.size();}
+unsigned int TMTape2D::getElementSize() const {return TMTapeUtils::getGreatestSize(cells);}
+unsigned int TMTape3D::getElementSize() const {return TMTapeUtils::getGreatestSize(cells);}
 
 void TMTape1D::replaceCurrentSymbol(const std::string &newSymbol) {
     (*this)[currentIndex].symbol = newSymbol;
@@ -66,8 +44,7 @@ std::string TMTape3D::getCurrentSymbol() const {
 bool TMTape1D::moveTapeHead(const TMTapeDirection &direction) {
     const int add = (direction == Right) ? 1 : (direction == Left) ? -1 : 0;
     currentIndex += add;
-    getTapeElement(cells, currentIndex);
-    //(*this)[currentIndex];
+    (*this)[currentIndex];
     return add || direction == Stationary;
 }
 bool TMTape2D::moveTapeHead(const TMTapeDirection &direction) {
@@ -77,7 +54,6 @@ bool TMTape2D::moveTapeHead(const TMTapeDirection &direction) {
     if(!moved) {
         add = (direction == Down) ? 1 : (direction == Up) ? -1 : 0;
         currentIndex += add;
-        getTapeElement(cells, currentIndex);
         (*this)[currentIndex];
     }
     for(const auto &currentTape : cells) {
@@ -92,12 +68,6 @@ bool TMTape3D::moveTapeHead(const TMTapeDirection &direction) {
     if(!moved) {
         add = (direction == Back) ? 1 : (direction == Front) ? -1 : 0;
         currentIndex += add;
-        if(tape.currentIndex == -1) {
-
-        }
-        getTapeElement(cells, currentIndex);
-        if(std::abs(tape.currentIndex) > 100) {
-        }
         (*this)[currentIndex];
     }
     for(const auto & currentTape : cells) {
@@ -116,10 +86,7 @@ void TMTape1D::print() const {
     std::cout << std::endl;
 }
 void TMTape2D::print() const {
-    const int greatestSize = static_cast<int>((*std::max_element(cells.begin(), cells.end(),
-                                                        [](const auto &a, const auto &b) {
-        return a->cells.size() < b->cells.size();
-    }))->cells.size());
+    const int greatestSize = TMTapeUtils::getGreatestSize(cells);
     int j = static_cast<int>(-(cells.size()/2));
     for (const auto& currentCellRow : cells) {
         for(int i=-greatestSize/2;i<=greatestSize/2;i++) {

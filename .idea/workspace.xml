@@ -20,12 +20,11 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="small changes to example of generic tm">
+    <list default="true" id="23df56bd-c1c4-4932-a9f5-f87fc1427563" name="Changes" comment="(hopefully) fixed invalid reads and weird index values for tapes">
+      <change afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTapeUtils.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/MTMDTuringMachine.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/MTMDTuringMachine/TMTape.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,7 +101,10 @@
       <workItem from="1700133236143" duration="37516000" />
       <workItem from="1700216651213" duration="12028000" />
       <workItem from="1700235557148" duration="24994000" />
-      <workItem from="1700425398918" duration="8392000" />
+      <workItem from="1700425398918" duration="8460000" />
+      <workItem from="1700480595778" duration="9000" />
+      <workItem from="1700480622115" duration="6000" />
+      <workItem from="1700480635555" duration="678000" />
     </task>
     <task id="LOCAL-00001" summary="added gitignore">
       <created>1699014579723</created>
@@ -167,7 +169,14 @@
       <option name="project" value="LOCAL" />
       <updated>1700238723075</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="(hopefully) fixed invalid reads and weird index values for tapes">
+      <created>1700433951524</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1700433951524</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -188,7 +197,8 @@
     <MESSAGE value="Functional turing Machine with a callback function, example in main.cpp" />
     <MESSAGE value="added todo" />
     <MESSAGE value="functional multi dimensional tape" />
-    <option name="LAST_COMMIT_MESSAGE" value="functional multi dimensional tape" />
+    <MESSAGE value="(hopefully) fixed invalid reads and weird index values for tapes" />
+    <option name="LAST_COMMIT_MESSAGE" value="(hopefully) fixed invalid reads and weird index values for tapes" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
