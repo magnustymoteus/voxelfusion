@@ -1,4 +1,6 @@
+#include <algorithm>
 #include "Visualisation.h"
+#include "../MTMDTuringMachine/TMTapeUtils.h"
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 800
 
@@ -64,7 +66,7 @@ Visualisation::Visualisation() {
     //what part of the window can OpenGL draw on
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     // Compile shader from files
-    shaderProgram = new Shader("vertex.glsl", "fragment.glsl");
+    shaderProgram = new Shader("src/Visualisation/vertex.glsl", "src/Visualisation/fragment.glsl");
     TMTape3D tape;
     rebuild(&tape);
 
@@ -100,23 +102,18 @@ void Visualisation::rebuild(TMTape3D *tape) {
     vertices.clear();
     indices.clear();
 
-    const long greatest2DSize = static_cast<long>(std::max_element(tape->cells.begin(), tape->cells.end(),
-                                                                 [](const TMTape2D &a, const TMTape2D &b) {
-                                                                     return a.cells.size() < b.cells.size();
-                                                                 })->cells.size());
-    for (long x = 0; x < tape->cells.size(); x++) {
-        TMTape2D& currentCellRow = tape->cells[x];
-        const long greatestSize = static_cast<long>(std::max_element(currentCellRow.cells.begin(), currentCellRow.cells.end(),
-                                                                     [](const TMTape1D &a, const TMTape1D &b) {
-                                                                         return a.cells.size() < b.cells.size();
-                                                                     })->cells.size());
-        for(long y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
-            for(long z= -greatestSize / 2; z <= greatestSize / 2; z++) {
-                if(currentCellRow[y][z].symbol != "B"){
+    const int greatest2DSize = TMTapeUtils::getGreatestSize(tape->cells);
+    int x = static_cast<int>(-(tape->cells.size() / 2));
+    for (const auto& currentCellRow : tape->cells) {
+        const long greatestSize = TMTapeUtils::getGreatestSize(currentCellRow->cells);
+        for(int y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
+            for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
+                if((*currentCellRow)[y][z].symbol != "B"){
                     createCube(vertices, indices, x, y, z, 1);
                 }
             }
         }
+        x++;
     }
     if(!VAO){ //first time
         VAO = new VertexArray();

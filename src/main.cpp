@@ -40,6 +40,7 @@ int main() {
     const StatePointer startState = std::make_shared<const State>("q0", true, false);
     const StatePointer state2  = std::make_shared<const State>("q1", false, false);
     const StatePointer state3  = std::make_shared<const State>("q2", false, false);
+    const StatePointer state4  = std::make_shared<const State>("q3", false, false);
 
     std::set<StatePointer> states  = {startState, state2, state3};
     FiniteControl control(states, {
@@ -52,12 +53,15 @@ int main() {
             TransitionImage(state3, {"1", "0", "1"}, {Up, Up, Left}),
         },
         {            TransitionDomain(state3, {"B", "A", "B"}),
-                TransitionImage(state3, {"B", "1", "0"}, {Front, Right, Left}),
+                TransitionImage(state4, {"1", "1", "0"}, {Front, Right, Left}),
+        },
+        {            TransitionDomain(state4, {"B", "B", "B"}),
+                TransitionImage(state4, {"1", "B", "B"}, {Front, Right, Left}),
         }
         });
     // tuple needs to have pointers of tapes
     std::tuple<TMTape3D*, TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape3d, tape2d, tape1d);
-    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, printTransition);
+    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
     VisualisationManager* v = VisualisationManager::getInstance();
 
     tape2d->print();
@@ -74,8 +78,9 @@ int main() {
     tm.doTransition();
     tape2d->print();
     tape1d->print();
-
-    v->setTape(tape3d);
+    for (int i = 0; i < 10; ++i) {
+        tm.doTransition();
+    }
 
     v->waitForExit();
     delete tape3d;
