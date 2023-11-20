@@ -32,14 +32,6 @@ void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const Transitio
 }
 
 int main() {
-    /*AugmentedCFG aCfg("CFG/input/CFG.json");
-    ItemSet nextItemSet;
-    nextItemSet.insert({"T", aCfg.getItemSet().at("T")});
-    CFGUtils::print(aCfg.getItemSet());
-    std::cout << std::endl;
-    CFGUtils::print(aCfg.computeClosure(nextItemSet));*/
-
-    // example
     auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
     auto *tape1d {new TMTape1D()};
