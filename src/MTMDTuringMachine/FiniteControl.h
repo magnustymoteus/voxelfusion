@@ -9,13 +9,15 @@
 
 #include "TMTape.h"
 
+enum StateType {State_NonHalting, State_Accepting, State_Rejecting};
+
 struct State {
+    const StateType type;
     const bool isInitial;
-    const bool isAccepting;
     const std::string name;
 
-    explicit State(const std::string &name, const bool &isInitial = false, const bool &isAccepting = false)
-            : isInitial(isInitial), isAccepting(isAccepting), name(name) {}
+    explicit State(const std::string &name, const bool &isInitial = false, const StateType &type = State_NonHalting)
+            : isInitial(isInitial), type(type), name(name) {}
     bool operator<(const State &other) const {return name < other.name;}
 };
 typedef std::shared_ptr<const State> StatePointer;

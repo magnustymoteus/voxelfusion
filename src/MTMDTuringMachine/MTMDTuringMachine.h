@@ -7,6 +7,7 @@
 
 #include "FiniteControl.h"
 #include <iostream>
+#include "invariants.h"
 
 
 /* Invariants:
@@ -29,6 +30,9 @@ private:
 
     FiniteControl control;
 
+    bool isHalted;
+    bool hasAccepted;
+
     // called every transition (if it's not nullptr)
     void (*updateCallback) (const std::tuple<TMTapeType*...> &tapes,
             const TransitionDomain &domain, const TransitionImage &image);
@@ -41,12 +45,13 @@ public:
           const TransitionDomain &domain, const TransitionImage &image) = nullptr) :
             tapeAlphabet(tapeAlphabet), inputAlphabet(inputAlphabet),
             tapes(tapes), tapeCount(sizeof...(TMTapeType)), control(control),
-
-            updateCallback(updateCallback){
+            updateCallback(updateCallback),
+            isHalted(false), hasAccepted(false){
         static_assert(std::conjunction<std::is_base_of<TMTape,TMTapeType>...>(), "TM was not given tapes!");
     }
     std::tuple<TMTapeType*...> getTapes() const {return tapes;}
   void doTransition() {
+      PRECONDITION(!isHalted);
       const std::vector<std::string> &currentSymbols = getCurrentTapeSymbols();
       const TransitionDomain domain(control.currentState, currentSymbols);
       const auto& foundDomain = control.transitions.find(domain);
@@ -59,8 +64,14 @@ public:
                       currentTape->moveTapeHead(image.directions[i]),
                      i++), ...);
               }, tapes);
+            if(control.currentState->type != State_NonHalting) {
+                isHalted = true;
+                if(control.currentState->type == State_Accepting) hasAccepted = true;
+            }
+            // callback gives updated xyz for block
          if(updateCallback) updateCallback(tapes, domain, image);
      }
+      else isHalted = true;
   }
 
   [[nodiscard]] std::vector<std::string> getCurrentTapeSymbols() const {
@@ -69,6 +80,14 @@ public:
       std::apply([&currentSymbols](auto&&... currentTape) {
           ((currentSymbols.push_back(currentTape->getCurrentSymbol())), ...);}, tapes);
       return currentSymbols;
+    }
+
+    void doTransitions(const bool &limit=false,const int &steps=0) {
+        int i = 0;
+        while(!isHalted || (limit && i<steps)) {
+            doTransition();
+            i++;
+        }
     }
 };
 

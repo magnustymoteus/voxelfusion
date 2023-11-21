@@ -124,7 +124,6 @@ std::string CFG::getStartingVariable() const {return starting_variable;}
 CFGProductionBodies CFG::getProductionBodies(const std::string &productionHead) const {
     return production_rules.at(productionHead);
 }
-
 std::set<std::string> CFG::computeFirstSet(const std::string &variable) const {
     std::set<std::string> result;
     if(isTerminal(variable) || variable.empty())
@@ -139,13 +138,6 @@ std::set<std::string> CFG::computeFirstSet(const std::string &variable) const {
     }
     return result;
 }
-// TODO: change computation of first sets so it's more adaptable for augmented CFG
-/*std::set<std::string> CFG::computeFirstSet(const CFGProductionBody &sententialForm) const {
-    if(isTerminal(sententialForm[0])) return {sententialForm[0]};
-    else if(sententialForm.size() >= 1) {
-
-    }
-}*/
 
 std::map<std::string, std::set<std::string>> CFG::computeFirstSets() const {
     std::map<std::string, std::set<std::string>> result;
