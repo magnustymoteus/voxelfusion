@@ -47,7 +47,7 @@ public:
             tapes(tapes), tapeCount(sizeof...(TMTapeType)), control(control),
             updateCallback(updateCallback),
             isHalted(false), hasAccepted(false){
-        static_assert(std::conjunction<std::is_base_of<TMTape,TMTapeType>...>(), "TM was not given tapes!");
+        static_assert(std::conjunction<std::is_base_of<TMTape,TMTapeType>...>(), "TM must only be given tapes!");
     }
     std::tuple<TMTapeType*...> getTapes() const {return tapes;}
   void doTransition() {
@@ -84,7 +84,7 @@ public:
 
     void doTransitions(const bool &limit=false,const int &steps=0) {
         int i = 0;
-        while(!isHalted || (limit && i<steps)) {
+        while((!limit && !isHalted) || (limit && i<steps)) {
             doTransition();
             i++;
         }
