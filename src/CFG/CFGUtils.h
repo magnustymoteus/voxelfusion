@@ -26,8 +26,9 @@ namespace CFGUtils {
 
     void print(const AugmentedProductionBodies &augmentedBodies);
 
-    void insertIfNotASubset(std::set<std::string> &a, const std::set<std::string> &b, bool &hasChanged);
+    void print(const CFG &cfg);
 
+    std::string getCurrentlyReadSymbol(const AugmentedProductionBody &body);
 
     bool addToItemSet(ItemSet &itemSet, const std::pair<std::string, AugmentedProductions> &newProductions);
 }

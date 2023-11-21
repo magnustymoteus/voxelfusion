@@ -1,5 +1,3 @@
-//#include "CFG/AugmentedCFG.h"
-//#include "CFG/CFGUtils.h"
 #include "MTMDTuringMachine/MTMDTuringMachine.h"
 #include "Visualisation/VisualisationManager.h"
 #include <thread>
@@ -64,10 +62,6 @@ int main() {
     MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
     VisualisationManager* v = VisualisationManager::getInstance();
 
-    /*tape2d->print();
-    tape1d->print();
-
-    tm.doTransition();
     tape2d->print();
     tape1d->print();
 
@@ -77,7 +71,11 @@ int main() {
 
     tm.doTransition();
     tape2d->print();
-    tape1d->print();*/
+    tape1d->print();
+
+    tm.doTransition();
+    tape2d->print();
+    tape1d->print();
 
     tm.doTransitions(10);
 

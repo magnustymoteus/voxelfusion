@@ -30,11 +30,6 @@ void CFGUtils::print(const CFGProductionBodies &bodies) {
         print(currentBody);
     }
 }
-void CFGUtils::insertIfNotASubset(std::set<std::string> &a, const std::set<std::string> &b, bool &hasChanged) {
-    const size_t sizeBefore = a.size();
-    a.insert(b.begin(), b.end());
-    hasChanged = hasChanged || sizeBefore != a.size();
-}
 void CFGUtils::print(const std::vector<std::string> &body) {
     std::cout << "`";
     for(unsigned int i=0;i<body.size();i++) {
@@ -72,6 +67,36 @@ void CFGUtils::print(const AugmentedProductionBodies &augmentedBodies) {
         print(currentAugmentedBody);
     }
 }
+void CFGUtils::print(const CFG &cfg) {
+    std::cout << "V = ";
+    CFGUtils::print(cfg.getVariables());
+
+    std::cout << "T = ";
+    CFGUtils::print(cfg.getTerminals());
+
+    std::cout << "P = {\n";
+    for (std::pair<std::string, CFGProductionBodies> currentRule: cfg.getProductionRules()) {
+        sort(currentRule.second.begin(), currentRule.second.end());
+        for (unsigned int i=0; i < currentRule.second.size(); i++) {
+            std::cout << "\t" << currentRule.first << " -> `";
+            for (unsigned int j=0; j < currentRule.second[i].size(); j++) {
+                std::cout << currentRule.second[i][j];
+                if(j+1 != currentRule.second[i].size()) std::cout << " ";
+            }
+            std::cout << "`\n";
+        }
+    }
+    std::cout << "}\n";
+    std::cout << "S = " << cfg.getStartingVariable();
+    std::cout << std::endl;
+
+}
+std::string CFGUtils::getCurrentlyReadSymbol(const AugmentedProductionBody &body) {
+    if(body.getReadingIndex() < body.getContent().size()) {
+        return body.getContent()[body.getReadingIndex()];
+    }
+    return "";
+}
 // add rules to item set entry if they don't exist already
 // returns true if the itemset entry has been changed at the end
 bool CFGUtils::addToItemSet(ItemSet &itemSet, const std::pair<std::string, AugmentedProductions> &newProductions) {
@@ -89,7 +114,8 @@ bool CFGUtils::addToItemSet(ItemSet &itemSet, const std::pair<std::string, Augme
         for(const AugmentedProductionBody &currentNewBody : productionsRhs.getBodies()) {
             bool insertCurrentNewBody = true;
             for(const AugmentedProductionBody &currentExistingBody : productions.getBodies()) {
-                if(currentNewBody.getContent() == currentExistingBody.getContent()) {
+                if(currentNewBody.getContent() == currentExistingBody.getContent() &&
+                currentNewBody.getReadingIndex() == currentExistingBody.getReadingIndex()) {
                     insertCurrentNewBody = false;
                 }
             }
@@ -97,11 +123,13 @@ bool CFGUtils::addToItemSet(ItemSet &itemSet, const std::pair<std::string, Augme
         }
 
         const unsigned int capturedBodiesSize = productions.getBodies().size();
+        const unsigned int capturedLookaheadsSize = productions.getLookaheads().size();
 
         productions.bodies.insert(productions.bodies.begin(), newBodies.begin(), newBodies.end());
         productions.lookaheads.insert(newLookaheads.begin(), newLookaheads.end());
 
 
-        return capturedBodiesSize != productions.getBodies().size();
+        return capturedBodiesSize != productions.getBodies().size() ||
+            capturedLookaheadsSize != productions.getLookaheads().size();
     }
 }

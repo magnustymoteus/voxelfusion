@@ -35,7 +35,6 @@ struct AugmentedProductions {
 
 typedef std::map<std::string, AugmentedProductions> ItemSet;
 
-// TODO: finish computeClosure
 class AugmentedCFG : public CFG {
 private:
     ItemSet itemSet;
@@ -47,6 +46,7 @@ public:
     [[nodiscard]] std::string getAugmentedStartingVariable() const;
     [[nodiscard]] ItemSet getItemSet() const;
     [[nodiscard]] ItemSet computeClosure(const ItemSet &itemSet) const;
+    [[nodiscard]] ItemSet computeGoto(const ItemSet &itemSet, const std::string &symbol) const;
 };
 
 
