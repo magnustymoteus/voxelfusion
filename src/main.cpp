@@ -79,7 +79,7 @@ int main() {
     tape2d->print();
     tape1d->print();*/
 
-    tm.doTransitions(true, 10);
+    tm.doTransitions(10);
 
     v->waitForExit();
     delete tape3d;

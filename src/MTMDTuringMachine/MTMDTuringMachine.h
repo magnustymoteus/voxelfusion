@@ -82,9 +82,10 @@ public:
       return currentSymbols;
     }
 
-    void doTransitions(const bool &limit=false,const int &steps=0) {
+    void doTransitions(const int &steps=-1) {
         int i = 0;
-        while((!limit && !isHalted) || (limit && i<steps)) {
+        const bool definite = (steps >= 0);
+        while((!definite && !isHalted) || (definite && i<steps)) {
             doTransition();
             i++;
         }
