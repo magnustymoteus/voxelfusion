@@ -1,5 +1,3 @@
-//#include "CFG/AugmentedCFG.h"
-//#include "CFG/CFGUtils.h"
 #include "MTMDTuringMachine/MTMDTuringMachine.h"
 #include "Visualisation/VisualisationManager.h"
 #include <thread>
@@ -37,10 +35,10 @@ int main() {
     auto *tape1d {new TMTape1D()};
     (*tape2d)[0][0].symbol = "D";
     (*tape2d)[-1][1].symbol = "A";
-    const StatePointer startState = std::make_shared<const State>("q0", true, false);
-    const StatePointer state2  = std::make_shared<const State>("q1", false, false);
-    const StatePointer state3  = std::make_shared<const State>("q2", false, false);
-    const StatePointer state4  = std::make_shared<const State>("q3", false, false);
+    const StatePointer startState = std::make_shared<const State>("q0", true);
+    const StatePointer state2  = std::make_shared<const State>("q1", false);
+    const StatePointer state3  = std::make_shared<const State>("q2", false);
+    const StatePointer state4  = std::make_shared<const State>("q3", false);
 
     std::set<StatePointer> states  = {startState, state2, state3};
     FiniteControl control(states, {
@@ -78,9 +76,8 @@ int main() {
     tm.doTransition();
     tape2d->print();
     tape1d->print();
-    for (int i = 0; i < 10; ++i) {
-        tm.doTransition();
-    }
+
+    tm.doTransitions(10);
 
     v->waitForExit();
     delete tape3d;

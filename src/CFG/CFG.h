@@ -9,7 +9,6 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "Parser/LL1Parser/LL1Parser.h"
 
 #define EOS_MARKER "<EOS>"
 #define ERR_MARKER "<ERR>"
@@ -21,16 +20,12 @@ typedef std::pair<std::string, CFGProductionBodies> CFGProductionRule;
 
 // TODO: modify first set computation
 class CFG {
-private:
+protected:
     bool isValid(std::string &errorMessage) const;
     std::set<std::string> variables;
     std::set<std::string> terminals;
     CFGProductionRules production_rules; // key: head : array of bodies
     std::string starting_variable;
-
-    void computeFollowSet(
-            const std::string &variable, std::map<std::string, std::set<std::string>> &followSets,
-            bool &setHasChanged) const;
 
 public:
     CFG(const std::set<std::string> &variables_arg,
@@ -40,10 +35,8 @@ public:
     CFG() = default;
     explicit CFG(const std::string &jsonPath);
 
-    void print() const;
-
-    void ll() const;
     [[nodiscard]] bool isTerminal(const std::string &symbol) const;
+    [[nodiscard]] bool isVariable(const std::string &symbol) const;
 
     [[nodiscard]] std::set<std::string> getVariables() const;
     [[nodiscard]] std::set<std::string> getTerminals() const;
@@ -52,14 +45,8 @@ public:
     [[nodiscard]] CFGProductionBodies getProductionBodies(const std::string &productionHead) const;
 
     [[nodiscard]] std::set<std::string> computeFirstSet(const std::string &variable) const;
-    //[[nodiscard]] std::set<std::string> computeFirstSet(const CFGProductionBody &sententialForm) const;
 
     [[nodiscard]] std::map<std::string, std::set<std::string>> computeFirstSets() const;
-
-    [[nodiscard]] std::map<std::string, std::set<std::string>> computeFollowSets() const;
-
-    [[nodiscard]] static std::string bodyToStr(const std::vector<std::string> &body);
-
 };
 
 

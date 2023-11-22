@@ -24,8 +24,8 @@ bool CFG::isTerminal(const std::string &symbol) const {
     return terminals.find(symbol) != terminals.end();
 }
 
-void CFG::ll() const {
-    LL1Parser{*this}.print();
+bool CFG::isVariable(const std::string &symbol) const {
+    return variables.find(symbol) != variables.end();
 }
 CFG::CFG(const std::set<std::string> &variables_arg,
          const std::set<std::string> &terminals_arg,
@@ -81,41 +81,6 @@ bool CFG::isValid(std::string &errorMessageRef) const {
     if(!errorMessage.empty()) errorMessageRef = errorMessage;
     return errorMessage.empty();
 }
-std::string CFG::bodyToStr(const std::vector<std::string> &body) {
-    std::string result;
-    if(!body.empty()) {
-        result += "`";
-        for (unsigned int i = 0; i < body.size(); i++) {
-            if (i > 0) result += " ";
-            result += body[i];
-        }
-        result += "`";
-    }
-    return result;
-}
-void CFG::print() const {
-    std::cout << "V = ";
-    CFGUtils::print(getVariables());
-
-    std::cout << "T = ";
-    CFGUtils::print(getTerminals());
-
-    std::cout << "P = {\n";
-    for (std::pair<std::string, CFGProductionBodies> currentRule: production_rules) {
-        sort(currentRule.second.begin(), currentRule.second.end());
-        for (unsigned int i=0; i < currentRule.second.size(); i++) {
-            std::cout << "\t" << currentRule.first << " -> `";
-            for (unsigned int j=0; j < currentRule.second[i].size(); j++) {
-                std::cout << currentRule.second[i][j];
-                if(j+1 != currentRule.second[i].size()) std::cout << " ";
-            }
-            std::cout << "`\n";
-        }
-    }
-    std::cout << "}\n";
-    std::cout << "S = " << starting_variable;
-    std::cout << std::endl;
-}
 
 std::set<std::string> CFG::getVariables() const {return variables;}
 std::set<std::string> CFG::getTerminals() const {return terminals;}
@@ -124,10 +89,9 @@ std::string CFG::getStartingVariable() const {return starting_variable;}
 CFGProductionBodies CFG::getProductionBodies(const std::string &productionHead) const {
     return production_rules.at(productionHead);
 }
-
 std::set<std::string> CFG::computeFirstSet(const std::string &variable) const {
     std::set<std::string> result;
-    if(isTerminal(variable) || variable.empty())
+    if(!isVariable(variable))
         return {variable};
     for(const CFGProductionBody &currentBody : getProductionBodies(variable)) {
         const std::set<std::string> &set = computeFirstSet(currentBody[0]);
@@ -139,74 +103,11 @@ std::set<std::string> CFG::computeFirstSet(const std::string &variable) const {
     }
     return result;
 }
-// TODO: change computation of first sets so it's more adaptable for augmented CFG
-/*std::set<std::string> CFG::computeFirstSet(const CFGProductionBody &sententialForm) const {
-    if(isTerminal(sententialForm[0])) return {sententialForm[0]};
-    else if(sententialForm.size() >= 1) {
-
-    }
-}*/
 
 std::map<std::string, std::set<std::string>> CFG::computeFirstSets() const {
     std::map<std::string, std::set<std::string>> result;
     for(const std::string &currentVariable : getVariables()) {
         result[currentVariable] = computeFirstSet(currentVariable);
-    }
-    return result;
-}
-
-void CFG::computeFollowSet(const std::string &variable,
-                                        std::map<std::string,std::set<std::string>> &followSets,
-                                        bool &setHasChanged) const {
-    // TO DO: fix this by replacing FIRST(...) - EPSILON U FOLLOW(...) TO FIRST(...) - EPSILOJ U FIRST(...) because
-    // when epsilon gets derived u need to get the first of the next one
-
-    /* FOLLOW(A) = {a|S ⇒* αAaβ where α, β can be any strings} */
-    if(variable == getStartingVariable())
-        CFGUtils::insertIfNotASubset(followSets[variable],{EOS_MARKER}, setHasChanged);
-    if(production_rules.find(variable) != production_rules.end()) {
-        for (const CFGProductionBody &currentBody: getProductionBodies(variable)) {
-            for (unsigned int i = 0; i < currentBody.size(); i++) {
-                const std::string &current = currentBody[i];
-                const bool &currentIsTerminal = isTerminal(current);
-                if (i != currentBody.size() - 1 && !currentIsTerminal) {
-                    bool hasEpsilon = false;
-                    for (unsigned int j = i + 1; j < currentBody.size(); j++) {
-                        const std::string &currentNext = currentBody[j];
-                        std::set<std::string> firstSet = computeFirstSet(currentNext);
-                        hasEpsilon = firstSet.find("") != firstSet.end();
-                        firstSet.erase("");
-                        CFGUtils::insertIfNotASubset(followSets[current], firstSet, setHasChanged);
-                        if (!hasEpsilon) break;
-                    }
-                    if (hasEpsilon) {
-                        CFGUtils::insertIfNotASubset(followSets[current], followSets[variable], setHasChanged);
-                    }
-
-                }
-                    /* If production is of form A → αB, then Follow (B) ={FOLLOW (A)}. */
-                else if (!currentIsTerminal && !current.empty()) {
-                    const std::set<std::string> &followSet = followSets[variable];
-                    CFGUtils::insertIfNotASubset(followSets[current], followSet, setHasChanged);
-                }
-            }
-        }
-    }
-}
-
-
-std::map<std::string, std::set<std::string>> CFG::computeFollowSets() const {
-    // update follow sets until no update is happening
-    std::map<std::string, std::set<std::string>> result;
-    bool setHasChanged = true;
-    while(setHasChanged) {
-        setHasChanged = false;
-        for (const std::string &currentVariable: getVariables()) {
-            computeFollowSet(currentVariable, result, setHasChanged);
-        }
-    }
-    for(auto &currentFollowSet : result) {
-        currentFollowSet.second.erase("");
     }
     return result;
 }

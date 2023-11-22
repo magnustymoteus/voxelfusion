@@ -16,8 +16,8 @@ augmentedStartingVariable(getStartingVariable()+"'") {
     // add S' manually
     AugmentedProductionBody startingProductionBody({getStartingVariable()});
     AugmentedProductions startingProduction({startingProductionBody}, {EOS_MARKER});
-    itemSet.insert({getStartingVariable(), startingProduction});
-    const std::map<std::string, std::set<std::string>> &followSets = computeFollowSets();
+    itemSet.insert({getAugmentedStartingVariable(), startingProduction});
+    variables.insert(getAugmentedStartingVariable());
 
     for(const auto &currentProductions : getProductionRules()) {
     std::vector<AugmentedProductionBody> bodies;
@@ -25,9 +25,10 @@ augmentedStartingVariable(getStartingVariable()+"'") {
             AugmentedProductionBody body(currentBody);
             bodies.push_back(body);
         }
-         AugmentedProductions productions(bodies, followSets.at(currentProductions.first));
+         AugmentedProductions productions(bodies);
          itemSet.insert({currentProductions.first, productions});
     }
+    itemSet = computeClosure(itemSet);
 }
 
 ItemSet AugmentedCFG::computeClosure(const ItemSet &givenItemSet) const {
@@ -37,17 +38,50 @@ ItemSet AugmentedCFG::computeClosure(const ItemSet &givenItemSet) const {
         changed = false;
         for (const auto &currentProductions: result) {
             for (const auto &currentBody: currentProductions.second.getBodies()) {
-                const std::string readSymbol = currentBody.getContent()[currentBody.getReadingIndex()];
-                if (!isTerminal(readSymbol)) {
-                    const AugmentedProductions productions(getProductionBodies(readSymbol));
-                    changed = changed || CFGUtils::addToItemSet(result, {readSymbol, productions});
-                }
+                const std::string currentVariable = CFGUtils::getCurrentlyReadSymbol(currentBody);
+                    if (isVariable(currentVariable)) {
+                        const CFGProductionBodies &currentVariableBodies = getProductionBodies(currentVariable);
+                        for(const CFGProductionBody &currentVariableBody : currentVariableBodies) {
+                            const std::vector<std::string> &afterCurrentVariable = [&]() {
+                                const unsigned int &readingIndex = currentBody.getReadingIndex();
+                                const std::vector<std::string>& bodyContent =  currentBody.getContent();
+                                return std::vector<std::string>(bodyContent.begin()+readingIndex+1, bodyContent.end());
+                            }();
+                            std::set<std::vector<std::string>> concatenatedFirstElems;
+                            for(const std::string &currentLookahead : currentProductions.second.lookaheads) {
+                                std::vector<std::string> concatenatedFirstElem = afterCurrentVariable;
+                                concatenatedFirstElem.push_back(currentLookahead);
+                                concatenatedFirstElems.insert(concatenatedFirstElem);
+                            }
+                            for(const std::vector<std::string> &currentConcatElem : concatenatedFirstElems) {
+                                    for (const std::string &currentTerminal: computeFirstSet(currentConcatElem[0])) {
+                                        const AugmentedProductions &newProductions =
+                                                AugmentedProductions({AugmentedProductionBody(currentVariableBody)},
+                                                                     {currentTerminal});
+                                        changed = changed ||
+                                                  CFGUtils::addToItemSet(result, {currentVariable, newProductions});
+                                    }
+                            }
+                        }
+                    }
             }
         }
     }
     return result;
 }
-
+ItemSet AugmentedCFG::computeGoto(const ItemSet &givenItemSet, const std::string &givenSymbol) const {
+    ItemSet result;
+    for (const auto &currentProductions: givenItemSet) {
+        for (auto currentBody: currentProductions.second.getBodies()) {
+            if(CFGUtils::getCurrentlyReadSymbol(currentBody) == givenSymbol) {
+                currentBody.readingIndex++;
+                AugmentedProductions newElement({currentBody}, currentProductions.second.lookaheads);
+                CFGUtils::addToItemSet(result, {currentProductions.first, newElement});
+            }
+        }
+    }
+    return computeClosure(result);
+}
 std::string AugmentedCFG::getAugmentedStartingVariable() const {
     return augmentedStartingVariable;
 }

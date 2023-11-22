@@ -6,8 +6,6 @@
 #include "TMTapeUtils.h"
 
 #include <iostream>
-#include <algorithm>
-
 
 TMTapeCell & TMTape1D::operator[](const int &index) {return TMTapeUtils::getTapeElement(cells, index);}
 TMTape1D & TMTape2D::operator[](const int &index) {return TMTapeUtils::getTapeElement(cells, index);}
@@ -83,7 +81,7 @@ void TMTape1D::print() const {
         std::cout << currentCell->symbol << "\033[0m ";
        i++;
     }
-    std::cout << std::endl;
+    std::cout << std::endl << std::endl;
 }
 void TMTape2D::print() const {
     const int greatestSize = TMTapeUtils::getGreatestSize(cells);
