@@ -5,10 +5,10 @@
 
 #include "CFG/AugmentedCFG.h"
 
-// TODO: generate item sets, ...
 class CLR1Parser {
 private:
-    std::map<ItemSet, std::map<std::string, ItemSet>> itemSetTransitionMap;
+    std::vector<ItemSet> itemSets;
+    std::map<unsigned int, std::map<std::string, unsigned int>> itemSetTransitionMap;
 public:
     explicit CLR1Parser(const AugmentedCFG &);
 };

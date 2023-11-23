@@ -4,11 +4,18 @@
 #include "CFG/CFGUtils.h"
 #include <iostream>
 
+
 bool AugmentedProductionBody::operator<(const AugmentedProductionBody &body) const {
     return getContent() < body.getContent();
 }
+bool AugmentedProductionBody::operator==(const AugmentedProductionBody &other) const {
+    return content == other.content && readingIndex == other.readingIndex;
+}
 bool AugmentedProductions::operator<(const AugmentedProductions &productions) const {
     return getBodies() < productions.getBodies();
+}
+bool AugmentedProductions::operator==(const AugmentedProductions &other) const {
+    return (bodies == other.bodies) && (lookaheads == other.lookaheads);
 }
 
 AugmentedCFG::AugmentedCFG(const std::string &jsonPath) : CFG(jsonPath),

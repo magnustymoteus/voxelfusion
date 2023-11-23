@@ -83,12 +83,21 @@ bool CFG::isValid(std::string &errorMessageRef) const {
 }
 
 std::set<std::string> CFG::getVariables() const {return variables;}
+
 std::set<std::string> CFG::getTerminals() const {return terminals;}
+std::set<std::string> CFG::getAllSymbols() const {
+    std::set<std::string> allSymbols = variables;
+    allSymbols.insert(terminals.begin(), terminals.end());
+    return allSymbols;
+}
+
 CFGProductionRules  CFG::getProductionRules() const {return production_rules;}
+
 std::string CFG::getStartingVariable() const {return starting_variable;}
 CFGProductionBodies CFG::getProductionBodies(const std::string &productionHead) const {
     return production_rules.at(productionHead);
 }
+
 std::set<std::string> CFG::computeFirstSet(const std::string &variable) const {
     std::set<std::string> result;
     if(!isVariable(variable))
