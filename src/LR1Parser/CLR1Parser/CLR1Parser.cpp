@@ -1,7 +1,6 @@
 //
 
 #include "CLR1Parser.h"
-#include <iostream>
 #include <exception>
 #include "CFG/CFGUtils.h"
 
@@ -44,12 +43,10 @@ void CLR1Parser::createReduceAndAcceptActions() {
                             // Accept
                             if (currentProductions.first == augmentedCfg.getStartingVariable()
                                 && currentLookahead == EOS_MARKER) {
-                                std::cout << "Accept\n";
                                 parseTable[i].actionMap[currentLookahead] = std::make_unique<Accept>();
                             }
                             // Reduce
                             else {
-                                CFGUtils::print(currentBody);
                                 parseTable[i].actionMap[currentLookahead] =
                                         std::make_unique<Reduce>(currentProductions.first, currentBody);
                             }
