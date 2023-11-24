@@ -81,9 +81,9 @@ ItemSet AugmentedCFG::computeGoto(const ItemSet &givenItemSet, const std::string
     for (const auto &currentProductions: givenItemSet) {
         for (auto currentBody: currentProductions.second.getBodies()) {
             if(CFGUtils::getCurrentlyReadSymbol(currentBody) == givenSymbol) {
-                currentBody.readingIndex++;
-                AugmentedProductions newElement({currentBody}, currentProductions.second.lookaheads);
-                CFGUtils::addToItemSet(result, {currentProductions.first, newElement});
+                  currentBody.readingIndex++;
+                  AugmentedProductions newElement({currentBody}, currentProductions.second.lookaheads);
+                  CFGUtils::addToItemSet(result, {currentProductions.first, newElement});
             }
         }
     }
