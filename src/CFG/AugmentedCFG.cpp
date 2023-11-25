@@ -15,7 +15,10 @@ bool AugmentedProductions::operator<(const AugmentedProductions &productions) co
     return getBodies() < productions.getBodies();
 }
 bool AugmentedProductions::operator==(const AugmentedProductions &other) const {
-    return (bodies == other.bodies) && (lookaheads == other.lookaheads);
+    return isEqualCorewise(other) && (lookaheads == other.lookaheads);
+}
+bool AugmentedProductions::isEqualCorewise(const AugmentedProductions &other) const {
+    return bodies == other.bodies;
 }
 
 AugmentedCFG::AugmentedCFG(const std::string &jsonPath) : CFG(jsonPath),

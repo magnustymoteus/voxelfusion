@@ -31,5 +31,7 @@ namespace CFGUtils {
     std::string getCurrentlyReadSymbol(const AugmentedProductionBody &body);
 
     bool addToItemSet(ItemSet &itemSet, const std::pair<std::string, AugmentedProductions> &newProductions);
+
+    bool equalCoreWise(const ItemSet &itemSet1, const ItemSet &itemSet2);
 }
 #endif //CFG_UTILS_H

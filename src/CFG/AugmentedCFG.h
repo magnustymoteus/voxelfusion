@@ -32,6 +32,8 @@ struct AugmentedProductions {
     std::vector<AugmentedProductionBody> getBodies() const {return bodies;}
     std::set<std::string> getLookaheads() const {return lookaheads;}
 
+    bool isEqualCorewise(const AugmentedProductions &other) const;
+
     bool operator<(const AugmentedProductions &other) const;
     bool operator==(const AugmentedProductions &other) const;
 };

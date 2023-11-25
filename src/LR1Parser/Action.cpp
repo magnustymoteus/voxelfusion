@@ -2,14 +2,14 @@
 
 #include "Action.h"
 
-void Reduce::performAction() {
+void Reduce::operator()() {
 
 }
 
-void Shift::performAction() {
+void Shift::operator()() {
 
 }
 
-void Accept::performAction() {
+void Accept::operator()() {
 
 }
