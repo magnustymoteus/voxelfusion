@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 namespace TMTapeUtils {
     int translateIndex(const int &size, const int &index);

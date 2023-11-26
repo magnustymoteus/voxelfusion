@@ -2,6 +2,7 @@
 
 #include "LR1Parser.h"
 #include <iostream>
+#include <algorithm>
 #include "CFG/CFGUtils.h"
 
 void LR1Parser::createShiftActions() {

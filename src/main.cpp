@@ -38,25 +38,12 @@ int main() {
     (*tape3d)[0][3][0].symbol = "D";
     (*tape3d)[0][0][2].symbol = "D";
     const StatePointer startState = std::make_shared<const State>("q0", true);
-    const StatePointer state2  = std::make_shared<const State>("q1", false);
-    const StatePointer state3  = std::make_shared<const State>("q2", false);
-    const StatePointer state4  = std::make_shared<const State>("q3", false);
 
-    std::set<StatePointer> states  = {startState, state2, state3};
+    std::set<StatePointer> states  = {startState};
     FiniteControl control(states, {
             {
                          TransitionDomain(startState, {"B"}),
-                    TransitionImage(state2, {"1"}, {Left})
-            },
-            {
-                         TransitionDomain(state2, {"B"}),
-                    TransitionImage(state3, {"1"}, {Up}),
-            },
-            {            TransitionDomain(state3, {"B"}),
-                    TransitionImage(state4, {"1"}, {Front}),
-            },
-            {            TransitionDomain(state4, {"B"}),
-                    TransitionImage(state4, {"1"}, {Front}),
+                    TransitionImage(startState, {"B"}, {Stationary})
             }
     });
 
