@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 
+
 void CFGUtils::print(const std::set<std::string> &set) {
     std::set<std::string> newSet = set;
     const bool containsEpsilon = newSet.find("") != newSet.end();
@@ -133,4 +134,14 @@ bool CFGUtils::addToItemSet(ItemSet &itemSet, const std::pair<std::string, Augme
         return capturedBodiesSize != productions.getBodies().size() ||
             capturedLookaheadsSize != productions.getLookaheads().size();
     }
+}
+
+bool CFGUtils::equalCoreWise(const ItemSet &itemSet1, const ItemSet &itemSet2) {
+    if(itemSet1.size() != itemSet2.size()) return false;
+    // checks if all productions are equal core-wise (grammar body is equal but not necessarily the lookaheads)
+    return std::all_of(itemSet1.begin(), itemSet1.end(), [&]( const std::pair<std::string, AugmentedProductions> &currentProductions) {
+        const auto iter = itemSet2.find(currentProductions.first);
+        if(iter == itemSet2.end()) return false;
+        return currentProductions.second.isEqualCorewise(iter->second);
+    });
 }

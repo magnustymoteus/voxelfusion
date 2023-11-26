@@ -35,18 +35,19 @@ public:
     CFG() = default;
     explicit CFG(const std::string &jsonPath);
 
-    [[nodiscard]] bool isTerminal(const std::string &symbol) const;
-    [[nodiscard]] bool isVariable(const std::string &symbol) const;
+    bool isTerminal(const std::string &symbol) const;
+    bool isVariable(const std::string &symbol) const;
 
-    [[nodiscard]] std::set<std::string> getVariables() const;
-    [[nodiscard]] std::set<std::string> getTerminals() const;
-    [[nodiscard]] CFGProductionRules  getProductionRules() const;
-    [[nodiscard]] std::string getStartingVariable() const;
-    [[nodiscard]] CFGProductionBodies getProductionBodies(const std::string &productionHead) const;
+    std::set<std::string> getVariables() const;
+    std::set<std::string> getTerminals() const;
+    std::set<std::string> getAllSymbols() const;
+    CFGProductionRules  getProductionRules() const;
+    std::string getStartingVariable() const;
+    CFGProductionBodies getProductionBodies(const std::string &productionHead) const;
 
-    [[nodiscard]] std::set<std::string> computeFirstSet(const std::string &variable) const;
+    std::set<std::string> computeFirstSet(const std::string &variable) const;
 
-    [[nodiscard]] std::map<std::string, std::set<std::string>> computeFirstSets() const;
+    std::map<std::string, std::set<std::string>> computeFirstSets() const;
 };
 
 

@@ -4,11 +4,21 @@
 #include "CFG/CFGUtils.h"
 #include <iostream>
 
+
 bool AugmentedProductionBody::operator<(const AugmentedProductionBody &body) const {
     return getContent() < body.getContent();
 }
+bool AugmentedProductionBody::operator==(const AugmentedProductionBody &other) const {
+    return content == other.content && readingIndex == other.readingIndex;
+}
 bool AugmentedProductions::operator<(const AugmentedProductions &productions) const {
     return getBodies() < productions.getBodies();
+}
+bool AugmentedProductions::operator==(const AugmentedProductions &other) const {
+    return isEqualCorewise(other) && (lookaheads == other.lookaheads);
+}
+bool AugmentedProductions::isEqualCorewise(const AugmentedProductions &other) const {
+    return bodies == other.bodies;
 }
 
 AugmentedCFG::AugmentedCFG(const std::string &jsonPath) : CFG(jsonPath),
@@ -74,9 +84,9 @@ ItemSet AugmentedCFG::computeGoto(const ItemSet &givenItemSet, const std::string
     for (const auto &currentProductions: givenItemSet) {
         for (auto currentBody: currentProductions.second.getBodies()) {
             if(CFGUtils::getCurrentlyReadSymbol(currentBody) == givenSymbol) {
-                currentBody.readingIndex++;
-                AugmentedProductions newElement({currentBody}, currentProductions.second.lookaheads);
-                CFGUtils::addToItemSet(result, {currentProductions.first, newElement});
+                  currentBody.readingIndex++;
+                  AugmentedProductions newElement({currentBody}, currentProductions.second.lookaheads);
+                  CFGUtils::addToItemSet(result, {currentProductions.first, newElement});
             }
         }
     }

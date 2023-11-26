@@ -13,10 +13,11 @@ struct AugmentedProductionBody {
     content(content), readingIndex(readingIndex) {}
     explicit AugmentedProductionBody(const CFGProductionBody &content) : content(content), readingIndex(0) {}
 
-    [[nodiscard]] CFGProductionBody getContent() const {return content;}
-    [[nodiscard]] unsigned int getReadingIndex() const {return readingIndex;}
+    CFGProductionBody getContent() const {return content;}
+    unsigned int getReadingIndex() const {return readingIndex;}
 
-    bool operator<(const AugmentedProductionBody &body) const;
+    bool operator<(const AugmentedProductionBody &other) const;
+    bool operator==(const AugmentedProductionBody &other) const;
 };
 typedef std::vector<AugmentedProductionBody> AugmentedProductionBodies;
 
@@ -28,10 +29,15 @@ struct AugmentedProductions {
     bodies(bodies), lookaheads(lookaheads) {}
     explicit AugmentedProductions(const CFGProductionBodies &bodies);
 
-    [[nodiscard]] std::vector<AugmentedProductionBody> getBodies() const {return bodies;}
-    [[nodiscard]] std::set<std::string> getLookaheads() const {return lookaheads;}
-    bool operator<(const AugmentedProductions &productions) const;
+    std::vector<AugmentedProductionBody> getBodies() const {return bodies;}
+    std::set<std::string> getLookaheads() const {return lookaheads;}
+
+    bool isEqualCorewise(const AugmentedProductions &other) const;
+
+    bool operator<(const AugmentedProductions &other) const;
+    bool operator==(const AugmentedProductions &other) const;
 };
+
 
 typedef std::map<std::string, AugmentedProductions> ItemSet;
 
@@ -43,10 +49,10 @@ private:
 public:
     explicit AugmentedCFG(const std::string &jsonPath);
 
-    [[nodiscard]] std::string getAugmentedStartingVariable() const;
-    [[nodiscard]] ItemSet getItemSet() const;
-    [[nodiscard]] ItemSet computeClosure(const ItemSet &itemSet) const;
-    [[nodiscard]] ItemSet computeGoto(const ItemSet &itemSet, const std::string &symbol) const;
+    std::string getAugmentedStartingVariable() const;
+    ItemSet getItemSet() const;
+    ItemSet computeClosure(const ItemSet &itemSet) const;
+    ItemSet computeGoto(const ItemSet &itemSet, const std::string &symbol) const;
 };
 
 
