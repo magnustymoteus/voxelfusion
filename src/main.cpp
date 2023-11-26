@@ -54,10 +54,10 @@ int main() {
     TMTape3D* tape = new TMTape3D;
     utils::load_obj("tests/parsing/obj/teapot.obj", mesh);
     utils::voxelise(mesh, voxelSpace, 0.4);
-    utils::voxelSpaceToTape(voxelSpace, *tape, "D");
+    utils::voxelSpaceToTape(voxelSpace, *tape, "D", true);
 
     // tuple needs to have pointers of tapes
-    std::tuple<TMTape3D*> tapes = std::make_tuple(tape);
+    std::tuple<TMTape3D*> tapes = std::make_tuple(tape3d);
     MTMDTuringMachine<TMTape3D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
     VisualisationManager* v = VisualisationManager::getInstance();
     tm.doTransition();
