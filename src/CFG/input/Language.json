@@ -1,6 +1,6 @@
 {
   "Variables": ["<Statement>", "<Identifier>", "<Expression>", "<StatementList>", "<Term>", "<Factor>"],
-  "Terminals": ["Identifier", "Integer", "Decimal", "(",")","{","}", "+", "*","if", "while", ";", "="],
+  "Terminals": ["Identifier", "Integer", "Decimal", "(",")","{","}", "+", "*","if", "while", ";", "=", "/", "-"],
   "Productions": [
     {"head": "<Statement>", "body": ["Identifier", "=", "<Expression>", ";"]},
     {"head": "<Statement>", "body": ["{", "<StatementList>", "}"]},
@@ -11,9 +11,11 @@
     {"head": "<StatementList>", "body": ["<StatementList>", "<Statement>"]},
 
     {"head": "<Expression>", "body": ["<Expression>", "+", "<Term>"]},
+    {"head": "<Expression>", "body": ["<Expression>", "-", "<Term>"]},
     {"head": "<Expression>", "body": ["<Term>"]},
 
     {"head": "<Term>", "body": ["<Term>", "*", "<Factor>"]},
+    {"head": "<Term>", "body": ["<Term>", "/", "<Factor>"]},
     {"head": "<Term>", "body": ["<Factor>"]},
 
     {"head": "<Factor>", "body": ["(", "<Expression>", ")"]},

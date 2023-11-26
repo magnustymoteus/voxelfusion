@@ -96,7 +96,7 @@ CFGProductionRules  CFG::getProductionRules() const {return production_rules;}
 std::string CFG::getStartingVariable() const {return starting_variable;}
 CFGProductionBodies CFG::getProductionBodies(const std::string &productionHead) const {
     try {
-        if(isVariable(productionHead)) throw std::invalid_argument("No variable named"+productionHead);
+        if(!isVariable(productionHead)) throw std::invalid_argument("No variable named"+productionHead);
         return production_rules.at(productionHead);
     }
     catch(const std::exception &e) {
