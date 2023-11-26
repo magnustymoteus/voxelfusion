@@ -98,3 +98,11 @@ void TMTape2D::print() const {
     }
     std::cout << std::endl;
 }
+
+void TMTape3D::print() const {
+    for (const auto& currentCell2D : cells) {
+        currentCell2D->print();
+    }
+    std::cout << std::endl;
+}
+

@@ -5,14 +5,15 @@
 
 #include <vector>
 #include <memory>
-#include <algorithm>
 
 namespace TMTapeUtils {
     int translateIndex(const int &size, const int &index);
     template<class TMTapeElement>
     void expandTape(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int addedSize) {
-        cells.insert(cells.begin(), addedSize, std::make_shared<TMTapeElement>());
-        cells.insert(cells.end(), addedSize, std::make_shared<TMTapeElement>());
+        for(unsigned int i=0;i<addedSize;i++) {
+            cells.insert(cells.begin(), std::make_shared<TMTapeElement>());
+            cells.push_back(std::make_shared<TMTapeElement>());
+        }
     }
 
     template<class TMTapeElement>

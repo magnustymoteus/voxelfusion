@@ -5,6 +5,7 @@
 #include <algorithm>
 
 
+
 void CFGUtils::print(const std::set<std::string> &set) {
     std::set<std::string> newSet = set;
     const bool containsEpsilon = newSet.find("") != newSet.end();

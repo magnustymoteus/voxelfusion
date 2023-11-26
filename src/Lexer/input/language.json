@@ -1,0 +1,7 @@
+{
+  "Mapping": {
+    "Identifier": "id",
+    "Integer": "num",
+  },
+  "ReservedKeywords": {}
+}
