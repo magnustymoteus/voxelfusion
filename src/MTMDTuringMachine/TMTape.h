@@ -68,6 +68,8 @@ public:
     void replaceCurrentSymbol(const std::string &newSymbol) final;
     unsigned int getElementSize() const final;
 
+    void print() const;
+
     TMTape2D& operator[](const signed int &index);
     TMTape2D at(const signed int &index) const;
 };
