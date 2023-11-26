@@ -2,6 +2,8 @@
 #include "Visualisation/VisualisationManager.h"
 #include <thread>
 #include <iostream>
+#include "Mesh.h"
+#include "utils.h"
 
 using namespace std;
 template<class ...TMTapeType>
@@ -30,11 +32,11 @@ void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const Transitio
 }
 
 int main() {
-    auto *tape3d {new TMTape3D()};
-    auto *tape2d {new TMTape2D()};
-    auto *tape1d {new TMTape1D()};
-    (*tape2d)[0][0].symbol = "D";
-    (*tape2d)[-1][1].symbol = "A";
+    auto tape3d {new TMTape3D()};
+    (*tape3d)[0][0][0].symbol = "B";
+    (*tape3d)[5][0][0].symbol = "D";
+    (*tape3d)[0][3][0].symbol = "D";
+    (*tape3d)[0][0][2].symbol = "D";
     const StatePointer startState = std::make_shared<const State>("q0", true);
     const StatePointer state2  = std::make_shared<const State>("q1", false);
     const StatePointer state3  = std::make_shared<const State>("q2", false);
@@ -42,46 +44,40 @@ int main() {
 
     std::set<StatePointer> states  = {startState, state2, state3};
     FiniteControl control(states, {
-        {
-            TransitionDomain(startState, {"B", "D", "B"}),
-            TransitionImage(state2, {"1", "1", "0"}, {Left, Right, Left})
-        },
-        {
-            TransitionDomain(state2, {"B", "B", "B"}),
-            TransitionImage(state3, {"1", "0", "1"}, {Up, Up, Left}),
-        },
-        {            TransitionDomain(state3, {"B", "A", "B"}),
-                TransitionImage(state4, {"1", "1", "0"}, {Front, Right, Left}),
-        },
-        {            TransitionDomain(state4, {"B", "B", "B"}),
-                TransitionImage(state4, {"1", "B", "B"}, {Front, Right, Left}),
-        }
-        });
+            {
+                         TransitionDomain(startState, {"B"}),
+                    TransitionImage(state2, {"1"}, {Left})
+            },
+            {
+                         TransitionDomain(state2, {"B"}),
+                    TransitionImage(state3, {"1"}, {Up}),
+            },
+            {            TransitionDomain(state3, {"B"}),
+                    TransitionImage(state4, {"1"}, {Front}),
+            },
+            {            TransitionDomain(state4, {"B"}),
+                    TransitionImage(state4, {"1"}, {Front}),
+            }
+    });
+
+    //////////////////////////
+    // Start voxelisation test
+    Mesh mesh;
+    VoxelSpace voxelSpace;
+    TMTape3D tape;
+    utils::load_obj("tests/parsing/obj/teapot.obj", mesh);
+    utils::voxelise(mesh, voxelSpace, 0.4);
+    utils::voxelSpaceToTape(voxelSpace, tape, "D");
+
     // tuple needs to have pointers of tapes
-    std::tuple<TMTape3D*, TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape3d, tape2d, tape1d);
-    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
+    std::tuple<TMTape3D*> tapes = std::make_tuple(tape3d);
+    MTMDTuringMachine<TMTape3D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
     VisualisationManager* v = VisualisationManager::getInstance();
-
-    tape2d->print();
-    tape1d->print();
-
     tm.doTransition();
-    tape2d->print();
-    tape1d->print();
-
-    tm.doTransition();
-    tape2d->print();
-    tape1d->print();
-
-    tm.doTransition();
-    tape2d->print();
-    tape1d->print();
-
-    tm.doTransitions(10);
+    // End voxelisation test
+    ////////////////////////
 
     v->waitForExit();
     delete tape3d;
-    delete tape2d;
-    delete tape1d;
     return 0;
 }
