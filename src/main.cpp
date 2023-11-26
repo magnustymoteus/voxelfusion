@@ -1,14 +1,9 @@
-/*#include "MTMDTuringMachine/MTMDTuringMachine.h"
+#include "MTMDTuringMachine/MTMDTuringMachine.h"
 #include "Visualisation/VisualisationManager.h"
 #include <thread>
-#include <iostream>*/
+#include <iostream>
 
-#include "Lexer/Lexer.h"
-#include "LR1Parser/CLR1Parser/CLR1Parser.h"
-#include "LR1Parser/LALR1Parser/LALR1Parser.h"
-
-
-/*using namespace std;
+using namespace std;
 template<class ...TMTapeType>
 void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDomain &domain, const TransitionImage &image) {
     std::cout << domain.state.name << " -> " << image.state.name << std::endl;
@@ -33,11 +28,9 @@ void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const Transitio
     std::chrono::milliseconds timespan(1000);
     std::this_thread::sleep_for(timespan);
 }
-*/
+
 int main() {
-    LALR1Parser parser("src/CFG/input/Language.json");
-    parser.print();
-    /*auto *tape3d {new TMTape3D()};
+    auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
     auto *tape1d {new TMTape1D()};
     (*tape2d)[0][0].symbol = "D";
@@ -74,6 +67,6 @@ int main() {
     v->waitForExit();
     delete tape3d;
     delete tape2d;
-    delete tape1d;*/
+    delete tape1d;
     return 0;
 }
