@@ -95,7 +95,14 @@ CFGProductionRules  CFG::getProductionRules() const {return production_rules;}
 
 std::string CFG::getStartingVariable() const {return starting_variable;}
 CFGProductionBodies CFG::getProductionBodies(const std::string &productionHead) const {
-    return production_rules.at(productionHead);
+    try {
+        if(isVariable(productionHead)) throw std::invalid_argument("No variable named"+productionHead);
+        return production_rules.at(productionHead);
+    }
+    catch(const std::exception &e) {
+        std::cerr << "CFG error: Cannot find productions of variable " << productionHead << std::endl;
+    }
+    return {};
 }
 
 std::set<std::string> CFG::computeFirstSet(const std::string &variable) const {

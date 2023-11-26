@@ -4,12 +4,24 @@
 #include <iostream>
 #include "CFG/CFGUtils.h"
 
+void LR1Parser::print() const {
+    for(const auto &currentRow : parseTable) {
+        for(const auto &currentActionEntry : currentRow.second.actionMap) {
+            std::cout << "Action(" << currentRow.first << "," << currentActionEntry.first << ") = ";
+            currentActionEntry.second->print();
+        }
+        for(const auto &currentGotoEntry : currentRow.second.gotoMap) {
+            std::cout << "Goto(" << currentRow.first << "," << currentGotoEntry.first << ") = ";
+            std::cout << currentGotoEntry.second << std::endl;
+        }
+    }
+}
+
 void LR1Parser::createShiftActions() {
     for(unsigned int i=0;i<itemSets.size();i++) {
         if (itemSetTransitionMap.find(i) != itemSetTransitionMap.end()) {
             for (const auto &currentTransition: itemSetTransitionMap.at(i)) {
                 if (augmentedCfg.isTerminal(currentTransition.first)) {
-                    //std::cout << "Action(" << i << "," << currentTransition.first <<") = Shift " << currentTransition.second << std::endl;
                     parseTable[i].actionMap[currentTransition.first] = std::make_unique<Shift>(
                             currentTransition.second);
                 }
@@ -22,7 +34,6 @@ void LR1Parser::createGotos() {
         if (itemSetTransitionMap.find(i) != itemSetTransitionMap.end()) {
             for (const auto &currentTransition: itemSetTransitionMap.at(i)) {
                 if(augmentedCfg.isVariable(currentTransition.first)) {
-                    //std::cout << "Goto(" << i << "," << currentTransition.first <<") = " << currentTransition.second << std::endl;
                     parseTable[i].gotoMap[currentTransition.first] = currentTransition.second;
                 }
             }
@@ -44,14 +55,10 @@ void LR1Parser::createReduceAndAcceptActions() {
                             // Accept
                             if (currentProductions.first == augmentedCfg.getAugmentedStartingVariable()
                                 && currentLookahead == EOS_MARKER) {
-                                //std::cout << "Action(" << i << "," << currentLookahead <<") = Accept\n";
                                 parseTable[i].actionMap[currentLookahead] = std::make_unique<Accept>();
                             }
                                 // Reduce
                             else {
-                                //std::cout << "Action(" << i << "," << currentLookahead <<") = Reduce ";
-                                //std::cout << currentProductions.first << "->";
-                                //CFGUtils::print(currentBody);
                                 parseTable[i].actionMap[currentLookahead] =
                                         std::make_unique<Reduce>(currentProductions.first, currentBody);
                             }

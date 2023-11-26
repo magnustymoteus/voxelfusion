@@ -36,12 +36,13 @@ protected:
     virtual void createGotos();
 
 public:
+    explicit LR1Parser(const std::string &jsonPath);
+
     virtual ~LR1Parser() = default;
 
     void createItemSets();
     void createParseTable();
-
-    explicit LR1Parser(const std::string &jsonPath);
+    void print() const;
 };
 
 
