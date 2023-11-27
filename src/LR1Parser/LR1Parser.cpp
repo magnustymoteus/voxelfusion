@@ -50,7 +50,8 @@ void LR1Parser::createReduceAndAcceptActions() {
                         bool found = parseTable.find(i) != parseTable.end();
                         if (found && parseTable.at(i).actionMap.find(currentLookahead)
                                      != parseTable.at(i).actionMap.end()) {
-                            throw std::invalid_argument("Conflict in parsing table found!");
+                            throw std::invalid_argument("Conflict in parsing table found: "+
+                            parseTable.at(i).actionMap.at(currentLookahead)->getString());
                         } else {
                             // Accept
                             if (currentProductions.first == augmentedCfg.getAugmentedStartingVariable()

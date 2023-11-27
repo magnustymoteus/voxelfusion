@@ -3,14 +3,8 @@
 #ifndef VOXELFUSION_LEXER_H
 #define VOXELFUSION_LEXER_H
 
-#include <string>
 #include <vector>
-
-enum TokenType {
-    Token_Identifier,
-    Token_Integer,
-    Token_EOS
-};
+#include "TokenType.h"
 
 class Token {
 public:
@@ -26,12 +20,13 @@ protected:
     std::vector<Token> tokenizedInput;
 
     char getCurrentChar() const;
-    void advance();
-    Token parseInteger();
-    Token parseIdentifier();
-    void skipWhitespace();
     bool reachedEnd() const;
+    Token parseToken(const std::string &lexeme) const;
+
+    void advance();
+    void skipWhitespace();
     void tokenizeInput();
+    std::string getNextString();
     Token getNextToken();
 public:
     explicit Lexer(const std::string &input);

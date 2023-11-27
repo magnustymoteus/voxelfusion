@@ -1,7 +1,13 @@
 {
   "Mapping": {
-    "Identifier": "id",
-    "Integer": "num",
+    "Identifier": "Identifier",
+    "Integer": "Integer",
+    "Decimal": "Decimal"
   },
-  "ReservedKeywords": {}
+  "ReservedKeywords": {},
+  "Regex": {
+    "Identifier": "^[A-z][A-z0-9]*$",
+    "Integer": "^0$|^[1-9][0-9]*$",
+    "Decimal": "^[+-]?([0-9]*[.])?[0-9]+$"
+  }
 }

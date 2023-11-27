@@ -1,14 +1,53 @@
 {
-  "Variables": ["<Statement>", "<Identifier>", "<Expression>", "<StatementList>", "<Term>", "<Factor>"],
-  "Terminals": ["Identifier", "Integer", "Decimal", "(",")","{","}", "+", "*","if", "while", ";", "=", "/", "-"],
+  "Variables": [
+    "<Statement>", "<Identifier>", "<Expression>", "<StatementList>", "<Term>", "<Factor>",
+    "<ConstExpression>", "<Condition>", "<ORCondition>", "<ANDCondition>", "<EQCondition>", "<NEQCondition>",
+    "<RelationalCondition>", "<Type>"
+  ],
+  "Terminals": ["Identifier", "Integer", "Decimal",
+    "(",")","{","}",
+    "if", "else", "while", ";",
+    "=", "+", "*","/", "-",
+    "AND", "OR", "EQ", "NEQ", "TRUE", "FALSE",
+    "<", ">", ">=", "<=",
+    "bool", "int", "dec"
+  ],
   "Productions": [
-    {"head": "<Statement>", "body": ["Identifier", "=", "<Expression>", ";"]},
+    {"head": "<Statement>", "body": ["<Type>","Identifier", "=", "<ConstExpression>", ";"]},
+
     {"head": "<Statement>", "body": ["{", "<StatementList>", "}"]},
-    {"head": "<Statement>", "body": ["if", "(", "<Expression>", ")", "<Statement>"]},
-    {"head": "<Statement>", "body": ["while", "(", "<Expression>", ")", "<Statement>"]},
+
+    {"head": "<Statement>", "body": ["if", "(", "<Condition>", ")", "<Statement>"]},
+
+    {"head": "<Statement>", "body": ["while", "(", "<Condition>", ")", "<Statement>"]},
 
     {"head": "<StatementList>", "body": ["<Statement>"]},
     {"head": "<StatementList>", "body": ["<StatementList>", "<Statement>"]},
+
+    {"head": "<Type>", "body": ["bool"]},
+    {"head": "<Type>", "body": ["int"]},
+    {"head": "<Type>", "body": ["dec"]},
+
+    {"head": "<ConstExpression>", "body": ["<Condition>"]},
+
+    {"head": "<Condition>", "body": ["<ORCondition>"]},
+
+    {"head": "<ORCondition>", "body": ["<ANDCondition>"]},
+    {"head": "<ORCondition>", "body": ["<ORCondition>", "OR", "<ANDCondition>"]},
+
+    {"head": "<ANDCondition>", "body": ["<EQCondition>"]},
+    {"head": "<ANDCondition>", "body": ["<ANDCondition>", "AND", "<EQCondition>"]},
+
+    {"head": "<EQCondition>", "body": ["<RelationalCondition>"]},
+    {"head": "<EQCondition>", "body": ["<EQCondition>", "EQ", "<RelationalCondition>"]},
+    {"head": "<EQCondition>", "body": ["<EQCondition>", "NEQ", "<RelationalCondition>"]},
+
+    {"head": "<RelationalCondition>", "body": ["<Expression>"]},
+    {"head": "<RelationalCondition>", "body": ["<RelationalCondition>", "<", "<Expression>"]},
+    {"head": "<RelationalCondition>", "body": ["<RelationalCondition>", ">", "<Expression>"]},
+    {"head": "<RelationalCondition>", "body": ["<RelationalCondition>", "<=", "<Expression>"]},
+    {"head": "<RelationalCondition>", "body": ["<RelationalCondition>", ">=", "<Expression>"]},
+
 
     {"head": "<Expression>", "body": ["<Expression>", "+", "<Term>"]},
     {"head": "<Expression>", "body": ["<Expression>", "-", "<Term>"]},
@@ -22,7 +61,10 @@
 
     {"head": "<Factor>", "body": ["Integer"]},
     {"head": "<Factor>", "body": ["Identifier"]},
-    {"head": "<Factor>", "body": ["Decimal"]}
+    {"head": "<Factor>", "body": ["Decimal"]},
+    {"head": "<Factor>", "body": ["TRUE"]},
+    {"head": "<Factor>", "body": ["FALSE"]}
+
   ],
   "Start": "<Statement>"
 }

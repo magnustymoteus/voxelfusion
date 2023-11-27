@@ -2,6 +2,11 @@
 
 #include "Lexer.h"
 #include <iostream>
+#include <regex>
+
+#define IDENTIFIER_REGEX "^[A-z][A-z0-9]*$"
+#define INTEGER_REGEX "^0$|^[1-9][0-9]*$"
+#define DECIMAL_REGEX "^[+-]?([0-9]*[.])?[0-9]+$"
 
 Lexer::Lexer(const std::string &input) : input(input), position(0)  {
     tokenizeInput();
@@ -19,29 +24,20 @@ void Lexer::skipWhitespace() {
 bool Lexer::reachedEnd() const {
     return position > input.size()-1;
 }
-Token Lexer::parseInteger() {
-    std::string lexeme;
-    while(std::isdigit(getCurrentChar())) {
-        lexeme += getCurrentChar();
+std::string Lexer::getNextString() {
+    skipWhitespace();
+    std::string result;
+    while(!reachedEnd() && !std::isspace(getCurrentChar())) {
+        result += getCurrentChar();
         advance();
     }
-    return {Token_Integer, lexeme};
+    return result;
 }
-Token Lexer::parseIdentifier() {
-    std::string lexeme;
-    while(std::isgraph(getCurrentChar())) {
-        lexeme += getCurrentChar();
-        advance();
-    }
-    return {Token_Identifier, lexeme};
+Token Lexer::parseToken(const std::string &lexeme) const {
+
 }
 Token Lexer::getNextToken() {
-   while(!reachedEnd()) {
-       skipWhitespace();
-        if(std::isdigit(getCurrentChar())) return parseInteger();
-        else if(std::isgraph(getCurrentChar())) return parseIdentifier();
-    }
-    return {Token_EOS, ""};
+    return parseToken(getNextString());
 }
 void Lexer::tokenizeInput() {
     TokenType currentType;

@@ -54,13 +54,17 @@ void CFGUtils::print(const ItemSet &itemSet) {
         }
     }
 }
-void CFGUtils::print(const AugmentedProductionBody &augmentedBody) {
-    std::cout << "`";
+std::string CFGUtils::getString(const AugmentedProductionBody &augmentedBody) {
+    std::string str = "`";
     for(unsigned int i=0;i<augmentedBody.getContent().size();i++) {
-        if(augmentedBody.getReadingIndex() == i) std::cout << ".";
-        std::cout << augmentedBody.getContent()[i];
-        if(i < augmentedBody.getContent().size()-1) std::cout << " ";
+        if(augmentedBody.getReadingIndex() == i) str += '.';
+        str += augmentedBody.getContent()[i];
+        if(i < augmentedBody.getContent().size()-1) str+= " ";
     }
+    return str;
+}
+void CFGUtils::print(const AugmentedProductionBody &augmentedBody) {
+    std::cout << getString(augmentedBody);
     std::cout << "`\n";
 }
 void CFGUtils::print(const AugmentedProductionBodies &augmentedBodies) {

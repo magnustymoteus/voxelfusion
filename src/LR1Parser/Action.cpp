@@ -16,15 +16,18 @@ void Accept::operator()() {
 
 }
 
-void Reduce::print() const {
-    std::cout << "Reduce " << head << "->";
-    CFGUtils::print(body);
+void Action::print() const {
+    std::cout << getString() << std::endl;
 }
 
-void Shift::print() const {
-    std::cout << "Shift " << index << std::endl;
+std::string Reduce::getString() const {
+    return "Reduce " + head + "->" + CFGUtils::getString(body);
 }
 
-void Accept::print() const {
-    std::cout << "Accept\n";
+std::string Shift::getString() const {
+    return "Shift " + std::to_string(index);
+}
+
+std::string Accept::getString() const {
+    return "Accept";
 }
