@@ -51,13 +51,19 @@ int main() {
     // Start voxelisation test
     Mesh mesh;
     VoxelSpace voxelSpace;
-    TMTape3D* tape = new TMTape3D;
+    auto tape {new TMTape3D()};
     utils::load_obj("tests/parsing/obj/teapot.obj", mesh);
-    utils::voxelise(mesh, voxelSpace, 0.4);
-    utils::voxelSpaceToTape(voxelSpace, *tape, "D", true);
+//    utils::voxelise(mesh, voxelSpace, 0.4);
+    voxelSpace.resize(static_cast<size_t>(2),
+                      std::vector<std::vector<Voxel>>(static_cast<size_t>(2),
+                                                      std::vector<Voxel>(2)));
+    voxelSpace[0][0][0].occupied = true;
+    voxelSpace[0][1][0].occupied = true;
+    voxelSpace[1][0][0].occupied = true;
+    utils::voxelSpaceToTape(voxelSpace, *tape, "D");
 
     // tuple needs to have pointers of tapes
-    std::tuple<TMTape3D*> tapes = std::make_tuple(tape3d);
+    std::tuple<TMTape3D*> tapes = std::make_tuple(tape);
     MTMDTuringMachine<TMTape3D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
     VisualisationManager* v = VisualisationManager::getInstance();
     tm.doTransition();
