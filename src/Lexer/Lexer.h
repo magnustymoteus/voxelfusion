@@ -16,10 +16,9 @@ public:
 
 class Lexer {
 protected:
-    const std::string input;
+    std::string input;
     unsigned int position;
     std::vector<Token> tokenizedInput;
-    std::unordered_map<std::string, Token> symbolTable;
 
     char getCurrentChar() const;
     bool reachedEnd() const;
@@ -27,6 +26,7 @@ protected:
 
     void advance();
     void skipWhitespace();
+    void formatInput();
     void tokenizeInput();
     std::string getNextString();
     Token getNextToken();
@@ -34,6 +34,7 @@ public:
     explicit Lexer(const std::string &input);
 
     void print() const;
+    void printFormattedInput() const;
 };
 
 

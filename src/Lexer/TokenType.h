@@ -49,37 +49,45 @@ enum TokenType {
 
     Token_EOS
 };
+namespace TokenMapping {
+    const std::unordered_map<std::string, TokenType> reserved = {
+            {"eq", Token_Equality},
+            {"neq", Token_Inequality},
+            {"and", Token_And},
+            {"or", Token_Or},
+            {">", Token_Greater},
+            {"<", Token_Lesser},
+            {">=", Token_GreaterEq},
+            {"<=", Token_LesserEq},
+            {"true", Token_True},
+            {"false", Token_False},
+            {"if", Token_If},
+            {"else", Token_Else},
+            {"while", Token_While},
+            {"bool", Token_BoolType},
+            {"int", Token_IntType},
+            {"dec", Token_DecType},
+            {"=", Token_Equal},
+            {"+", Token_Plus},
+            {"-", Token_Minus},
+            {"*", Token_Multiply},
+            {"/", Token_Divide},
+            {"%", Token_Modulo}
+    };
+    const std::unordered_map<std::string, TokenType> punctuation = {
+            {"(", Token_LParen},
+            {")", Token_RParen},
+            {"{", Token_LBrace},
+            {"}", Token_RBrace},
+            {";", Token_Semicolon},
+    };
 
-std::unordered_map<std::string, TokenType> reserved = {
-        {"eq", Token_Equality},
-        {"neq", Token_Inequality},
-        {"and", Token_And},
-        {"or", Token_Or},
-        {">", Token_Greater},
-        {"<", Token_Lesser},
-        {">=", Token_GreaterEq},
-        {"<=", Token_LesserEq},
-        {"true", Token_True},
-        {"false", Token_False},
-        {"if", Token_If},
-        {"else", Token_Else},
-        {"while", Token_While},
-        {"bool", Token_BoolType},
-        {"int", Token_IntType},
-        {"dec", Token_DecType},
-        {"=", Token_Equal},
-        {"+", Token_Plus},
-        {"-", Token_Minus},
-        {"*", Token_Multiply},
-        {"/", Token_Divide},
-        {"%", Token_Modulo}
-};
-std::unordered_map<char, TokenType> punctuation = {
-        {'(', Token_LParen},
-        {')', Token_RParen},
-        {'{', Token_LBrace},
-        {'}', Token_RBrace},
-        {';', Token_Semicolon},
-};
+    const std::unordered_map<TokenType, std::string> terminals = {
+            {Token_Identifier, "Identifier"},
+            {Token_Integer, "Integer"},
+            {Token_Decimal, "Decimal"},
+            {Token_EOS, "<EOS>"}
+    };
+}
 
 #endif //VOXELFUSION_TOKENTYPE_H

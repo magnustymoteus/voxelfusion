@@ -9,14 +9,15 @@
 #include "Lexer/Lexer.h"
 
 struct STNode {
-    const std::string label;
     const Token token;
     const std::vector<std::shared_ptr<STNode>> children;
 
-    STNode(const std::string &label, const Token &token, const std::vector<std::shared_ptr<STNode>> &children);
-    bool hasChildren() const;
-    std::vector<std::shared_ptr<STNode>> getChildren() const;
-    std::unique_ptr<Token> getToken() const;
+    STNode(const Token &token, const std::vector<std::shared_ptr<STNode>> &children) :
+     token(token), children(children) {}
+    explicit STNode(const Token &token) : token(token) {}
+    bool hasChildren() const {return !children.empty();}
+    std::vector<std::shared_ptr<STNode>> getChildren() const {return children;}
+    Token getToken() const {return token;}
 };
 
 #endif //VOXELFUSION_SYNTAXTREE_H

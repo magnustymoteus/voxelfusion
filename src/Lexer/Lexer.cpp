@@ -13,6 +13,7 @@ bool matchesRegex(const std::string &str, const std::string &regex) {
 }
 
 Lexer::Lexer(const std::string &input) : input(input), position(0)  {
+    formatInput();
     tokenizeInput();
 }
 
@@ -40,10 +41,10 @@ std::string Lexer::getNextString() {
 Token Lexer::parseToken(const std::string &lexeme) const {
     if(!lexeme.empty()) {
         TokenType type;
-        const auto &reservedFound = reserved.find(lexeme);
-        const auto &punctuationFound = punctuation.find(lexeme[0]);
-        if (reservedFound != reserved.end()) type = reservedFound->second;
-        else if (lexeme.size() == 1 && punctuationFound != punctuation.end()) type = punctuationFound->second;
+        const auto &reservedFound = TokenMapping::reserved.find(lexeme);
+        const auto &punctuationFound = TokenMapping::punctuation.find(lexeme);
+        if (reservedFound != TokenMapping::reserved.end()) type = reservedFound->second;
+        else if (punctuationFound != TokenMapping::punctuation.end()) type = punctuationFound->second;
         else {
             if(matchesRegex(lexeme, INTEGER_REGEX)) type = Token_Integer;
             else if(matchesRegex(lexeme, DECIMAL_REGEX)) type = Token_Decimal;
@@ -56,18 +57,32 @@ Token Lexer::parseToken(const std::string &lexeme) const {
 }
 Token Lexer::getNextToken() {
     const std::string lexeme = getNextString();
-    const auto& foundInSymbolTable = symbolTable.find(lexeme);
-    if(foundInSymbolTable != symbolTable.end()) return foundInSymbolTable->second;
-    Token result = parseToken(lexeme);
-    symbolTable.insert({lexeme, result});
-    return result;
+    return parseToken(lexeme);
+}
+void Lexer::formatInput() {
+    for(unsigned int i=0;i<input.size();i++) {
+        const std::string str = std::string(1, input[i]);
+        const bool foundInPunctuation = TokenMapping::punctuation.find(str) != TokenMapping::punctuation.end();
+        if(foundInPunctuation) {
+            const bool hasNoSpaceBefore = i>0 && input[i-1] != ' ';
+            const bool hasNoSpaceAfter = i<input.size()-1 && input[i+1] != ' ';
+            if(hasNoSpaceBefore) {
+                input.insert(input.begin()+i, ' ');
+                i++;
+            }
+            if(hasNoSpaceAfter) {
+                input.insert(input.begin()+i+1, ' ');
+                i++;
+            }
+        }
+    }
 }
 void Lexer::tokenizeInput() {
     TokenType currentType;
     do {
         Token currentToken = getNextToken();
         currentType = currentToken.type;
-        if(currentType != Token_EOS) tokenizedInput.push_back(currentToken);
+        tokenizedInput.push_back(currentToken);
     } while(currentType != Token_EOS);
 }
 
@@ -76,4 +91,7 @@ void Lexer::print() const {
         std::cout << "(" << currentToken.type << "," << currentToken.lexeme << ") ";
     }
     std::cout << std::endl;
+}
+void Lexer::printFormattedInput() const {
+    std::cout << input << std::endl;
 }

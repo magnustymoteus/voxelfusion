@@ -4,15 +4,14 @@
 #include <iostream>
 #include "CFG/CFGUtils.h"
 
-void Reduce::operator()() {
+void Reduce::operator()(LR1ParsingSpace &parsingSpace) const {
+}
+
+void Shift::operator()(LR1ParsingSpace &parsingSpace) const {
 
 }
 
-void Shift::operator()() {
-
-}
-
-void Accept::operator()() {
+void Accept::operator()(LR1ParsingSpace &parsingSpace) const {
 
 }
 

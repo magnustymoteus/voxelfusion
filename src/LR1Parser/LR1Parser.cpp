@@ -1,8 +1,47 @@
 //
 
 #include "LR1Parser.h"
+#include "LR1ParsingSpace.h"
 #include <iostream>
 #include "CFG/CFGUtils.h"
+
+std::shared_ptr<STNode> LR1Parser::parse(const std::vector<Token> &tokenizedInput) const {
+    LR1ParsingSpace parsingSpace;
+    unsigned int tokenIndex = 0;
+
+    while (!parsingSpace.accepted) {
+        const Token &currentToken = tokenizedInput[tokenIndex];
+        unsigned currentState = parsingSpace.stateStack.top();
+
+        const std::string currentTerminal = [&]() -> std::string {
+            const auto& found = TokenMapping::terminals.find(currentToken.type);
+            if(found != TokenMapping::terminals.end()) return found->second;
+            return currentToken.lexeme;
+        }();
+
+       (*parseTable.at(currentState).actionMap.at(currentTerminal))(parsingSpace);
+
+       /* if (action.find("shift") != std::string::npos) {
+            stack.push(ASTNode(tokens[tokenIndex]));
+            tokenIndex++;
+        } else if (action.find("reduce") != std::string::npos) {
+            ProductionRule production_rule = get_production_rule(action);
+            int num_symbols_to_pop = production_rule.right.size();
+            std::vector<ASTNode> popped_symbols;
+
+            for (int i = 0; i < num_symbols_to_pop; ++i) {
+                popped_symbols.push_back(stack.top());
+                stack.pop();
+            }
+
+            ASTNode new_node(production_rule.left, popped_symbols);
+
+            stack.push(new_node);
+        }*/
+    }
+
+    return parsingSpace.nodeStack.top();
+}
 
 void LR1Parser::print() const {
     for(const auto &currentRow : parseTable) {
@@ -22,8 +61,7 @@ void LR1Parser::createShiftActions() {
         if (itemSetTransitionMap.find(i) != itemSetTransitionMap.end()) {
             for (const auto &currentTransition: itemSetTransitionMap.at(i)) {
                 if (augmentedCfg.isTerminal(currentTransition.first)) {
-                    parseTable[i].actionMap[currentTransition.first] = std::make_unique<Shift>(
-                            currentTransition.second);
+                    parseTable[i].actionMap[currentTransition.first] = std::make_unique<Shift>(currentTransition.second);
                 }
             }
         }
