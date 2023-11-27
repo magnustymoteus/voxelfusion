@@ -75,8 +75,43 @@ void utils::translateAndScale(Vector3D& point, const Vector3D& translatePoint, d
     point -= translatePoint;
     point /= scaler;
 }
-bool utils::voxelTriangleIntersection(const int& x, const int& y, const int& z, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3){
-    return true;
+bool utils::voxelTriangleIntersection(const int& x, const int& y, const int& z, const Vector3D& v0, const Vector3D& v1, const Vector3D& v2){
+    // Test the separating axis for each face of the cuboid
+    Vector3D axes[3] = {Vector3D::normalise(v1 - v0),
+                        Vector3D::normalise(v2 - v1),
+                        Vector3D::normalise(v0 - v2)};
+
+    std::vector<int> voxelMin{x,y,z};
+    std::vector<double> v0vec{v0.x,v0.y,v0.z};
+    std::vector<double> v1vec{v1.x,v1.y,v1.z};
+    std::vector<double> v2vec{v2.x,v2.y,v2.z};
+    for (int i = 0; i < 3; ++i) {
+        // TODO: check
+        Vector3D axis = Vector3D::cross(axes[i], v1 - v0);
+        std::vector<double> axisvec = {axis.x, axis.y, axis.z};
+        // Project triangle and cuboid onto the axis
+        double triangleMin, triangleMax, cuboidMin, cuboidMax;
+        triangleMin = std::min(std::min(std::min(v0vec[i], v1vec[i]), v2vec[i]), 0.0);
+        triangleMax = std::max(std::max(std::max(v0vec[i], v1vec[i]), v2vec[i]), 0.0);
+        cuboidMin = voxelMin[i];
+        cuboidMax = (voxelMin[i]+1);
+
+        // Check for overlap
+        if (triangleMax < cuboidMin || triangleMin > cuboidMax)
+            return false;
+    }
+    // Test separating axis for the face of the triangle
+    Vector3D normal = Vector3D::normalise(Vector3D::cross(v1 - v0, v2 - v0));
+    double triangleD = Vector3D::dot(normal, v0);
+
+    // Project triangle and cuboid onto the axis
+    double cuboidMin = Vector3D::dot(normal, Vector3D::point(x,y,z)) - triangleD;
+    double cuboidMax = Vector3D::dot(normal, Vector3D::point(x+1,y+1,z+1)) - triangleD;
+
+    // Check for overlap
+    if (cuboidMin > 0 || cuboidMax < 0)
+        return false;
+    return true; // No separating axis found, triangles overlap
 }
 void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize){
     BoundingBox bbox = calculateBoundingBox(mesh); // The box won't be shifted!
@@ -111,6 +146,9 @@ void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize)
                 for(unsigned y = 0; y != voxelSpace[x].size(); y++){
                     for(unsigned z = 0; z != voxelSpace[x][y].size(); z++){
                         // Check if the voxel intersects the current triangle
+                        if(x == 3 && y==3){
+                            std::cout << std::endl;
+                        }
                         if(voxelTriangleIntersection(x,y,z,v0,v1,v2)) voxelSpace[x][y][z].occupied = true;
                     }
                 }

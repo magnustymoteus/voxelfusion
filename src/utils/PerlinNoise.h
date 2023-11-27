@@ -6,10 +6,16 @@
 #define VOXELFUSION_PERLINNOISE_H
 
 
+#include <utility>
+
 struct PerlinNoise {
+    // TODO: random P generation
     PerlinNoise(double noiseScale){scale = noiseScale;};
     double noise2d(const double& x, const double& y);
     double noise3d(const double& x, const double& y, const double& z);
+    std::pair<double,double> GetConstantVector(int v);
+    double static lerp(double t, double a, double b);
+    double fade(double t);
     double scale;
     static constexpr unsigned char P[512] = {
             151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142,

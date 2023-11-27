@@ -17,7 +17,24 @@ double PerlinNoise::noise3d(const double& x, const double& y, const double& z){
     double ABC = AB + BC + AC + BA + CB + CA;
     return ABC/6.0;
 }
-
+std::pair<double,double> PerlinNoise::GetConstantVector(int v) {
+    // v is the value from the permutation table
+    auto h = v & 3;
+    if(h == 0)
+        return std::pair(1.0, 1.0);
+    else if(h == 1)
+        return std::pair(-1.0, 1.0);
+    else if(h == 2)
+        return  std::pair(-1.0, -1.0);
+    else
+        return std::pair(1.0, -1.0);
+}
+double PerlinNoise::lerp(double t, double a, double b) {
+    return a + t * (b - a);
+}
+double PerlinNoise::fade(double t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
 double PerlinNoise::noise2d(const double& x, const double& y){
     const int X = static_cast<int>(std::floor(x)) & 255;
     const int Y = static_cast<int>(std::floor(y)) & 255;
@@ -33,4 +50,17 @@ double PerlinNoise::noise2d(const double& x, const double& y){
     auto valueTopLeft = P[P[X]+Y+1];
     auto valueBottomRight = P[P[X+1]+Y];
     auto valueBottomLeft = P[P[X]+Y];
+
+    auto dotTopRight = topRight.first*GetConstantVector(valueTopRight).first + topRight.second*GetConstantVector(valueTopRight).second;
+    auto dotTopLeft = topLeft.first*(GetConstantVector(valueTopLeft)).first + topLeft.second*(GetConstantVector(valueTopLeft)).second;
+    auto dotBottomRight = bottomRight.first*(GetConstantVector(valueBottomRight)).first + bottomRight.second*(GetConstantVector(valueBottomRight)).second;
+    auto dotBottomLeft = bottomLeft.first*(GetConstantVector(valueBottomLeft)).first * bottomLeft.second*(GetConstantVector(valueBottomLeft)).second;
+
+    auto u = fade(xf);
+    auto v = fade(yf);
+    auto result = Lerp(u,
+                        Lerp(v, dotBottomLeft, dotTopLeft),
+                        Lerp(v, dotBottomRight, dotTopRight)
+    );
+    return result;
 }

@@ -52,8 +52,8 @@ int main() {
     Mesh mesh;
     VoxelSpace voxelSpace;
     auto tape {new TMTape3D()};
-    utils::load_obj("tests/parsing/obj/teapot.obj", mesh);
-    utils::voxelise(mesh, voxelSpace, 0.4);
+    utils::load_obj("tests/parsing/obj/test0.obj", mesh);
+    utils::voxelise(mesh, voxelSpace, 0.25);
 //    voxelSpace.resize(static_cast<size_t>(3),
 //                      std::vector<std::vector<Voxel>>(static_cast<size_t>(3),
 //                                                      std::vector<Voxel>(3)));
