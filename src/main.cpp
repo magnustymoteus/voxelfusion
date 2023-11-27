@@ -47,34 +47,13 @@ int main() {
             }
     });
 
-    //////////////////////////
-//    // Start voxelisation test
-//    Mesh mesh;
-//    VoxelSpace voxelSpace;
-//    auto tape {new TMTape3D()};
-//    utils::load_obj("tests/parsing/obj/test0.obj", mesh);
-//    utils::voxelise(mesh, voxelSpace, 0.25);
-////    voxelSpace.resize(static_cast<size_t>(3),
-////                      std::vector<std::vector<Voxel>>(static_cast<size_t>(3),
-////                                                      std::vector<Voxel>(3)));
-////    voxelSpace[0][0][0].occupied = true;
-////    voxelSpace[0][1][0].occupied = true;
-////    voxelSpace[1][0][0].occupied = true;
-//    utils::voxelSpaceToTape(voxelSpace, *tape, "D");
-//
-//    // tuple needs to have pointers of tapes
-//    std::tuple<TMTape3D*> tapes = std::make_tuple(tape);
-//    MTMDTuringMachine<TMTape3D> tm({"B", "D"}, {"B", "D"}, tapes, control, updateVisualisation);
-//    VisualisationManager* v = VisualisationManager::getInstance();
-//    tm.doTransition();
-//    // End voxelisation test
-//    ////////////////////////
-
+    ////////////////////////
     // Start voxelisation test
     Mesh mesh;
     VoxelSpace voxelSpace;
     auto tape {new TMTape3D()};
-    utils::generateTerrain(voxelSpace, 30, 30, 5, 0.5);
+    utils::load_obj("tests/parsing/obj/test0.obj", mesh);
+    utils::voxelise(mesh, voxelSpace, 0.05);
     utils::voxelSpaceToTape(voxelSpace, *tape, "D");
 
     // tuple needs to have pointers of tapes
@@ -84,6 +63,21 @@ int main() {
     tm.doTransition();
     // End voxelisation test
     ////////////////////////
+
+//    // Start terrain generation test
+//    Mesh mesh;
+//    VoxelSpace voxelSpace;
+//    auto tape {new TMTape3D()};
+//    utils::generateTerrain(voxelSpace, 30, 30, 5, 0.5);
+//    utils::voxelSpaceToTape(voxelSpace, *tape, "D");
+//
+//    // tuple needs to have pointers of tapes
+//    std::tuple<TMTape3D*> tapes = std::make_tuple(tape);
+//    MTMDTuringMachine<TMTape3D> tm({"B", "D"}, {"B", "D"}, tapes, control, updateVisualisation);
+//    VisualisationManager* v = VisualisationManager::getInstance();
+//    tm.doTransition();
+//    // End terrain generation test
+//    ////////////////////////
 
     v->waitForExit();
     delete tape3d;

@@ -77,42 +77,86 @@ void utils::translateAndScale(Vector3D& point, const Vector3D& translatePoint, d
     point /= scaler;
 }
 bool utils::voxelTriangleIntersection(const int& x, const int& y, const int& z, const Vector3D& v0, const Vector3D& v1, const Vector3D& v2){
-    // Test the separating axis for each face of the cuboid
-    Vector3D axes[3] = {Vector3D::normalise(v1 - v0),
-                        Vector3D::normalise(v2 - v1),
-                        Vector3D::normalise(v0 - v2)};
+    // Inspirited by https://github.com/ramakarl/voxelizer/blob/master/math_voxelizer/main_voxelizer.cpp
+    // and https://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/pubs/tribox.pdf
 
-    std::vector<int> voxelMin{x,y,z};
-    std::vector<double> v0vec{v0.x,v0.y,v0.z};
-    std::vector<double> v1vec{v1.x,v1.y,v1.z};
-    std::vector<double> v2vec{v2.x,v2.y,v2.z};
-    for (int i = 0; i < 3; ++i) {
-        // TODO: check
-        Vector3D axis = Vector3D::cross(axes[i], v1 - v0);
-        std::vector<double> axisvec = {axis.x, axis.y, axis.z};
-        // Project triangle and cuboid onto the axis
-        double triangleMin, triangleMax, cuboidMin, cuboidMax;
-        triangleMin = std::min(std::min(std::min(v0vec[i], v1vec[i]), v2vec[i]), 0.0);
-        triangleMax = std::max(std::max(std::max(v0vec[i], v1vec[i]), v2vec[i]), 0.0);
-        cuboidMin = voxelMin[i];
-        cuboidMax = (voxelMin[i]+1);
+    Vector3D v[3], e[3], norm;
+    Vector3D p, n;
+    float min, max, rad;
 
-        // Check for overlap
-        if (triangleMax < cuboidMin || triangleMin > cuboidMax)
-            return false;
-    }
-    // Test separating axis for the face of the triangle
-    Vector3D normal = Vector3D::normalise(Vector3D::cross(v1 - v0, v2 - v0));
-    double triangleD = Vector3D::dot(normal, v0);
+    Vector3D c = Vector3D::point(x+0.5, y+0.5,z+0.5);
+    // triangle normalized to test cube
+    v[0] = v0 - c;
+    v[1] = v1 - c;
+    v[2] = v2 - c;
+    e[0] = v[1] - v[0];	// triangle edges
+    e[1] = v[2] - v[1];
+    e[2] = v[0] - v[2];
+    norm = Vector3D::cross(e[0], e[1]);
+    norm.normalise();
 
-    // Project triangle and cuboid onto the axis
-    double cuboidMin = Vector3D::dot(normal, Vector3D::point(x,y,z)) - triangleD;
-    double cuboidMax = Vector3D::dot(normal, Vector3D::point(x+1,y+1,z+1)) - triangleD;
 
-    // Check for overlap
-    if (cuboidMin > 0 || cuboidMax < 0)
-        return false;
-    return true; // No separating axis found, triangles overlap
+    //-- fast box-plane test
+    float r = 0.5 * fabs(norm.x) + 0.5 * fabs(norm.y) + 0.5 * fabs(norm.z);
+    float s = norm.x * (0.5f - v[0].x) + norm.y * (0.5f - v[0].y) + norm.z * (0.5f - v[0].z);
+    if (fabs(s) > r) return false;
+
+    //--- akenine-moller tests
+    p.x = e[0].z * v[0].y - e[0].y * v[0].z;
+    p.z = e[0].z * v[2].y - e[0].y * v[2].z;
+    if (p.x < p.z) { min = p.x; max = p.z; }
+    else { min = p.z; max = p.x; }
+    rad = fabsf(e[0].z) * 0.5f + fabsf(e[0].y) * 0.5f; if (min > rad || max < -rad) return false;
+
+    p.x = -e[0].z * v[0].x + e[0].x * v[0].z;
+    p.z = -e[0].z * v[2].x + e[0].x * v[2].z;
+    if (p.x < p.z) { min = p.x; max = p.z; }
+    else { min = p.z; max = p.x; }
+    rad = fabsf(e[0].z) * 0.5f + fabsf(e[0].x) * 0.5f; if (min > rad || max < -rad) return false;
+
+    p.y = e[0].y * v[1].x - e[0].x * v[1].y;
+    p.z = e[0].y * v[2].x - e[0].x * v[2].y;
+    if (p.z < p.y) { min = p.z; max = p.y; }
+    else { min = p.y; max = p.z; }
+    rad = fabsf(e[0].y) * 0.5f + fabsf(e[0].x) * 0.5f; if (min > rad || max < -rad) return false;
+
+    p.x = e[1].z * v[0].y - e[1].y * v[0].z;
+    p.z = e[1].z * v[2].y - e[1].y * v[2].z;
+    if (p.x < p.z) { min = p.x; max = p.z; }
+    else { min = p.z; max = p.x; }
+    rad = fabsf(e[1].z) * 0.5f + fabsf(e[1].y) * 0.5f; if (min > rad || max < -rad) return false;
+
+    p.x = -e[1].z * v[0].x + e[1].x * v[0].z;
+    p.z = -e[1].z * v[2].x + e[1].x * v[2].z;
+    if (p.x < p.z) { min = p.x; max = p.z; }
+    else { min = p.z; max = p.x; }
+    rad = fabsf(e[1].z) * 0.5f + fabsf(e[1].x) * 0.5f; if (min > rad || max < -rad) return false;
+
+    p.x = e[1].y * v[0].x - e[1].x * v[0].y;
+    p.y = e[1].y * v[1].x - e[1].x * v[1].y;
+    if (p.x < p.y) { min = p.x; max = p.y; }
+    else { min = p.y; max = p.x; }
+    rad = fabsf(e[1].y) * 0.5f + fabsf(e[1].x) * 0.5f; if (min > rad || max < -rad) return false;
+
+    p.x = e[2].z * v[0].y - e[2].y * v[0].z;
+    p.y = e[2].z * v[1].y - e[2].y * v[1].z;
+    if (p.x < p.y) { min = p.x; max = p.y; }
+    else { min = p.y; max = p.x; }
+    rad = fabsf(e[2].z) * 0.5f + fabsf(e[2].y) * 0.5f; if (min > rad || max < -rad) return false;
+
+    p.x = -e[2].z * v[0].x + e[2].x * v[0].z;
+    p.y = -e[2].z * v[1].x + e[2].x * v[1].z;
+    if (p.x < p.y) { min = p.x; max = p.y; }
+    else { min = p.y; max = p.x; }
+    rad = fabsf(e[2].z) * 0.5f + fabsf(e[2].x) * 0.5f; if (min > rad || max < -rad) return false;
+
+    p.y = e[2].y * v[1].x - e[2].x * v[1].y;
+    p.z = e[2].y * v[2].x - e[2].x * v[2].y;
+    if (p.z < p.y) { min = p.z; max = p.y; }
+    else { min = p.y; max = p.z; }
+    rad = fabsf(e[2].y) * 0.5f + fabsf(e[2].x) * 0.5f; if (min > rad || max < -rad) return false;
+
+    return true;
 }
 void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize){
     BoundingBox bbox = calculateBoundingBox(mesh); // The box won't be shifted!
@@ -147,9 +191,9 @@ void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize)
                 for(unsigned y = 0; y != voxelSpace[x].size(); y++){
                     for(unsigned z = 0; z != voxelSpace[x][y].size(); z++){
                         // Check if the voxel intersects the current triangle
-                        if(x == 3 && y==3){
-                            std::cout << std::endl;
-                        }
+//                        if(x == 3 && y==3){
+//                            std::cout << std::endl;
+//                        }
                         if(voxelTriangleIntersection(x,y,z,v0,v1,v2)) voxelSpace[x][y][z].occupied = true;
                     }
                 }
@@ -280,7 +324,6 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
             for(unsigned z=0; z != zi; z++){
                 PerlinNoise p;
                 double noise = p.noise3d(x*scale,y*scale,z*scale);
-                std::cout << noise << std::endl;
                 if(noise >= 0) space[x][y][z].occupied = true;
             }
         }
