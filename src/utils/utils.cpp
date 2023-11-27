@@ -121,22 +121,20 @@ void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize)
 
 void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol, bool edge){
     if(!edge) { // Yes, the code is almost the same, but otherwise it would be a mess
-        tape.cells.resize(voxelSpace.size());
         for (unsigned int x = 0; x < voxelSpace.size(); x++) {
             TMTape2D TMPlane;
-            TMPlane.cells.resize(voxelSpace[x].size());
             for (unsigned int y = 0; y < voxelSpace[x].size(); y++) {
                 TMTape1D TMLine;
-                TMLine.cells.resize(voxelSpace[x][y].size());
                 for (unsigned int z = 0; z < voxelSpace[x][y].size(); z++) {
                     std::string symbol = voxelSpace[x][y][z].occupied ? fillSymbol : "B";
-                    TMLine.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell(symbol));
+                    TMLine[z] = TMTapeCell(symbol);
                 }
-                TMPlane.cells[y] = std::make_shared<TMTape1D>(TMLine);
+                TMPlane[y] = TMLine;
             }
-            tape.cells[x] = std::make_shared<TMTape2D>(TMPlane);
+            tape[x] = TMPlane;
         }
     } else{
+        // TODO: remove redundant code + do 2n+1 resize
         tape.cells.resize(voxelSpace.size()+2);
         //////////// top begin
         TMTape2D zeroplane;
@@ -145,9 +143,9 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
         TMTape1D line00;
         line00.cells.resize(voxelSpace[0][0].size()+2);
         for (unsigned int z = 0; z < voxelSpace[0][0].size()+2; z++) {
-            line00.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
+            line00[z] = TMTapeCell("BB");
         }
-        zeroplane.cells[0] = std::make_shared<TMTape1D>(line00);
+        zeroplane[0] = line00;
 
         for (unsigned int y = 0; y < voxelSpace[0].size(); y++) {
             TMTape1D TMLine;
@@ -227,9 +225,9 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
         for (unsigned int z = 0; z < voxelSpace[0][0].size()+2; z++) {
             linelastlast.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
         }
-        lastplane.cells[lastplane.cells.size()-1] = std::make_shared<TMTape1D>(linelastlast);
+        lastplane[lastplane.cells.size()-1] = linelastlast;
 
-        tape.cells[voxelSpace.size()+1] = std::make_shared<TMTape2D>(lastplane);
+        tape[voxelSpace.size()+1] = lastplane;
         /////////// bottom end
     }
 }
