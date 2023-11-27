@@ -74,13 +74,12 @@ std::unordered_map<std::string, TokenType> reserved = {
         {"/", Token_Divide},
         {"%", Token_Modulo}
 };
-std::unordered_map<char, TokenType> punctation = {
+std::unordered_map<char, TokenType> punctuation = {
         {'(', Token_LParen},
         {')', Token_RParen},
         {'{', Token_LBrace},
         {'}', Token_RBrace},
         {';', Token_Semicolon},
 };
-
 
 #endif //VOXELFUSION_TOKENTYPE_H

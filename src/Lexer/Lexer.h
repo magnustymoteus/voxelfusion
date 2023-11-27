@@ -6,10 +6,11 @@
 #include <vector>
 #include "TokenType.h"
 
+
 class Token {
 public:
     const TokenType type;
-    const std::string lexeme; // a string that can represent an identifier,
+    std::string lexeme; // a string that can represent an identifier,
     Token(const TokenType &type, const std::string &lexeme) : type(type), lexeme(lexeme) {}
 };
 
@@ -18,6 +19,7 @@ protected:
     const std::string input;
     unsigned int position;
     std::vector<Token> tokenizedInput;
+    std::unordered_map<std::string, Token> symbolTable;
 
     char getCurrentChar() const;
     bool reachedEnd() const;
