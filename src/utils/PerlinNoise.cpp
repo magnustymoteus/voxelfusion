@@ -58,9 +58,9 @@ double PerlinNoise::noise2d(const double& x, const double& y){
 
     auto u = fade(xf);
     auto v = fade(yf);
-    auto result = Lerp(u,
-                        Lerp(v, dotBottomLeft, dotTopLeft),
-                        Lerp(v, dotBottomRight, dotTopRight)
+    auto result = lerp(u,
+                        lerp(v, dotBottomLeft, dotTopLeft),
+                        lerp(v, dotBottomRight, dotTopRight)
     );
     return result;
 }

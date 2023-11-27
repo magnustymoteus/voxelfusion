@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include "MTMDTuringMachine/TMTape.h"
+#include "PerlinNoise.h"
 
 void utils::load_obj(const std::string& path, Mesh& mesh){
 // Get the object
@@ -267,5 +268,21 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
 
         tape[voxelSpace.size()+1] = lastplane;
         /////////// bottom end
+    }
+}
+
+void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
+        space.resize(static_cast<size_t>(xi),
+                      std::vector<std::vector<Voxel>>(static_cast<size_t>(yi),
+                                                      std::vector<Voxel>(zi)));
+    for(unsigned x = 0; x != xi; x++){
+        for(unsigned y=0; y != yi; y++){
+            for(unsigned z=0; z != zi; z++){
+                PerlinNoise p;
+                double noise = p.noise3d(x*scale,y*scale,z*scale);
+                std::cout << noise << std::endl;
+                if(noise >= 0) space[x][y][z].occupied = true;
+            }
+        }
     }
 }
