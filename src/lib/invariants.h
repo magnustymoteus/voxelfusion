@@ -9,7 +9,7 @@
 	assert(assertion)
 
 #define POSTCONDITION(assertion) \
-	assert (what)
+	assert (assertion)
 
 
 #endif //VOXELFUSION_INVARIANTS_H

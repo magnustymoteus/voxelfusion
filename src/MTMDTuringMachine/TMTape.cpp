@@ -7,9 +7,16 @@
 
 #include <iostream>
 
-TMTapeCell & TMTape1D::operator[](const int &index) {return TMTapeUtils::getTapeElement(cells, index);}
-TMTape1D & TMTape2D::operator[](const int &index) {return TMTapeUtils::getTapeElement(cells, index);}
-TMTape2D &TMTape3D::operator[](const int &index) {return TMTapeUtils::getTapeElement(cells, index);}
+TMTapeCell & TMTape1D::operator[](const int &index) {
+    PRECONDITION(cells.size() % 2 == 1);
+    return TMTapeUtils::getTapeElement(cells, index);
+}
+TMTape1D & TMTape2D::operator[](const int &index) {
+    PRECONDITION(cells.size() % 2 == 1);
+    return TMTapeUtils::getTapeElement(cells, index);}
+TMTape2D &TMTape3D::operator[](const int &index) {
+    PRECONDITION(cells.size() % 2 == 1);
+    return TMTapeUtils::getTapeElement(cells, index);}
 
 TMTapeCell TMTape1D::at(const int &index) const {return TMTapeUtils::getTapeElementNoExpand(cells, index);}
 TMTape1D TMTape2D::at(const int &index) const {return TMTapeUtils::getTapeElementNoExpand(cells, index);}
@@ -20,13 +27,19 @@ unsigned int TMTape2D::getElementSize() const {return TMTapeUtils::getGreatestSi
 unsigned int TMTape3D::getElementSize() const {return TMTapeUtils::getGreatestSize(cells);}
 
 void TMTape1D::replaceCurrentSymbol(const std::string &newSymbol) {
+    PRECONDITION(cells.size() % 2 == 1);
     (*this)[currentIndex].symbol = newSymbol;
+    POSTCONDITION(cells.size() % 2 == 1);
 }
 void TMTape2D::replaceCurrentSymbol(const std::string &newSymbol) {
+    PRECONDITION(cells.size() % 2 == 1);
     (*this)[currentIndex].replaceCurrentSymbol(newSymbol);
+    POSTCONDITION(cells.size() % 2 == 1);
 }
 void TMTape3D::replaceCurrentSymbol(const std::string &newSymbol) {
+    PRECONDITION(cells.size() % 2 == 1);
     (*this)[currentIndex].replaceCurrentSymbol(newSymbol);
+    POSTCONDITION(cells.size() % 2 == 1);
 }
 
 std::string TMTape1D::getCurrentSymbol() const {
@@ -40,12 +53,15 @@ std::string TMTape3D::getCurrentSymbol() const {
 }
 
 bool TMTape1D::moveTapeHead(const TMTapeDirection &direction) {
+    PRECONDITION(cells.size() % 2 == 1);
     const int add = (direction == Right) ? 1 : (direction == Left) ? -1 : 0;
     currentIndex += add;
     (*this)[currentIndex];
+    POSTCONDITION(cells.size() % 2 == 1);
     return add || direction == Stationary;
 }
 bool TMTape2D::moveTapeHead(const TMTapeDirection &direction) {
+    PRECONDITION(cells.size() % 2 == 1);
     TMTape1D &tape = (*this)[currentIndex];
     int add = 0;
     const bool &moved = tape.moveTapeHead(direction);
@@ -57,9 +73,11 @@ bool TMTape2D::moveTapeHead(const TMTapeDirection &direction) {
     for(const auto &currentTape : cells) {
         currentTape->currentIndex = tape.currentIndex;
     }
+    POSTCONDITION(cells.size() % 2 == 1);
     return add;
 }
 bool TMTape3D::moveTapeHead(const TMTapeDirection &direction) {
+    PRECONDITION(cells.size() % 2 == 1);
     TMTape2D &tape = (*this)[currentIndex];
     int add = 0;
     const bool &moved = tape.moveTapeHead(direction);
@@ -71,6 +89,7 @@ bool TMTape3D::moveTapeHead(const TMTapeDirection &direction) {
     for(const auto & currentTape : cells) {
         currentTape->currentIndex = tape.currentIndex;
     }
+    POSTCONDITION(cells.size() % 2 == 1);
     return add;
 }
 

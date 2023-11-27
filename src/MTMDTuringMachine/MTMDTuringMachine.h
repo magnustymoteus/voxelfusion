@@ -77,7 +77,7 @@ public:
   [[nodiscard]] std::vector<std::string> getCurrentTapeSymbols() const {
       std::vector<std::string> currentSymbols;
       currentSymbols.reserve(tapeCount);
-      std::apply([&currentSymbols](auto&&... currentTape) {
+      std::apply([&currentSymbols](const auto&... currentTape) {
           ((currentSymbols.push_back(currentTape->getCurrentSymbol())), ...);}, tapes);
       return currentSymbols;
     }
