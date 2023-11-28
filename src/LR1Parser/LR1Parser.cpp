@@ -1,18 +1,68 @@
 //
 
 #include "LR1Parser.h"
+#include "LR1ParsingSpace.h"
 #include <iostream>
 #include <algorithm>
 #include "CFG/CFGUtils.h"
+
+std::shared_ptr<STNode> LR1Parser::parse(const std::vector<Token> &tokenizedInput) const {
+    LR1ParsingSpace parsingSpace;
+    unsigned int tokenIndex = 0;
+
+    while (!parsingSpace.accepted) {
+        const Token &currentToken = tokenizedInput[tokenIndex];
+        unsigned currentState = parsingSpace.stateStack.top();
+
+        const std::string currentTerminal = [&]() -> std::string {
+            const auto& found = TokenMapping::terminals.find(currentToken.type);
+            if(found != TokenMapping::terminals.end()) return found->second;
+            return currentToken.lexeme;
+        }();
+
+       (*parseTable.at(currentState).actionMap.at(currentTerminal))(parsingSpace);
+
+       /* if (action.find("shift") != std::string::npos) {
+            stack.push(ASTNode(tokens[tokenIndex]));
+            tokenIndex++;
+        } else if (action.find("reduce") != std::string::npos) {
+            ProductionRule production_rule = get_production_rule(action);
+            int num_symbols_to_pop = production_rule.right.size();
+            std::vector<ASTNode> popped_symbols;
+
+            for (int i = 0; i < num_symbols_to_pop; ++i) {
+                popped_symbols.push_back(stack.top());
+                stack.pop();
+            }
+
+            ASTNode new_node(production_rule.left, popped_symbols);
+
+            stack.push(new_node);
+        }*/
+    }
+
+    return parsingSpace.nodeStack.top();
+}
+
+void LR1Parser::print() const {
+    for(const auto &currentRow : parseTable) {
+        for(const auto &currentActionEntry : currentRow.second.actionMap) {
+            std::cout << "Action(" << currentRow.first << "," << currentActionEntry.first << ") = ";
+            currentActionEntry.second->print();
+        }
+        for(const auto &currentGotoEntry : currentRow.second.gotoMap) {
+            std::cout << "Goto(" << currentRow.first << "," << currentGotoEntry.first << ") = ";
+            std::cout << currentGotoEntry.second << std::endl;
+        }
+    }
+}
 
 void LR1Parser::createShiftActions() {
     for(unsigned int i=0;i<itemSets.size();i++) {
         if (itemSetTransitionMap.find(i) != itemSetTransitionMap.end()) {
             for (const auto &currentTransition: itemSetTransitionMap.at(i)) {
                 if (augmentedCfg.isTerminal(currentTransition.first)) {
-                    //std::cout << "Action(" << i << "," << currentTransition.first <<") = Shift " << currentTransition.second << std::endl;
-                    parseTable[i].actionMap[currentTransition.first] = std::make_unique<Shift>(
-                            currentTransition.second);
+                    parseTable[i].actionMap[currentTransition.first] = std::make_unique<Shift>(currentTransition.second);
                 }
             }
         }
@@ -23,7 +73,6 @@ void LR1Parser::createGotos() {
         if (itemSetTransitionMap.find(i) != itemSetTransitionMap.end()) {
             for (const auto &currentTransition: itemSetTransitionMap.at(i)) {
                 if(augmentedCfg.isVariable(currentTransition.first)) {
-                    //std::cout << "Goto(" << i << "," << currentTransition.first <<") = " << currentTransition.second << std::endl;
                     parseTable[i].gotoMap[currentTransition.first] = currentTransition.second;
                 }
             }
@@ -40,19 +89,16 @@ void LR1Parser::createReduceAndAcceptActions() {
                         bool found = parseTable.find(i) != parseTable.end();
                         if (found && parseTable.at(i).actionMap.find(currentLookahead)
                                      != parseTable.at(i).actionMap.end()) {
-                            throw std::invalid_argument("Conflict in parsing table found!");
+                            throw std::invalid_argument("Conflict in parsing table found: "+
+                            parseTable.at(i).actionMap.at(currentLookahead)->getString());
                         } else {
                             // Accept
                             if (currentProductions.first == augmentedCfg.getAugmentedStartingVariable()
                                 && currentLookahead == EOS_MARKER) {
-                                //std::cout << "Action(" << i << "," << currentLookahead <<") = Accept\n";
                                 parseTable[i].actionMap[currentLookahead] = std::make_unique<Accept>();
                             }
                                 // Reduce
                             else {
-                                //std::cout << "Action(" << i << "," << currentLookahead <<") = Reduce ";
-                                //std::cout << currentProductions.first << "->";
-                                //CFGUtils::print(currentBody);
                                 parseTable[i].actionMap[currentLookahead] =
                                         std::make_unique<Reduce>(currentProductions.first, currentBody);
                             }

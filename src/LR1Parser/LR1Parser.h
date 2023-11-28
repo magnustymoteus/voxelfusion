@@ -4,10 +4,8 @@
 #define VOXELFUSION_LR1PARSER_H
 
 
-#include "CFG/AugmentedCFG.h"
 #include "LR1Parser/Action.h"
 #include <memory>
-#include <stack>
 
 class LR1ParseTableEntry {
 public:
@@ -17,12 +15,6 @@ public:
 };
 
 typedef std::map<unsigned int, LR1ParseTableEntry> LR1ParseTable; // ItemSet Index : Row
-
-class LR1ParsingSpace {
-public:
-    std::stack<unsigned int> stack;
-    std::vector<std::string> symbols, input;
-};
 
 class LR1Parser {
 protected:
@@ -36,12 +28,15 @@ protected:
     virtual void createGotos();
 
 public:
+    explicit LR1Parser(const std::string &jsonPath);
+
+    std::shared_ptr<STNode> parse(const std::vector<Token> &tokenizedInput) const;
+
     virtual ~LR1Parser() = default;
 
     void createItemSets();
     void createParseTable();
-
-    explicit LR1Parser(const std::string &jsonPath);
+    void print() const;
 };
 
 
