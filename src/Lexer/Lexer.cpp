@@ -95,3 +95,6 @@ void Lexer::print() const {
 void Lexer::printFormattedInput() const {
     std::cout << input << std::endl;
 }
+std::vector<Token> Lexer::getTokenizedInput() const {
+    return tokenizedInput;
+}

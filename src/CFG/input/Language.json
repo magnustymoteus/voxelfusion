@@ -8,7 +8,7 @@
     "(",")","{","}",
     "if", "else", "while", ";",
     "=", "+", "*","/", "-",
-    "AND", "OR", "EQ", "NEQ", "TRUE", "FALSE",
+    "and", "or", "eq", "neq", "true", "false",
     "<", ">", ">=", "<=",
     "bool", "int", "dec"
   ],
@@ -33,14 +33,14 @@
     {"head": "<Condition>", "body": ["<ORCondition>"]},
 
     {"head": "<ORCondition>", "body": ["<ANDCondition>"]},
-    {"head": "<ORCondition>", "body": ["<ORCondition>", "OR", "<ANDCondition>"]},
+    {"head": "<ORCondition>", "body": ["<ORCondition>", "or", "<ANDCondition>"]},
 
     {"head": "<ANDCondition>", "body": ["<EQCondition>"]},
-    {"head": "<ANDCondition>", "body": ["<ANDCondition>", "AND", "<EQCondition>"]},
+    {"head": "<ANDCondition>", "body": ["<ANDCondition>", "and", "<EQCondition>"]},
 
     {"head": "<EQCondition>", "body": ["<RelationalCondition>"]},
-    {"head": "<EQCondition>", "body": ["<EQCondition>", "EQ", "<RelationalCondition>"]},
-    {"head": "<EQCondition>", "body": ["<EQCondition>", "NEQ", "<RelationalCondition>"]},
+    {"head": "<EQCondition>", "body": ["<EQCondition>", "eq", "<RelationalCondition>"]},
+    {"head": "<EQCondition>", "body": ["<EQCondition>", "neq", "<RelationalCondition>"]},
 
     {"head": "<RelationalCondition>", "body": ["<Expression>"]},
     {"head": "<RelationalCondition>", "body": ["<RelationalCondition>", "<", "<Expression>"]},
@@ -62,8 +62,8 @@
     {"head": "<Factor>", "body": ["Integer"]},
     {"head": "<Factor>", "body": ["Identifier"]},
     {"head": "<Factor>", "body": ["Decimal"]},
-    {"head": "<Factor>", "body": ["TRUE"]},
-    {"head": "<Factor>", "body": ["FALSE"]}
+    {"head": "<Factor>", "body": ["true"]},
+    {"head": "<Factor>", "body": ["false"]}
 
   ],
   "Start": "<Statement>"

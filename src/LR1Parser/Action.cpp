@@ -3,16 +3,39 @@
 #include "Action.h"
 #include <iostream>
 #include "CFG/CFGUtils.h"
+#include "LR1Parser.h"
 
-void Reduce::operator()(LR1ParsingSpace &parsingSpace) const {
+
+void Reduce::operator()(LR1ParsingSpace &parsingSpace,
+        const std::map<unsigned int, LR1ParseTableEntry> &parsingTable) const {
+    std::vector<std::shared_ptr<STNode>> poppedSymbols;
+
+    for (int i = 0; i < body.getContent().size(); ++i) {
+        poppedSymbols.push_back(parsingSpace.nodeStack.top());
+        parsingSpace.nodeStack.pop();
+        parsingSpace.stateStack.pop();
+    }
+
+    std::shared_ptr<STNode> newNode (new STNode(head, poppedSymbols));
+    parsingSpace.nodeStack.push(newNode);
+
+    const unsigned int newState = parsingSpace.stateStack.top();
+    const auto &findHead = parsingTable.at(newState).gotoMap.find(head);
+    if(findHead != parsingTable.at(newState).gotoMap.end()) parsingSpace.stateStack.push(findHead->second);
+    else throw std::invalid_argument(
+            "Cannot parse input: Cannot find goto("+std::to_string(newState)+","+head+")");
 }
 
-void Shift::operator()(LR1ParsingSpace &parsingSpace) const {
-
+void Shift::operator()(LR1ParsingSpace &parsingSpace,
+        const std::map<unsigned int, LR1ParseTableEntry> &parsingTable) const {
+    parsingSpace.nodeStack.push(std::make_shared<STNode>(parsingSpace.input[parsingSpace.tokenIndex]));
+    parsingSpace.stateStack.push(index);
+    parsingSpace.tokenIndex++;
 }
 
-void Accept::operator()(LR1ParsingSpace &parsingSpace) const {
-
+void Accept::operator()(LR1ParsingSpace &parsingSpace,
+        const std::map<unsigned int, LR1ParseTableEntry> &parsingTable) const {
+    parsingSpace.accepted = true;
 }
 
 void Action::print() const {

@@ -6,38 +6,25 @@
 #include "CFG/CFGUtils.h"
 
 std::shared_ptr<STNode> LR1Parser::parse(const std::vector<Token> &tokenizedInput) const {
-    LR1ParsingSpace parsingSpace;
-    unsigned int tokenIndex = 0;
+    // TODO: push states to statestack
+    LR1ParsingSpace parsingSpace(tokenizedInput);
 
     while (!parsingSpace.accepted) {
-        const Token &currentToken = tokenizedInput[tokenIndex];
-        unsigned currentState = parsingSpace.stateStack.top();
+        const Token &currentToken = tokenizedInput[parsingSpace.tokenIndex];
+        unsigned int currentState = parsingSpace.stateStack.top();
 
         const std::string currentTerminal = [&]() -> std::string {
             const auto& found = TokenMapping::terminals.find(currentToken.type);
             if(found != TokenMapping::terminals.end()) return found->second;
             return currentToken.lexeme;
         }();
-
-       (*parseTable.at(currentState).actionMap.at(currentTerminal))(parsingSpace);
-
-       /* if (action.find("shift") != std::string::npos) {
-            stack.push(ASTNode(tokens[tokenIndex]));
-            tokenIndex++;
-        } else if (action.find("reduce") != std::string::npos) {
-            ProductionRule production_rule = get_production_rule(action);
-            int num_symbols_to_pop = production_rule.right.size();
-            std::vector<ASTNode> popped_symbols;
-
-            for (int i = 0; i < num_symbols_to_pop; ++i) {
-                popped_symbols.push_back(stack.top());
-                stack.pop();
+            const LR1ParseTableEntry &entry = parseTable.at(currentState);
+            const auto& findAction = entry.actionMap.find(currentTerminal);
+            if(findAction != entry.actionMap.end()) {
+                (*(findAction->second))(parsingSpace, parseTable);
             }
-
-            ASTNode new_node(production_rule.left, popped_symbols);
-
-            stack.push(new_node);
-        }*/
+            else throw std::invalid_argument(
+                    "Cannot parse given input : no action for state"+std::to_string(currentState));
     }
 
     return parsingSpace.nodeStack.top();

@@ -33,6 +33,7 @@ protected:
 public:
     explicit Lexer(const std::string &input);
 
+    std::vector<Token> getTokenizedInput() const;
     void print() const;
     void printFormattedInput() const;
 };
