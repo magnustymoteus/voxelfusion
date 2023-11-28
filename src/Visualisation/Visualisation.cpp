@@ -108,6 +108,7 @@ void Visualisation::rebuild(TMTape3D *tape) {
         const long greatestSize = TMTapeUtils::getGreatestSize(currentCellRow->cells);
         for(int y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
             for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
+                // Segfault warning!
                 if((*currentCellRow)[y][z].symbol != "B"){
                     createCube(vertices, indices, x, y, z, 1);
                 }

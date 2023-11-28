@@ -2,6 +2,7 @@
 
 #include "LALR1Parser.h"
 #include "CFG/CFGUtils.h"
+#include <algorithm>
 #include <iostream>
 
 unsigned int getCorrespondingPartitionIndex(

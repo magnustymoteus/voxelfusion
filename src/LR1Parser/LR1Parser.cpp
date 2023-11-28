@@ -3,6 +3,7 @@
 #include "LR1Parser.h"
 #include "LR1ParsingSpace.h"
 #include <iostream>
+#include <algorithm>
 #include "CFG/CFGUtils.h"
 
 std::shared_ptr<STNode> LR1Parser::parse(const std::vector<Token> &tokenizedInput) const {

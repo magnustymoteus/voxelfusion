@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iostream>
 #include "invariants.h"
+
 namespace TMTapeUtils {
     int translateIndex(const int &size, const int &index);
     template<class TMTapeElement>

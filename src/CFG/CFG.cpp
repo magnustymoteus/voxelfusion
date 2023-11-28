@@ -104,7 +104,6 @@ CFGProductionBodies CFG::getProductionBodies(const std::string &productionHead) 
     }
     return {};
 }
-
 std::set<std::string> CFG::computeFirstSet(const std::string &variable) const {
     std::set<std::string> result;
     if(!isVariable(variable))

@@ -2,6 +2,8 @@
 #include "CFGUtils.h"
 
 #include <iostream>
+#include <algorithm>
+
 
 
 void CFGUtils::print(const std::set<std::string> &set) {
@@ -81,7 +83,7 @@ void CFGUtils::print(const CFG &cfg) {
 
     std::cout << "P = {\n";
     for (std::pair<std::string, CFGProductionBodies> currentRule: cfg.getProductionRules()) {
-        sort(currentRule.second.begin(), currentRule.second.end());
+        std::sort(currentRule.second.begin(), currentRule.second.end());
         for (unsigned int i=0; i < currentRule.second.size(); i++) {
             std::cout << "\t" << currentRule.first << " -> `";
             for (unsigned int j=0; j < currentRule.second[i].size(); j++) {
