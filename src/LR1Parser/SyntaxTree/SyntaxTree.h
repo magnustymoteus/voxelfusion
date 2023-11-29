@@ -8,11 +8,13 @@
 #include <vector>
 #include "Lexer/Lexer.h"
 
-// TODO: export .txt graphviz file for visualization and debugging
-struct STNode {
+class STNode {
+public:
     const std::shared_ptr<Token> token;
     const std::string label;
     const std::vector<std::shared_ptr<STNode>> children;
+
+    ~STNode() = default;
 
     STNode(const std::string &label, const std::vector<std::shared_ptr<STNode>> &children)
     : label(label), children(children) {}

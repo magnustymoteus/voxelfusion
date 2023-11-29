@@ -32,10 +32,14 @@ void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const Transitio
 #include "Lexer/Lexer.h"
 int main() {
     Lexer lexer("{int test = 10;if(test eq 10){test = test - 5;}}");
-    LR1Parser parser;
-    parser.importTable("daTable.json");
-    const auto root = parser.parse(lexer.getTokenizedInput());
-    root->exportVisualization("test.png");
+    LALR1Parser parser("src/CFG/input/Language.json");
+   /* Parsing Table already exported? ->
+        LR1Parser parser;
+        parser.importTable("parsingTable.json");
+    */
+    parser.exportTable("parsingTable.json");
+    const std::shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
+    root->exportVisualization("test.dot");
     /*auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
     auto *tape1d {new TMTape1D()};

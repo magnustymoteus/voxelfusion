@@ -25,4 +25,4 @@ find_package(OpenGL REQUIRED)
 
 ADD_EXECUTABLE(voxelfusion src/main.cpp ${LIB} ${CFG} ${TM} ${LEXER} ${PARSER} ${VISUALISATION} ${UTILS})
 
-target_link_libraries(voxelfusion glfw OpenGL::GL cgraph gvc)
+target_link_libraries(voxelfusion glfw OpenGL::GL)
