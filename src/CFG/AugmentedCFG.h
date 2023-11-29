@@ -48,6 +48,7 @@ private:
 
 public:
     explicit AugmentedCFG(const std::string &jsonPath);
+    AugmentedCFG() = default;
 
     std::string getAugmentedStartingVariable() const;
     ItemSet getItemSet() const;

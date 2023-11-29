@@ -22,6 +22,8 @@ namespace CFGUtils {
 
     void print(const CFGProductionBodies &bodies);
 
+    std::string getString(const CFGProductionBody &body);
+
     std::string getString(const AugmentedProductionBody &augmentedBody);
 
     void print(const AugmentedProductionBody &augmentedBody);

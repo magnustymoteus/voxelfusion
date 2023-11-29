@@ -20,7 +20,9 @@ struct STNode {
 
     bool hasChildren() const {return !children.empty();}
     std::vector<std::shared_ptr<STNode>> getChildren() const {return children;}
-    Token getToken() const {return *token;}
+    std::shared_ptr<Token> getToken() const {return token;}
+
+    void exportVisualization(const std::string &fileName) const;
 };
 
 #endif //VOXELFUSION_SYNTAXTREE_H

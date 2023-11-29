@@ -14,6 +14,8 @@
   ],
   "Productions": [
     {"head": "<Statement>", "body": ["<Type>","Identifier", "=", "<ConstExpression>", ";"]},
+    {"head": "<Statement>", "body": ["Identifier", "=", "<ConstExpression>", ";"]},
+
 
     {"head": "<Statement>", "body": ["{", "<StatementList>", "}"]},
 

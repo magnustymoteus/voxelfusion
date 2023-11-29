@@ -10,7 +10,7 @@ void Reduce::operator()(LR1ParsingSpace &parsingSpace,
         const std::map<unsigned int, LR1ParseTableEntry> &parsingTable) const {
     std::vector<std::shared_ptr<STNode>> poppedSymbols;
 
-    for (int i = 0; i < body.getContent().size(); ++i) {
+    for (int i = 0; i < body.size(); ++i) {
         poppedSymbols.push_back(parsingSpace.nodeStack.top());
         parsingSpace.nodeStack.pop();
         parsingSpace.stateStack.pop();
@@ -52,4 +52,27 @@ std::string Shift::getString() const {
 
 std::string Accept::getString() const {
     return "Accept";
+}
+
+using nlohmann::json;
+
+json Reduce::getJson() const {
+    json result;
+    result["type"] = "Reduce";
+    result["body"] = body;
+    result["head"] = head;
+    return result;
+}
+
+json Shift::getJson() const {
+    json result;
+    result["type"] = "Shift";
+    result["state"] = index;
+    return result;
+}
+
+json Accept::getJson() const {
+    json result;
+    result["type"] = "Accept";
+    return result;
 }

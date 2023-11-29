@@ -28,7 +28,8 @@ protected:
     virtual void createGotos();
 
 public:
-    explicit LR1Parser(const std::string &jsonPath);
+    explicit LR1Parser(const std::string &CFGJsonPath);
+    LR1Parser() = default;
 
     std::shared_ptr<STNode> parse(const std::vector<Token> &tokenizedInput) const;
 
@@ -37,6 +38,9 @@ public:
     void createItemSets();
     void createParseTable();
     void print() const;
+
+    void exportTable(const std::string &fileName) const;
+    void importTable(const std::string &jsonTablePath);
 };
 
 

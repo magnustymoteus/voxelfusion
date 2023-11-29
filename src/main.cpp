@@ -1,9 +1,7 @@
-#include "MTMDTuringMachine/MTMDTuringMachine.h"
+/*#include "MTMDTuringMachine/MTMDTuringMachine.h"
 #include "Visualisation/VisualisationManager.h"
 #include <thread>
 #include <iostream>
-#include "Mesh.h"
-#include "utils.h"
 
 using namespace std;
 template<class ...TMTapeType>
@@ -29,57 +27,52 @@ void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const Transitio
 
     std::chrono::milliseconds timespan(1000);
     std::this_thread::sleep_for(timespan);
-}
-
+}*/
+#include "LR1Parser/LALR1Parser/LALR1Parser.h"
+#include "Lexer/Lexer.h"
 int main() {
-    auto tape3d {new TMTape3D()};
-    (*tape3d)[0][0][0].symbol = "B";
-    (*tape3d)[5][0][0].symbol = "D";
-    (*tape3d)[0][3][0].symbol = "D";
-    (*tape3d)[0][0][2].symbol = "D";
+    Lexer lexer("{int test = 10;if(test eq 10){test = test - 5;}}");
+    LR1Parser parser;
+    parser.importTable("daTable.json");
+    const auto root = parser.parse(lexer.getTokenizedInput());
+    root->exportVisualization("test.png");
+    /*auto *tape3d {new TMTape3D()};
+    auto *tape2d {new TMTape2D()};
+    auto *tape1d {new TMTape1D()};
+    (*tape2d)[0][0].symbol = "D";
+    (*tape2d)[-1][1].symbol = "A";
     const StatePointer startState = std::make_shared<const State>("q0", true);
+    const StatePointer state2  = std::make_shared<const State>("q1", false);
+    const StatePointer state3  = std::make_shared<const State>("q2", false);
+    const StatePointer state4  = std::make_shared<const State>("q3", false);
 
-    std::set<StatePointer> states  = {startState};
+    std::set<StatePointer> states  = {startState, state2, state3};
     FiniteControl control(states, {
-            {
-                         TransitionDomain(startState, {"D"}),
-                    TransitionImage(startState, {"D"}, {Left})
-            }
-    });
-
-    ////////////////////////
-    // Start voxelisation test
-    Mesh mesh;
-    VoxelSpace voxelSpace;
-    auto tape {new TMTape3D()};
-    utils::load_obj("tests/parsing/obj/test0.obj", mesh);
-    utils::voxelise(mesh, voxelSpace, 0.05);
-    utils::voxelSpaceToTape(voxelSpace, *tape, "D");
-
+        {
+            TransitionDomain(startState, {"B", "D", "B"}),
+            TransitionImage(state2, {"1", "1", "0"}, {Left, Right, Left})
+        },
+        {
+            TransitionDomain(state2, {"B", "B", "B"}),
+            TransitionImage(state3, {"1", "0", "1"}, {Up, Up, Left}),
+        },
+        {            TransitionDomain(state3, {"B", "A", "B"}),
+                TransitionImage(state4, {"1", "1", "0"}, {Front, Right, Left}),
+        },
+        {            TransitionDomain(state4, {"B", "B", "B"}),
+                TransitionImage(state4, {"1", "B", "B"}, {Front, Right, Left}),
+        }
+        });
     // tuple needs to have pointers of tapes
-    std::tuple<TMTape3D*> tapes = std::make_tuple(tape);
-    MTMDTuringMachine<TMTape3D> tm({"B", "D"}, {"B", "D"}, tapes, control, updateVisualisation);
+    std::tuple<TMTape3D*, TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape3d, tape2d, tape1d);
+    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
     VisualisationManager* v = VisualisationManager::getInstance();
-    tm.doTransition();
-    // End voxelisation test
-    ////////////////////////
 
-//    // Start terrain generation test
-//    Mesh mesh;
-//    VoxelSpace voxelSpace;
-//    auto tape {new TMTape3D()};
-//    utils::generateTerrain(voxelSpace, 30, 30, 5, 0.5);
-//    utils::voxelSpaceToTape(voxelSpace, *tape, "D");
-//
-//    // tuple needs to have pointers of tapes
-//    std::tuple<TMTape3D*> tapes = std::make_tuple(tape);
-//    MTMDTuringMachine<TMTape3D> tm({"B", "D"}, {"B", "D"}, tapes, control, updateVisualisation);
-//    VisualisationManager* v = VisualisationManager::getInstance();
-//    tm.doTransition();
-//    // End terrain generation test
-//    ////////////////////////
+    tm.doTransitions(10);
 
     v->waitForExit();
     delete tape3d;
+    delete tape2d;
+    delete tape1d;*/
     return 0;
 }

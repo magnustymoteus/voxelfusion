@@ -3,11 +3,67 @@
 #include "LR1Parser.h"
 #include "LR1ParsingSpace.h"
 #include <iostream>
-#include <algorithm>
-#include "CFG/CFGUtils.h"
 
+#include "lib/json.hpp"
+#include <fstream>
+
+using nlohmann::json;
+void LR1Parser::exportTable(const std::string &fileName) const {
+    try {
+        json jsonFile;
+        for (const auto &currentRow: parseTable) {
+            for (const auto &currentAction: currentRow.second.actionMap) {
+                jsonFile[currentRow.first]["Action"][currentAction.first] = currentAction.second->getJson();
+            }
+            for (const auto &currentGoto: currentRow.second.gotoMap) {
+                jsonFile[currentRow.first]["Goto"][currentGoto.first] = currentGoto.second;
+            }
+        }
+        std::ofstream file(fileName);
+        file << jsonFile;
+    }
+    catch(const std::exception &exception) {
+        std::cerr << "Cannot export parsing table to json: " << exception.what() << std::endl;
+    }
+}
+void LR1Parser::importTable(const std::string &jsonTablePath) {
+    try {
+        std::ifstream input(jsonTablePath);
+        json jsonTable = json::parse(input);
+        for (unsigned int i = 0; i < jsonTable.size(); i++) {
+            if (!jsonTable[i].is_null()) {
+                // Actions
+                for (const auto &currentElement: jsonTable[i]["Action"].items()) {
+                    const std::string &symbol = currentElement.key();
+                    const auto &currentAction = currentElement.value();
+                    const std::string type = currentAction["type"];
+
+                    std::unique_ptr<Action> newAction;
+                    if (type == "Shift") {
+                        const unsigned int state = currentAction["state"];
+                        newAction = std::make_unique<Shift>(state);
+                    } else if (type == "Reduce") {
+                        const std::string head = currentAction["head"];
+                        const CFGProductionBody body = currentAction["body"];
+                        newAction = std::make_unique<Reduce>(head, body);
+                    } else newAction = std::make_unique<Accept>();
+                    parseTable[i].actionMap[symbol] = std::move(newAction);
+                }
+                // Gotos
+                for (const auto &currentElement: jsonTable[i]["Goto"].items()) {
+                    const std::string &symbol = currentElement.key();
+                    const unsigned int &currentGoto = currentElement.value();
+
+                    parseTable[i].gotoMap[symbol] = currentGoto;
+                }
+            }
+        }
+    }
+    catch(const std::exception &exception) {
+        std::cerr << "Cannot import parsing table: " << exception.what() << std::endl;
+    }
+}
 std::shared_ptr<STNode> LR1Parser::parse(const std::vector<Token> &tokenizedInput) const {
-    // TODO: push states to statestack
     LR1ParsingSpace parsingSpace(tokenizedInput);
 
     while (!parsingSpace.accepted) {
@@ -25,7 +81,8 @@ std::shared_ptr<STNode> LR1Parser::parse(const std::vector<Token> &tokenizedInpu
                 (*(findAction->second))(parsingSpace, parseTable);
             }
             else throw std::invalid_argument(
-                    "Cannot parse given input : no action for state"+std::to_string(currentState));
+                    "Cannot parse given input : no entry for action("
+                    +std::to_string(currentState)+","+currentTerminal+")");
     }
 
     return parsingSpace.nodeStack.top();
@@ -87,7 +144,7 @@ void LR1Parser::createReduceAndAcceptActions() {
                                 // Reduce
                             else {
                                 parseTable[i].actionMap[currentLookahead] =
-                                        std::make_unique<Reduce>(currentProductions.first, currentBody);
+                                        std::make_unique<Reduce>(currentProductions.first, currentBody.getContent());
                             }
                         }
                     }
