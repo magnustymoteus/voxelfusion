@@ -18,7 +18,6 @@ typedef std::vector<CFGProductionBody> CFGProductionBodies;
 typedef std::map<std::string, CFGProductionBodies> CFGProductionRules;
 typedef std::pair<std::string, CFGProductionBodies> CFGProductionRule;
 
-// TODO: modify first set computation
 class CFG {
 protected:
     bool isValid(std::string &errorMessage) const;

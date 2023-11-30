@@ -22,20 +22,18 @@ protected:
 
     char getCurrentChar() const;
     bool reachedEnd() const;
-    Token parseToken(const std::string &lexeme) const;
+    std::vector<Token> parseWord(const std::string &lexeme) const;
 
     void advance();
     void skipWhitespace();
-    void formatInput();
     void tokenizeInput();
     std::string getNextString();
-    Token getNextToken();
 public:
     explicit Lexer(const std::string &input);
+    explicit Lexer(const std::istream &input);
 
     std::vector<Token> getTokenizedInput() const;
     void print() const;
-    void printFormattedInput() const;
 };
 
 

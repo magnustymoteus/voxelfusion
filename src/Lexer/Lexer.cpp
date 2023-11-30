@@ -4,16 +4,13 @@
 #include <iostream>
 #include <regex>
 
-#define IDENTIFIER_REGEX "^[A-z][A-z0-9]*$"
-#define INTEGER_REGEX "^0$|^[1-9][0-9]*$"
-#define DECIMAL_REGEX "^[+-]?([0-9]*[.])?[0-9]+$"
+
 
 bool matchesRegex(const std::string &str, const std::string &regex) {
     return std::regex_match(str, std::regex(regex));
 }
 
 Lexer::Lexer(const std::string &input) : input(input), position(0)  {
-    formatInput();
     tokenizeInput();
 }
 
@@ -38,52 +35,62 @@ std::string Lexer::getNextString() {
     }
     return result;
 }
-Token Lexer::parseToken(const std::string &lexeme) const {
+
+std::vector<std::string> getSortedNonLiterals(const TokenType &type) {
+    std::vector<std::string> nonLiterals = TokenMapping::nonLiterals.at(type);
+    std::sort(nonLiterals.begin(), nonLiterals.end(), [](const std::string &a, const std::string &b) -> bool {
+        return a.size() > b.size();
+    });
+    return nonLiterals;
+}
+
+std::vector<Token> Lexer::parseWord(const std::string &lexeme) const {
+    std::vector<Token> result;
     if(!lexeme.empty()) {
-        TokenType type;
-        const auto &reservedFound = TokenMapping::reserved.find(lexeme);
-        const auto &punctuationFound = TokenMapping::punctuation.find(lexeme);
-        if (reservedFound != TokenMapping::reserved.end()) type = reservedFound->second;
-        else if (punctuationFound != TokenMapping::punctuation.end()) type = punctuationFound->second;
-        else {
-            if(matchesRegex(lexeme, INTEGER_REGEX)) type = Token_Integer;
-            else if(matchesRegex(lexeme, DECIMAL_REGEX)) type = Token_Decimal;
-            else if(matchesRegex(lexeme, IDENTIFIER_REGEX)) type = Token_Identifier;
-            else throw std::invalid_argument("Lexer cannot tokenize '"+lexeme+"'");
+        for(const auto &currentKeyword : getSortedNonLiterals(Token_Keyword)) {
+            if(currentKeyword == lexeme) return {{Token_Keyword, lexeme}};
         }
-        return {type, lexeme};
-    }
-    return {Token_EOS, lexeme};
-}
-Token Lexer::getNextToken() {
-    const std::string lexeme = getNextString();
-    return parseToken(lexeme);
-}
-void Lexer::formatInput() {
-    for(unsigned int i=0;i<input.size();i++) {
-        const std::string str = std::string(1, input[i]);
-        const bool foundInPunctuation = TokenMapping::punctuation.find(str) != TokenMapping::punctuation.end();
-        if(foundInPunctuation) {
-            const bool hasNoSpaceBefore = i>0 && input[i-1] != ' ';
-            const bool hasNoSpaceAfter = i<input.size()-1 && input[i+1] != ' ';
-            if(hasNoSpaceBefore) {
-                input.insert(input.begin()+i, ' ');
-                i++;
-            }
-            if(hasNoSpaceAfter) {
-                input.insert(input.begin()+i+1, ' ');
-                i++;
+        for(const auto &currentOperator : getSortedNonLiterals(Token_Operator)) {
+            const size_t index = lexeme.find(currentOperator);
+            if(index != std::string::npos) {
+                const std::string prefix = lexeme.substr(0, index);
+                const std::string suffix = lexeme.substr(
+                        index+currentOperator.size(), lexeme.size()-index-currentOperator.size());
+                for(const Token &currentPrefixToken : parseWord(prefix)) result.push_back(currentPrefixToken);
+                result.emplace_back(Token_Operator, currentOperator);
+                for(const Token &currentSuffixToken : parseWord(suffix)) result.push_back(currentSuffixToken);
+                return result;
             }
         }
+
+        for(const auto &currentPunctuator: getSortedNonLiterals(Token_Punctuator)) {
+            const size_t index = lexeme.find(currentPunctuator);
+            if(index != std::string::npos) {
+                const std::string prefix = lexeme.substr(0, index);
+                const std::string suffix = lexeme.substr(
+                        index+currentPunctuator.size(), lexeme.size()-index-currentPunctuator.size());
+                for(const Token &currentPrefixToken : parseWord(prefix)) result.push_back(currentPrefixToken);
+                result.emplace_back(Token_Punctuator, currentPunctuator);
+                for(const Token &currentSuffixToken : parseWord(suffix)) result.push_back(currentSuffixToken);
+                return result;
+            }
+        }
+
+        if(std::regex_match(lexeme, std::regex(TokenMapping::identifer.first))) return {{Token_Identifier, lexeme}};
+
+        for(const auto &currentLiteral : TokenMapping::literals) {
+            if(std::regex_match(lexeme, std::regex(currentLiteral.first))) return {{currentLiteral.second, lexeme}};
+        }
     }
+    return result;
 }
 void Lexer::tokenizeInput() {
-    TokenType currentType;
     do {
-        Token currentToken = getNextToken();
-        currentType = currentToken.type;
-        tokenizedInput.push_back(currentToken);
-    } while(currentType != Token_EOS);
+        const std::string currentWord = getNextString();
+        const std::vector<Token> nextTokens = parseWord(currentWord);
+        for(const Token &currentToken : nextTokens) tokenizedInput.push_back(currentToken);
+    } while(!reachedEnd());
+    tokenizedInput.emplace_back(Token_EOS, "");
 }
 
 void Lexer::print() const {
@@ -91,9 +98,6 @@ void Lexer::print() const {
         std::cout << "(" << currentToken.type << "," << currentToken.lexeme << ") ";
     }
     std::cout << std::endl;
-}
-void Lexer::printFormattedInput() const {
-    std::cout << input << std::endl;
 }
 std::vector<Token> Lexer::getTokenizedInput() const {
     return tokenizedInput;
