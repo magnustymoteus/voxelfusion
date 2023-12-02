@@ -30,10 +30,25 @@ void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const Transitio
 }*/
 #include "LR1Parser/LALR1Parser/LALR1Parser.h"
 #include "Lexer/Lexer.h"
+#include <fstream>
+#include "string"
+using namespace std;
 int main() {
-    Lexer lexer("{int test=0;while(test<5){test=test+1;}}");
+    string code;
+    string line;
+    ifstream input ("tasm/helloworld.tasm");
+    if (input.is_open())
+    {
+        while ( getline (input, line) )
+        {
+            code += line;
+        }
+        input.close();
+    }
+
+    Lexer lexer(code);
     lexer.print();
-    LALR1Parser parser("src/CFG/input/Language.json");
+    LALR1Parser parser("src/CFG/input/Tasm.json");
     parser.exportTable("parsingTable.json");
     const std::shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
     root->exportVisualization("test.dot");

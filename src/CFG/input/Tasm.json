@@ -1,0 +1,43 @@
+{
+  "Variables": [
+    "<Statement>", "<Expression>", "<StatementList>", "<Direction>", "<IdentifierList>", "<IdentifierListPart>"
+  ],
+  "Terminals": ["Identifier", "Integer",
+    "{","}",
+    "if", "else", ";",
+    "==", "=",
+    "move",
+    "left", "right", "up", "down", "forwards", "backwards",
+    "write", "goto", "reading", "accept", "error", "until", ",",
+    "into", "current"
+  ],
+  "Productions": [
+    {"head": "<Statement>", "body": ["{", "<StatementList>", "}"]},
+    {"head": "<StatementList>", "body": ["<Statement>"]},
+    {"head": "<StatementList>", "body": ["<StatementList>", "<Statement>"]},
+
+    {"head": "<Statement>", "body": ["move", "<Direction>", ";"]},
+    {"head": "<Statement>", "body": ["write", "Identifier", ";"]},
+    {"head": "<Statement>", "body": ["goto", "Integer", ";"]},
+    {"head": "<Statement>", "body": ["if", "reading", "Identifier", "goto", "Integer", ";"]},
+    {"head": "<Statement>", "body": ["accept", ";"]},
+    {"head": "<Statement>", "body": ["error", ";"]},
+    {"head": "<Statement>", "body": ["move", "<Direction>", "until", "<IdentifierList>", ";"]},
+    {"head": "<Statement>", "body": ["Identifier", "=", "Identifier", ";"]},
+    {"head": "<Statement>", "body": ["Identifier", "=", "current", ";"]},
+    {"head": "<Statement>", "body": ["if","Identifier", "==", "Identifier","goto","Integer", ";"]},
+
+    {"head": "<IdentifierList>", "body": ["{", "<IdentifierListPart>", "}"]},
+    {"head": "<IdentifierListPart>", "body": ["<IdentifierListPart>",",","Identifier"]},
+    {"head": "<IdentifierListPart>", "body": ["Identifier"]},
+
+
+    {"head": "<Direction>", "body": ["left"]},
+    {"head": "<Direction>", "body": ["right"]},
+    {"head": "<Direction>", "body": ["up"]},
+    {"head": "<Direction>", "body": ["down"]},
+    {"head": "<Direction>", "body": ["forwards"]},
+    {"head": "<Direction>", "body": ["backwards"]}
+  ],
+  "Start": "<Statement>"
+}

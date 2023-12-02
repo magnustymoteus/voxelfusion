@@ -24,42 +24,29 @@ namespace TokenMapping {
     // lexer will copy these vectors and sort them according to their character length (so it checks "==" first instead of "=")
     const std::unordered_map<TokenType, std::vector<std::string>> nonLiterals = {
         {Token_Keyword, {"if",
-                         "else",
+                         "reading",
                          "while",
-                         "bool",
-                         "int",
-                         "dec"}},
-        {Token_Operator,{"==",
-                        "!=",
-                        "&&",
-                        "||",
-                        ">=",
-                        "<=",
-                        ">",
-                        "<",
-                        "=",
-                        "+",
-                        "-",
-                        "*",
-                        "/",
-                        "%"}},
-        {Token_Punctuator, {"(",")","{","}",";",}}
+                         "accept",
+                         "error",
+                         "goto",
+                         "move",
+                         "write",
+                         "into",
+                         "until",
+                         "current",
+                         "left", "right", "up", "down", "forwards", "backwards"}},
+        {Token_Operator,{"==", "="}},
+        {Token_Punctuator, {"{","}",";", ","}}
     };
     const std::pair<std::string, std::string> identifer {"^[A-z][A-z0-9]*$", "Identifier"};
 
     const std::unordered_map<std::string, TokenType> literals = {
             {"^0$|^[1-9][0-9]*$", Token_Integer},
-            {"^(0|[1-9][0-9]*)\\.((0|[1-9][0-9]*))$", Token_Decimal},
-            {"^true$", Token_True},
-            {"^true$", Token_False},
     };
 
     const std::unordered_map<TokenType, std::string> terminals = {
             {Token_Identifier, "Identifier"},
             {Token_Integer, "Integer"},
-            {Token_Decimal, "Decimal"},
-            {Token_True, "true"},
-            {Token_False, "false"},
             {Token_EOS, "<EOS>"},
     };
 }
