@@ -1,10 +1,10 @@
-/*#include "MTMDTuringMachine/MTMDTuringMachine.h"
+#include "MTMDTuringMachine/MTMDTuringMachine.h"
 #include "Visualisation/VisualisationManager.h"
 #include <thread>
 #include <iostream>
 
 using namespace std;
-template<class ...TMTapeType>
+/*template<class ...TMTapeType>
 void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDomain &domain, const TransitionImage &image) {
     std::cout << domain.state.name << " -> " << image.state.name << std::endl;
     for(const std::string &currentDomainSymbol : domain.replacedSymbols) {
@@ -19,7 +19,7 @@ void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDom
         std::cout << "Move tapehead " << i+1 <<" to direction " << static_cast<char>(image.directions[i]) << std::endl;
     }
     std::cout << std::endl;
-}
+}*/
 template<class ...TMTapeType>
 void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const TransitionDomain &domain, const TransitionImage &image) {
     VisualisationManager* v = VisualisationManager::getInstance();
@@ -27,11 +27,12 @@ void updateVisualisation(const std::tuple<TMTapeType...> &tapes, const Transitio
 
     std::chrono::milliseconds timespan(1000);
     std::this_thread::sleep_for(timespan);
-}*/
+}
 #include "LR1Parser/LALR1Parser/LALR1Parser.h"
 #include "Lexer/Lexer.h"
 #include <fstream>
 #include "string"
+#include "TMgenerator/TMGenerator.h"
 using namespace std;
 int main() {
     string code;
@@ -52,6 +53,13 @@ int main() {
     parser.exportTable("parsingTable.json");
     const std::shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
     root->exportVisualization("test.dot");
+    auto *tape3d {new TMTape3D()};
+    std::tuple tapes = std::make_tuple(tape3d);
+    //MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({}, {}, tapes, control, updateVisualisation);
+    shared_ptr<MTMDTuringMachine<TMTape3D>> tm;
+    std::set<std::string> tapeAlphabet = {"B", "S"};
+    TMGenerator generator{tm, tapeAlphabet, tapeAlphabet, tapes, updateVisualisation};
+    generator.assembleTasm(root);
     /*auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
     auto *tape1d {new TMTape1D()};
@@ -81,14 +89,13 @@ int main() {
         });
     // tuple needs to have pointers of tapes
     std::tuple<TMTape3D*, TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape3d, tape2d, tape1d);
-    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);
+    MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);*/
     VisualisationManager* v = VisualisationManager::getInstance();
 
-    tm.doTransitions(10);
-
+    tm->doTransitions(20);
     v->waitForExit();
     delete tape3d;
-    delete tape2d;
-    delete tape1d;*/
+//    delete tape2d;
+//    delete tape1d;
     return 0;
 }

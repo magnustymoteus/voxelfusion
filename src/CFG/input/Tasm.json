@@ -1,6 +1,8 @@
 {
   "Variables": [
-    "<Statement>", "<Expression>", "<StatementList>", "<Direction>", "<IdentifierList>", "<IdentifierListPart>"
+    "<Statement>", "<Expression>", "<StatementList>", "<Direction>", "<IdentifierList>", "<IdentifierListPart>",
+    "<TapeMove>", "<TapeWrite>", "<Jump>", "<ReadCondition>", "<Accept>", "<Error>", "<ConditionalMove>",
+    "<ValueAssignment>", "<ImmediateAssignment>", "<VariableCondition>"
   ],
   "Terminals": ["Identifier", "Integer",
     "{","}",
@@ -16,16 +18,28 @@
     {"head": "<StatementList>", "body": ["<Statement>"]},
     {"head": "<StatementList>", "body": ["<StatementList>", "<Statement>"]},
 
-    {"head": "<Statement>", "body": ["move", "<Direction>", ";"]},
-    {"head": "<Statement>", "body": ["write", "Identifier", ";"]},
-    {"head": "<Statement>", "body": ["goto", "Integer", ";"]},
-    {"head": "<Statement>", "body": ["if", "reading", "Identifier", "goto", "Integer", ";"]},
-    {"head": "<Statement>", "body": ["accept", ";"]},
-    {"head": "<Statement>", "body": ["error", ";"]},
-    {"head": "<Statement>", "body": ["move", "<Direction>", "until", "<IdentifierList>", ";"]},
-    {"head": "<Statement>", "body": ["Identifier", "=", "Identifier", ";"]},
-    {"head": "<Statement>", "body": ["Identifier", "=", "current", ";"]},
-    {"head": "<Statement>", "body": ["if","Identifier", "==", "Identifier","goto","Integer", ";"]},
+
+    {"head": "<Statement>", "body": ["<TapeMove>"]},
+    {"head": "<Statement>", "body": ["<TapeWrite>"]},
+    {"head": "<Statement>", "body": ["<Jump>"]},
+    {"head": "<Statement>", "body": ["<ReadCondition>"]},
+    {"head": "<Statement>", "body": ["<Accept>"]},
+    {"head": "<Statement>", "body": ["<Error>"]},
+    {"head": "<Statement>", "body": ["<ConditionalMove>"]},
+    {"head": "<Statement>", "body": ["<ValueAssignment>"]},
+    {"head": "<Statement>", "body": ["<ImmediateAssignment>"]},
+    {"head": "<Statement>", "body": ["<VariableCondition>"]},
+
+    {"head": "<TapeMove>", "body": ["move", "<Direction>", ";"]},
+    {"head": "<TapeWrite>", "body": ["write", "Identifier", ";"]},
+    {"head": "<Jump>", "body": ["goto", "Integer", ";"]},
+    {"head": "<ReadCondition>", "body": ["if", "reading", "Identifier", "goto", "Integer", ";"]},
+    {"head": "<Accept>", "body": ["accept", ";"]},
+    {"head": "<Error>", "body": ["error", ";"]},
+    {"head": "<ConditionalMove>", "body": ["move", "<Direction>", "until", "<IdentifierList>", ";"]},
+    {"head": "<ValueAssignment>", "body": ["Identifier", "=", "Identifier", ";"]},
+    {"head": "<ImmediateAssignment>", "body": ["Identifier", "=", "current", ";"]},
+    {"head": "<VariableCondition>", "body": ["if","Identifier", "==", "Identifier","goto","Integer", ";"]},
 
     {"head": "<IdentifierList>", "body": ["{", "<IdentifierListPart>", "}"]},
     {"head": "<IdentifierListPart>", "body": ["<IdentifierListPart>",",","Identifier"]},

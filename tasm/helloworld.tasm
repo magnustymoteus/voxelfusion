@@ -1,12 +1,7 @@
 {
+write S;
 move right;
 write S;
-goto 20;
-if reading S goto 20;
-accept;
-error;
-move right until {R, S, T};
-T = S;
-if S == T goto 20;
-S = current;
+move forwards;
+goto 0;
 }

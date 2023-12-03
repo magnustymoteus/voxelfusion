@@ -13,6 +13,7 @@ protected:
             const std::vector<std::set<unsigned int>> &partitions) const;
     void minimizeItemSet();
 public:
+    explicit LALR1Parser()=default;
     explicit LALR1Parser(const std::string &jsonPath);
 };
 
