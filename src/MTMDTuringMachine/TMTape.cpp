@@ -52,9 +52,20 @@ std::string TMTape3D::getCurrentSymbol() const {
     return at(currentIndex).getCurrentSymbol();
 }
 
+// the next three methods are ugly...
 bool TMTape1D::moveTapeHead(const TMTapeDirection &direction) {
     PRECONDITION(cells.size() % 2 == 1);
-    const int add = (direction == Right) ? 1 : (direction == Left) ? -1 : 0;
+    int add = 0;
+    switch(direction) {
+        case Right:
+            add = 1;
+            break;
+        case Left:
+            add = -1;
+            break;
+        default:
+            break;
+    }
     currentIndex += add;
     (*this)[currentIndex];
     POSTCONDITION(cells.size() % 2 == 1);
@@ -62,36 +73,37 @@ bool TMTape1D::moveTapeHead(const TMTapeDirection &direction) {
 }
 bool TMTape2D::moveTapeHead(const TMTapeDirection &direction) {
     PRECONDITION(cells.size() % 2 == 1);
-    TMTape1D &tape = (*this)[currentIndex];
-    int add = 0;
-    const bool &moved = tape.moveTapeHead(direction);
-    if(!moved) {
-        add = (direction == Down) ? 1 : (direction == Up) ? -1 : 0;
-        currentIndex += add;
-        (*this)[currentIndex];
-    }
-    for(const auto &currentTape : cells) {
-        currentTape->currentIndex = tape.currentIndex;
+    int add = (direction == Down) ? 1 : (direction == Up) ? -1 : 0;
+    const int subIndex = at(currentIndex).currentIndex;
+
+    currentIndex += add;
+    (*this)[currentIndex];
+
+    TMTapeUtils::setIndexForAllCells<TMTape1D>(cells, subIndex);
+    for(const auto & currentTape : cells) {
+        currentTape->moveTapeHead(direction);
     }
     POSTCONDITION(cells.size() % 2 == 1);
     return add;
 }
 bool TMTape3D::moveTapeHead(const TMTapeDirection &direction) {
     PRECONDITION(cells.size() % 2 == 1);
-    TMTape2D &tape = (*this)[currentIndex];
-    int add = 0;
-    const bool &moved = tape.moveTapeHead(direction);
-    if(!moved) {
-        add = (direction == Back) ? 1 : (direction == Front) ? -1 : 0;
-        currentIndex += add;
-        (*this)[currentIndex];
-    }
-    for(const auto & currentTape : cells) {
-        currentTape->currentIndex = tape.currentIndex;
+    int add = (direction == Back) ? 1 : (direction == Front) ? -1 : 0;
+    const int subIndex = at(currentIndex).currentIndex;
+    const int subSubIndex = at(currentIndex).at(subIndex).currentIndex;
+
+    currentIndex += add;
+    (*this)[currentIndex];
+
+    TMTapeUtils::setIndexForAllCells<TMTape2D>(cells, subIndex);
+    for(const auto &currentTape : cells) {
+        if(add) TMTapeUtils::setIndexForAllCells<TMTape1D>(currentTape->cells, subSubIndex);
+        else currentTape->moveTapeHead(direction);
     }
     POSTCONDITION(cells.size() % 2 == 1);
     return add;
 }
+
 
 void TMTape1D::print() const {
     int i=static_cast<int>(-(cells.size()/2));
@@ -119,9 +131,22 @@ void TMTape2D::print() const {
 }
 
 void TMTape3D::print() const {
-    for (const auto& currentCell2D : cells) {
-        currentCell2D->print();
+    int x = static_cast<int>(-(cells.size()/2));
+    for (const auto &currentCell2D: cells) {
+        const int greatestSize = TMTapeUtils::getGreatestSize(currentCell2D->cells);
+        int j = static_cast<int>(-(currentCell2D->cells.size() / 2));
+        for (const auto &currentCellRow: currentCell2D->cells) {
+            for (int i = -greatestSize / 2; i <= greatestSize / 2; i++) {
+                if (x == currentIndex && j == currentCell2D->currentIndex && i == currentCellRow->currentIndex) {
+                    std::cout << "\x1B[31m";
+                }
+                std::cout << (*currentCellRow)[i].symbol << "\033[0m ";
+            }
+            j++;
+            std::cout << std::endl;
+        }
+        x++;
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
 }
 

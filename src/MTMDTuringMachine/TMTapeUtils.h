@@ -52,7 +52,12 @@ namespace TMTapeUtils {
         POSTCONDITION(cells.size() % 2 == 1);
         return greatestSize;
     }
-
+    template<class TMTapeElement>
+            void setIndexForAllCells(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int index) {
+        for (const auto &cell: cells) {
+            cell->currentIndex = index;
+        }
+    }
 };
 
 

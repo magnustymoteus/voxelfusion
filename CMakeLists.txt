@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 file(GLOB_RECURSE LIB src/lib/*.cpp)
 file(GLOB_RECURSE CFG src/CFG/*.cpp)
-file(GLOB_RECURSE TM src/MTMDTuringMachine/*.cpp )
+file(GLOB_RECURSE TM src/MTMDTuringMachine/*.cpp src/MTMDTuringMachine/*.h)
 file(GLOB_RECURSE PARSER src/LR1Parser/*.cpp)
 file(GLOB_RECURSE LEXER src/Lexer/*.cpp)
 file(GLOB_RECURSE VISUALISATION src/Visualisation/*.cpp)
