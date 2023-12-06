@@ -1,7 +1,5 @@
-{
 write S;
 move right;
 write S;
 move forwards;
 goto 0;
-}

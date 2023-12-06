@@ -78,7 +78,7 @@ void TMGenerator<TMTapeType...>::assembleTasm(const shared_ptr<STNode> root) {
     lineStates[0] = currentState;
     currentStateNumber++;
 
-    explorer(root->children[1]);
+    explorer(root);
     control = make_shared<FiniteControl>(*states, *transitions);
     output = make_shared<MTMDTuringMachine<TMTapeType...>>(tapeAlphabet, inputAlphabet, tapes, *control, updateCallback);
 }

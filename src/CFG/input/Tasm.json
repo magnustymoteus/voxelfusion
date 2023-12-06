@@ -53,5 +53,5 @@
     {"head": "<Direction>", "body": ["forwards"]},
     {"head": "<Direction>", "body": ["backwards"]}
   ],
-  "Start": "<Statement>"
+  "Start": "<StatementList>"
 }
