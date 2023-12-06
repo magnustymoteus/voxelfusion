@@ -2,6 +2,7 @@
 #include "Visualisation/VisualisationManager.h"
 #include <thread>
 #include <iostream>
+#include "utils/utils.h"
 
 using namespace std;
 /*template<class ...TMTapeType>
@@ -60,6 +61,7 @@ int main() {
     std::set<std::string> tapeAlphabet = {"B", "S"};
     TMGenerator generator{tm, tapeAlphabet, tapeAlphabet, tapes, updateVisualisation};
     generator.assembleTasm(root);
+    utils::TMtoDotfile(*tm, "tm.dot");
     /*auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
     auto *tape1d {new TMTape1D()};

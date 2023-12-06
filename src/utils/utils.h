@@ -7,6 +7,9 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
+#include <numeric>
+#include "../MTMDTuringMachine/MTMDTuringMachine.h"
 
 struct Voxel;
 class TMTape3D;
@@ -25,6 +28,28 @@ public:
     static void voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize=1);
     static void voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol="X", bool edge=false); // TODO: fillSymbol more flexible?
     static void generateTerrain(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale);
+    template<class... TMTapeType>
+    static void TMtoDotfile(MTMDTuringMachine<TMTapeType...> TM, const std::string& path) {
+        std::string result = "DiGraph G {\n";
+        auto control = TM.getFiniteControl();
+        for(auto transition: control.transitions){
+            result += transition.first.state.name;
+            result += "->";
+            std::string replaced = std::accumulate(transition.first.replacedSymbols.begin(), transition.first.replacedSymbols.end(), std::string(""));
+            std::string replacedBy = std::accumulate(transition.second.replacementSymbols.begin(), transition.second.replacementSymbols.end(), std::string(""));
+            std::string direction;
+            for(auto& dir: transition.second.directions){
+                char a = static_cast<char>(dir);
+                direction.push_back(a);
+                direction += " | ";
+            }
+            result += transition.second.state.name + "[label=\"" + replaced + '\\' + "/" + replacedBy + ", " + direction + "\"]" + '\n';
+        }
+        result += "}";
+        std::ofstream output(path);
+        output << result;
+        output.close();
+    }
 };
 
 

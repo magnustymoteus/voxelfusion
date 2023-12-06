@@ -90,6 +90,9 @@ public:
             i++;
         }
     }
+    const FiniteControl& getFiniteControl(){
+        return control;
+    }
 };
 
 
