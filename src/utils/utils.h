@@ -20,6 +20,7 @@ class Vector3D;
 using VoxelSpace = std::vector<std::vector<std::vector<Voxel>>>;
 
 class utils {
+    static void finiteControlToDotfile(FiniteControl& control, const std::string& path);
 public:
     static void load_obj(const std::string& path, Mesh& mesh);
     static BoundingBox calculateBoundingBox(const Mesh& mesh);
@@ -30,25 +31,8 @@ public:
     static void generateTerrain(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale);
     template<class... TMTapeType>
     static void TMtoDotfile(MTMDTuringMachine<TMTapeType...> TM, const std::string& path) {
-        std::string result = "DiGraph G {\n";
-        auto control = TM.getFiniteControl();
-        for(auto transition: control.transitions){
-            result += transition.first.state.name;
-            result += "->";
-            std::string replaced = std::accumulate(transition.first.replacedSymbols.begin(), transition.first.replacedSymbols.end(), std::string(""));
-            std::string replacedBy = std::accumulate(transition.second.replacementSymbols.begin(), transition.second.replacementSymbols.end(), std::string(""));
-            std::string direction;
-            for(auto& dir: transition.second.directions){
-                char a = static_cast<char>(dir);
-                direction.push_back(a);
-                direction += " | ";
-            }
-            result += transition.second.state.name + "[label=\"" + replaced + '\\' + "/" + replacedBy + ", " + direction + "\"]" + '\n';
-        }
-        result += "}";
-        std::ofstream output(path);
-        output << result;
-        output.close();
+        FiniteControl control = TM.getFiniteControl();
+        finiteControlToDotfile(control, path);
     }
 };
 

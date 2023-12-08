@@ -329,3 +329,24 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
         }
     }
 }
+
+void utils::finiteControlToDotfile(FiniteControl &control, const std::string &path) {
+    std::string result = "DiGraph G {\n";
+    for(auto transition: control.transitions){
+        result += transition.first.state.name;
+        result += "->";
+        std::string replaced = std::accumulate(transition.first.replacedSymbols.begin(), transition.first.replacedSymbols.end(), std::string(""));
+        std::string replacedBy = std::accumulate(transition.second.replacementSymbols.begin(), transition.second.replacementSymbols.end(), std::string(""));
+        std::string direction;
+        for(auto& dir: transition.second.directions){
+            char a = static_cast<char>(dir);
+            direction.push_back(a);
+            direction += " | ";
+        }
+        result += transition.second.state.name + "[label=\"" + replaced + '\\' + "/" + replacedBy + ", " + direction + "\"]" + '\n';
+    }
+    result += "}";
+    std::ofstream output(path);
+    output << result;
+    output.close();
+}

@@ -55,13 +55,16 @@ int main() {
     const std::shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
     root->exportVisualization("test.dot");
     auto *tape3d {new TMTape3D()};
-    std::tuple tapes = std::make_tuple(tape3d);
-    //MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({}, {}, tapes, control, updateVisualisation);
-    shared_ptr<MTMDTuringMachine<TMTape3D>> tm;
+    auto *tape1d {new TMTape1D()};
+    auto tapes = std::make_tuple(tape3d, tape1d);
     std::set<std::string> tapeAlphabet = {"B", "S"};
-    TMGenerator generator{tm, tapeAlphabet, tapeAlphabet, tapes, updateVisualisation};
+    std::set<StatePointer> states;
+    map<TransitionDomain, TransitionImage> transitions;
+    TMGenerator generator{tapeAlphabet, transitions, states};
     generator.assembleTasm(root);
-    utils::TMtoDotfile(*tm, "tm.dot");
+    FiniteControl control(states, transitions);
+    MTMDTuringMachine<TMTape3D, TMTape1D> tm(tapeAlphabet, tapeAlphabet, tapes, control, updateVisualisation);
+    utils::TMtoDotfile(tm, "tm.dot");
     /*auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
     auto *tape1d {new TMTape1D()};
@@ -94,7 +97,7 @@ int main() {
     MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);*/
     VisualisationManager* v = VisualisationManager::getInstance();
 
-    tm->doTransitions(20);
+    tm.doTransitions(20);
     v->waitForExit();
     delete tape3d;
 //    delete tape2d;
