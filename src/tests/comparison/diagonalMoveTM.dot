@@ -1,0 +1,12 @@
+DiGraph G {
+0->1[label="BB\/SB, S | S | "]
+0->1[label="SB\/SB, S | S | "]
+1->2[label="BB\/BB, R | S | "]
+1->2[label="SB\/SB, R | S | "]
+2->3[label="BB\/SB, S | S | "]
+2->3[label="SB\/SB, S | S | "]
+3->4[label="BB\/BB, F | S | "]
+3->4[label="SB\/SB, F | S | "]
+4->0[label="BB\/BB, S | S | "]
+4->0[label="SB\/SB, S | S | "]
+}

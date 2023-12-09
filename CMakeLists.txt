@@ -27,3 +27,5 @@ find_package(OpenGL REQUIRED)
 ADD_EXECUTABLE(voxelfusion src/main.cpp ${LIB} ${CFG} ${TM} ${LEXER} ${PARSER} ${VISUALISATION} ${UTILS} ${TM_GENERATION})
 
 target_link_libraries(voxelfusion glfw OpenGL::GL)
+
+add_subdirectory(src/tests)

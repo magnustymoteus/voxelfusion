@@ -46,7 +46,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
     }else if(l == "<Statement>"){
         explorer(root->children[0]);
     }else{
-        cout << root->label << " " << root->token << endl;
+        //cout << root->label << " " << root->token << endl;
         if(l == "<TapeMove>"){
             StatePointer destination = make_shared<const State>(to_string(currentStateNumber), false);
             TMTapeDirection direction = parseDirection(root->children[1]);
