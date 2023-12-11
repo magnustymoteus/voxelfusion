@@ -39,6 +39,8 @@ class TMGenerator {
     int currentLineNumber = 1;
     bool registerEndAsStartForNewLine = true;
     list<PostponedTransition> postponedTransitionBuffer;
+    inline static const string VariableTapeStart = "VTB";
+    inline static const string VariableTapeEnd = "VTE";
 
     void alphabetExplorer(const shared_ptr<STNode>& root);
     void explorer(const shared_ptr<STNode>& root);
