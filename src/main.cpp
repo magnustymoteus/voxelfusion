@@ -38,7 +38,7 @@ using namespace std;
 int main() {
     string code;
     string line;
-    ifstream input ("tasm/helloworld.tasm");
+    ifstream input ("tasm/variables.tasm");
     if (input.is_open())
     {
         while ( getline (input, line) )
@@ -50,8 +50,10 @@ int main() {
 
     Lexer lexer(code);
     lexer.print();
-    LALR1Parser parser("src/CFG/input/Tasm.json");
-    parser.exportTable("parsingTable.json");
+    LALR1Parser parserTemp("src/CFG/input/Tasm.json");
+    parserTemp.exportTable("parsingTable.json");
+    LALR1Parser parser;
+    parser.importTable("parsingTable.json");
     const std::shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
     root->exportVisualization("test.dot");
     auto *tape3d {new TMTape3D()};
@@ -60,10 +62,10 @@ int main() {
     std::set<std::string> tapeAlphabet = {"B", "S"};
     std::set<StatePointer> states;
     map<TransitionDomain, TransitionImage> transitions;
-    TMGenerator generator{tapeAlphabet, transitions, states};
+    TMGenerator generator{tapeAlphabet, transitions, states, false};
     generator.assembleTasm(root);
     FiniteControl control(states, transitions);
-    MTMDTuringMachine<TMTape3D, TMTape1D> tm(tapeAlphabet, tapeAlphabet, tapes, control, updateVisualisation);
+    MTMDTuringMachine<TMTape3D, TMTape1D> tm(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
     utils::TMtoDotfile(tm, "tm.dot");
     /*auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
@@ -95,10 +97,10 @@ int main() {
     // tuple needs to have pointers of tapes
     std::tuple<TMTape3D*, TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape3d, tape2d, tape1d);
     MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);*/
-    VisualisationManager* v = VisualisationManager::getInstance();
+    //VisualisationManager* v = VisualisationManager::getInstance();
 
-    tm.doTransitions(20);
-    v->waitForExit();
+    tm.doTransitions(10);
+    //v->waitForExit();
     delete tape3d;
 //    delete tape2d;
 //    delete tape1d;

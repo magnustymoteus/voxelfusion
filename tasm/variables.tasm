@@ -1,0 +1,8 @@
+write S;
+T = current;
+T = P;
+R = 50;
+if R == T goto 8;
+T = 50;
+goto 5;
+if T == 51 goto 6;

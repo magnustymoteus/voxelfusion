@@ -1,7 +1,7 @@
 #include "TMGenerator.h"
 using std::to_string, std::cout, std::cerr, std::endl, std::runtime_error;
 
-TMGenerator::TMGenerator(const set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
+TMGenerator::TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
                          set<StatePointer> &states, bool readableStateNames) : tapeAlphabet(tapeAlphabet),
                                                                   transitions(transitions), states(states),
                                                                   postponedTransitionBuffer(list<PostponedTransition>()),
@@ -32,33 +32,71 @@ int TMGenerator::parseInteger(const shared_ptr<STNode> &root) {
 
 
 void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
+    StatePointer initializationState = make_shared<const State>(to_string(currentStateNumber), true);
     currentLineBeginState = make_shared<const State>(to_string(currentStateNumber), true);
     currentStateNumber++;
     states.insert(currentLineBeginState);
     lineStartStates[1] = currentLineBeginState;
 
+    alphabetExplorer(root);
+    tapeAlphabet.insert("VariableTapeStart");
+    tapeAlphabet.insert("VariableTapeEnd");
+    for (const string& ignoredSymbol: tapeAlphabet) {
+        transitions.insert({
+               TransitionDomain(initializationState, {ignoredSymbol, "B"}),
+               TransitionImage(currentLineBeginState, {ignoredSymbol, "VariableTapeStart"}, {Stationary, Stationary})
+       });
+    }
+
     explorer(root);
 
     // for transitions that need to happen regardless of the symbols read, add them only when we know all possible symbols
-    for(const PostponedTransition& transition: postponedTransitionBuffer){
+    // TODO all symbols are now explored beforehand, remove useless code here
+    // also, forward goto's!
+    for(const PostponedTransition& transition: postponedTransitionBuffer){ //TODO clean up this code duplication
         StatePointer start = transition.startState == nullptr ? lineStartStates.at(transition.startLine) : transition.startState;
         StatePointer end = transition.endState == nullptr ? lineStartStates.at(transition.endLine) : transition.endState;
-        if(transition.onlyTheseSymbols){ //TODO remove onlyTheseSymbols because those transitions can be added at read time
+        if(transition.onlyTheseSymbols){
             for(auto& symbol: transition.leftOutSymbols){
-                transitions.insert({
-                       TransitionDomain(start, {symbol, "B"}),
-                       TransitionImage(end, {symbol, "B"}, transition.directions)
-               });
-            }
+                string replacedBy = transition.toWrite.empty() ? symbol : transition.toWrite;
+                if(transition.tape == 0){
+                    for (const string& ignoredSymbol: tapeAlphabet) {
+                        transitions.insert({
+                               TransitionDomain(start, {symbol, ignoredSymbol}),
+                               TransitionImage(end, {replacedBy, ignoredSymbol}, transition.directions)
+                       });
+                    }
+                }else if (transition.tape == 1){
+                    for (const string& ignoredSymbol: tapeAlphabet) {
+                        transitions.insert({
+                               TransitionDomain(start, {ignoredSymbol, symbol}),
+                               TransitionImage(end, {ignoredSymbol, replacedBy}, transition.directions)
+                       });
+                    }
+                }
 
-            continue;
+            }
         }
-        for(const string& symbol: tapeAlphabet){
-            if(transition.leftOutSymbols.find(symbol) != transition.leftOutSymbols.end()) continue;
-            transitions.insert({
-                TransitionDomain(start, {symbol, "B"}),
-                TransitionImage(end, {symbol, "B"}, transition.directions)
-            });
+        else{
+            for(const string& symbol: tapeAlphabet){
+                if(transition.leftOutSymbols.find(symbol) != transition.leftOutSymbols.end()) continue;
+                string replacedBy = transition.toWrite.empty() ? symbol : transition.toWrite;
+                if(transition.tape == 0){
+                    for (const string& ignoredSymbol: tapeAlphabet) {
+                        transitions.insert({
+                                                   TransitionDomain(start, {symbol, ignoredSymbol}),
+                                                   TransitionImage(end, {replacedBy, ignoredSymbol}, transition.directions)
+                                           });
+                    }
+                }else if (transition.tape == 1){
+                    for (const string& ignoredSymbol: tapeAlphabet) {
+                        transitions.insert({
+                                                   TransitionDomain(start, {ignoredSymbol, symbol}),
+                                                   TransitionImage(end, {ignoredSymbol, replacedBy}, transition.directions)
+                                           });
+                    }
+                }
+            }
         }
     }
 }
@@ -127,6 +165,38 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             registerRegularNewline(destination);
             registerEndAsStartForNewLine = true;
         }
+        else if(l == "<ImmediateSymbolValueAssignment>"){
+            string variableName = root->children[3]->token->lexeme;
+            for (const string& symbolToWrite: tapeAlphabet) {
+                //search for the tape begin marker
+                StatePointer goLeft = makeState();
+                for (const string& ignoredSymbol: tapeAlphabet) {
+                    if(ignoredSymbol == "VariableTapeStart") continue;
+                    transitions.insert({
+                           TransitionDomain(currentLineBeginState, {symbolToWrite, ignoredSymbol}),
+                           TransitionImage(goLeft, {symbolToWrite, ignoredSymbol}, {Stationary, Left})
+                   });
+                    transitions.insert({
+                           TransitionDomain(goLeft, {symbolToWrite, ignoredSymbol}),
+                           TransitionImage(goLeft, {symbolToWrite, ignoredSymbol}, {Stationary, Left})
+                   });
+                }
+                //move right until variable name or tape end found
+                StatePointer goRight = makeState();
+                transitions.insert({
+                                           TransitionDomain(goLeft, {symbolToWrite, "VariableTapeStart"}),
+                                           TransitionImage(goRight, {symbolToWrite, "VariableTapeStart"}, {Stationary, Right})
+                                   });
+                for (const string& ignoredSymbol: tapeAlphabet) {
+                    if(ignoredSymbol == variableName || ignoredSymbol == "VariableTapeEnd") continue;
+                    transitions.insert({
+                           TransitionDomain(goRight, {symbolToWrite, ignoredSymbol}),
+                           TransitionImage(goRight, {symbolToWrite, ignoredSymbol}, {Stationary, Right})
+                   });
+                }
+
+            }
+        }
         else{
             cerr << "Instruction " << l << "is currently not supported by the compiler" << endl;
         }
@@ -160,6 +230,17 @@ set<string> TMGenerator::parseIdentifierList(const shared_ptr<STNode> &root) con
     set<string> output;
     identifierListPartRecursiveParser(root->children.at(1), output);
     return output;
+}
+
+void TMGenerator::alphabetExplorer(const shared_ptr<STNode> &root) {
+    if(root->token->type == TokenType::Token_Identifier){
+        tapeAlphabet.insert(root->token->lexeme);
+    }
+    if(root->hasChildren()){
+        for (auto& child : root->children) {
+            alphabetExplorer(child);
+        }
+    }
 }
 
 PostponedTransition::PostponedTransition(const StatePointer& start, const StatePointer& end, const set<string>& leftOutSymbols, bool onlyTheseSymbols)

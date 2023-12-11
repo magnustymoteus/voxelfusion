@@ -23,11 +23,13 @@ struct PostponedTransition{
     int endLine;
     set<string> leftOutSymbols;
     bool onlyTheseSymbols;
+    int tape = 0;
+    string toWrite;
     vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary};
 };
 
 class TMGenerator {
-    const set<string> &tapeAlphabet;
+    set<string> &tapeAlphabet;
     map<TransitionDomain, TransitionImage>& transitions;
     set<StatePointer>& states;
     bool readableStateNames;
@@ -38,6 +40,7 @@ class TMGenerator {
     bool registerEndAsStartForNewLine = true;
     list<PostponedTransition> postponedTransitionBuffer;
 
+    void alphabetExplorer(const shared_ptr<STNode>& root);
     void explorer(const shared_ptr<STNode>& root);
 
     void registerRegularNewline(StatePointer& state);
@@ -50,7 +53,7 @@ class TMGenerator {
 public:
     void assembleTasm(const shared_ptr<STNode> root);
 
-    TMGenerator(const set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
+    TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
                 set<StatePointer> &states, bool readableStateNames = false);
 };
 
