@@ -6,7 +6,7 @@
 #include "MTMDTuringMachine/MTMDTuringMachine.h"
 #include "utils/utils.h"
 
-using std::ifstream, std::stringstream;
+using std::ifstream, std::stringstream, std::make_shared;
 
 class integrationTest : public ::testing::Test {
 protected:
@@ -32,7 +32,7 @@ protected:
     };
 
     static void compareFiles(const string& real, const string& expected){
-        ::ifstream t(expected);
+        ::ifstream t(real);
         ::stringstream buffer;
         buffer << t.rdbuf();
         ::ifstream t2(expected);
@@ -58,7 +58,7 @@ TEST_F(integrationTest, DiagonalMove)
     std::set<std::string> tapeAlphabet = {"B", "S"};
     std::set<StatePointer> states;
     map<TransitionDomain, TransitionImage> transitions;
-    TMGenerator generator{tapeAlphabet, transitions, states};
+    TMGenerator generator{tapeAlphabet, transitions, states, false};
     generator.assembleTasm(root);
     FiniteControl control(states, transitions);
     MTMDTuringMachine<TMTape3D, TMTape1D> tm(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
