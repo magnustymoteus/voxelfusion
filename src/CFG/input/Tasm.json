@@ -3,12 +3,12 @@
     "<Statement>", "<Expression>", "<StatementList>", "<Direction>", "<IdentifierList>", "<IdentifierListPart>",
     "<TapeMove>", "<TapeWrite>", "<Jump>", "<ReadCondition>", "<Accept>", "<Error>", "<ConditionalMove>",
     "<SymbolValueAssignment>", "<IntegerValueAssignment>", "<ImmediateSymbolValueAssignment>", "<SymbolVariableCondition>"
-  , "<IntegerVariableCondition>"
+  , "<IntegerVariableCondition>", "<ImmediateAddition>", "<ImmediateSubtraction>", "<ImmediateMultiplication>", "<ImmediateDivision>"
   ],
   "Terminals": ["Identifier", "Integer",
     "{","}",
     "if", "else", ";",
-    "==", "=",
+    "==", "=", "+=", "-=", "*=", "/=",
     "move",
     "left", "right", "up", "down", "forwards", "backwards",
     "write", "goto", "reading", "accept", "error", "until", ",",
@@ -32,6 +32,10 @@
     {"head": "<Statement>", "body": ["<ImmediateSymbolValueAssignment>"]},
     {"head": "<Statement>", "body": ["<SymbolVariableCondition>"]},
     {"head": "<Statement>", "body": ["<IntegerVariableCondition>"]},
+    {"head": "<Statement>", "body": ["<ImmediateAddition>"]},
+    {"head": "<Statement>", "body": ["<ImmediateSubtraction>"]},
+    {"head": "<Statement>", "body": ["<ImmediateMultiplication>"]},
+    {"head": "<Statement>", "body": ["<ImmediateDivision>"]},
 
     {"head": "<TapeMove>", "body": ["move", "<Direction>", ";"]},
     {"head": "<TapeWrite>", "body": ["write", "Identifier", ";"]},
@@ -45,6 +49,10 @@
     {"head": "<ImmediateSymbolValueAssignment>", "body": ["Identifier", "=", "current", ";"]},
     {"head": "<SymbolVariableCondition>", "body": ["if","Identifier", "==", "Identifier","goto","Integer", ";"]},
     {"head": "<IntegerVariableCondition>", "body": ["if","Identifier", "==", "Integer","goto","Integer", ";"]},
+    {"head": "<ImmediateAddition>", "body": ["Identifier", "+=", "Integer", ";"]},
+    {"head": "<ImmediateSubtraction>", "body": ["Identifier", "-=", "Integer", ";"]},
+    {"head": "<ImmediateMultiplication>", "body": ["Identifier", "*=", "Integer", ";"]},
+    {"head": "<ImmediateDivision>", "body": ["Identifier", "/=", "Integer", ";"]},
 
     {"head": "<IdentifierList>", "body": ["{", "<IdentifierListPart>", "}"]},
     {"head": "<IdentifierListPart>", "body": ["<IdentifierListPart>",",","Identifier"]},

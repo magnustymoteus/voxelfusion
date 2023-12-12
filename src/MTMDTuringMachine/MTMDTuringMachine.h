@@ -30,13 +30,14 @@ private:
 
     FiniteControl control;
 
-    bool isHalted;
+
     bool hasAccepted;
 
     // called every transition (if it's not nullptr)
     void (*updateCallback) (const std::tuple<TMTapeType*...> &tapes,
             const TransitionDomain &domain, const TransitionImage &image);
 public:
+    bool isHalted;
     MTMDTuringMachine(const std::set<std::string> &tapeAlphabet,
                       const std::set<std::string> &inputAlphabet,
                       const std::tuple<TMTapeType*...> &tapes,
@@ -87,6 +88,9 @@ public:
         const bool definite = (steps >= 0);
         while((!definite && !isHalted) || (definite && i<steps)) {
             doTransition();
+            std::cout << "---------------" << std::endl;
+            std::get<1>(tapes)->print();
+            std::cout << getFiniteControl().currentState->name << std::endl;
             i++;
         }
     }

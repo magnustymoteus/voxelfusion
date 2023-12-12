@@ -1,4 +1,6 @@
+#include <bitset>
 #include "TMGenerator.h"
+#define BINARY_VALUE_WIDTH 32
 using std::to_string, std::cout, std::cerr, std::endl, std::runtime_error;
 
 TMGenerator::TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
@@ -30,6 +32,19 @@ int TMGenerator::parseInteger(const shared_ptr<STNode> &root) {
     return std::stoi(root->token->lexeme);
 }
 
+template<std::size_t N> // https://stackoverflow.com/questions/48556547/how-to-reverse-bits-in-a-bitset
+void reverse(std::bitset<N> &b) {
+    for(std::size_t i = 0; i < N/2; ++i) {
+        bool t = b[i];
+        b[i] = b[N-i-1];
+        b[N-i-1] = t;
+    }
+}
+string TMGenerator::IntegerAsBitString(int in) {
+    auto bitset = std::bitset<BINARY_VALUE_WIDTH>(in);
+    reverse(bitset); //reverse to reduce necessary TM tape head travel e.g. for addition
+    return bitset.to_string();
+}
 
 void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
     StatePointer initializationState1 = make_shared<const State>(to_string(-2), true);
@@ -45,6 +60,8 @@ void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
     //TODO variabeletape leegmaken voor te beginnen
     tapeAlphabet.insert(VariableTapeStart);
     tapeAlphabet.insert(VariableTapeEnd);
+    tapeAlphabet.insert("0");
+    tapeAlphabet.insert("1");
 
 
     for (const string& ignoredSymbol: tapeAlphabet) {
@@ -327,6 +344,187 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
 
             registerRegularNewline(standardDestination);
+
+        }else if(l == "<IntegerValueAssignment>"){
+            string variableName = root->children[3]->token->lexeme;
+            int assignedValue = parseInteger(root->children[1]);
+            std::string binaryAssignedValue = IntegerAsBitString(assignedValue);
+            StatePointer destination = makeState(currentLineNumber +1);
+
+            //search for the tape begin marker
+            StatePointer goLeft = makeState();
+            postponedTransitionBuffer.emplace_back(currentLineBeginState, goLeft);
+            postponedTransitionBuffer.emplace_back(goLeft, goLeft, set<string>{VariableTapeStart});
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            //move right until variable name or tape end found
+            StatePointer goRight = makeState();
+            postponedTransitionBuffer.emplace_back(goLeft, goRight, set<string>{VariableTapeStart}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(goRight, goRight, set<string>{variableName, VariableTapeEnd});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+            // option 1: variable name found: overwrite current value, whatever it is
+                StatePointer writer1 = makeState();
+                postponedTransitionBuffer.emplace_back(goRight, writer1, set<string>{variableName}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                vector<StatePointer> writeValueStates1 = { writer1};
+                for (char c : binaryAssignedValue) {
+                    writeValueStates1.emplace_back(makeState());
+                    auto last = std::next(writeValueStates1.end(), -1);
+                    auto penultimate = std::next(last, -1);
+                    postponedTransitionBuffer.emplace_back(*penultimate, *last);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                }
+                postponedTransitionBuffer.emplace_back(*std::next(writeValueStates1.end(), -1), destination);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
+            // option 2: tape end found: overwrite it and put a new tape end to the right
+                StatePointer writeName = makeState();
+                //write the name
+                postponedTransitionBuffer.emplace_back(goRight, writeName, set<string>{VariableTapeEnd}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->toWrite = variableName;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+                vector<StatePointer> writeValueStates2 = {writeName};
+                for (char c : binaryAssignedValue) {
+                    writeValueStates2.emplace_back(makeState());
+                    auto last = std::next(writeValueStates2.end(), -1);
+                    auto penultimate = std::next(last, -1);
+                    postponedTransitionBuffer.emplace_back(*penultimate, *last);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                }
+                StatePointer writeTapeEnd = makeState();
+                postponedTransitionBuffer.emplace_back(*std::next(writeValueStates2.end(), -1), writeTapeEnd, set<string>{VariableTapeEnd});
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->toWrite = VariableTapeEnd;
+                postponedTransitionBuffer.emplace_back(writeTapeEnd, destination, set<string>{VariableTapeEnd}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            registerRegularNewline(destination);
+        }
+        else if(l == "<IntegerVariableCondition>"){
+            string variableName = root->children[5]->token->lexeme;
+            int comparedValue = parseInteger(root->children[1]);
+            std::string binaryComparedValue = IntegerAsBitString(comparedValue);
+            StatePointer standardDestination = makeState(currentLineNumber +1);
+            int conditionalDestinationLineNumber = parseInteger(root->children[1]);
+
+            //search for the tape begin marker
+            StatePointer goLeft = makeState();
+            postponedTransitionBuffer.emplace_back(currentLineBeginState, goLeft);
+            postponedTransitionBuffer.emplace_back(goLeft, goLeft, set<string>{VariableTapeStart});
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            //move right until variable name or tape end found (stopping at tape end will fail any comparison so is better than going past the end)
+            StatePointer goRight = makeState();
+            postponedTransitionBuffer.emplace_back(goLeft, goRight, set<string>{VariableTapeStart}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(goRight, goRight, set<string>{variableName, VariableTapeEnd});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+            //bitwise comparison
+            StatePointer reader1 = makeState();
+            postponedTransitionBuffer.emplace_back(goRight, reader1, set<string>{variableName}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            vector<StatePointer> readerStates = {reader1};
+            for (char c : binaryComparedValue) {
+                readerStates.emplace_back(makeState());
+                auto last = std::next(readerStates.end(), -1);
+                auto penultimate = std::next(last, -1);
+                postponedTransitionBuffer.emplace_back(*penultimate, *last, set<string>{string(1, c)}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                postponedTransitionBuffer.emplace_back(*penultimate, standardDestination, set<string>{string(1, c)});
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
+            }
+            postponedTransitionBuffer.emplace_back(*std::next(readerStates.end(), -1), conditionalDestinationLineNumber);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            registerRegularNewline(standardDestination);
+        }
+        else if(l == "<ImmediateAddition>"){
+            string variableName = root->children[3]->token->lexeme;
+            int addedValue = parseInteger(root->children[1]);
+            std::string binaryAddedValue = IntegerAsBitString(addedValue);
+            StatePointer destination = makeState(currentLineNumber +1);
+
+            //search for the tape begin marker
+            StatePointer goLeft = makeState();
+            postponedTransitionBuffer.emplace_back(currentLineBeginState, goLeft);
+            postponedTransitionBuffer.emplace_back(goLeft, goLeft, set<string>{VariableTapeStart});
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            //move right until variable name or tape end found (stopping at tape end will halt unexpectedly so is better than going past the end)
+            StatePointer goRight = makeState();
+            postponedTransitionBuffer.emplace_back(goLeft, goRight, set<string>{VariableTapeStart}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(goRight, goRight, set<string>{variableName, VariableTapeEnd});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+            //start adding
+            StatePointer writer1 = makeState();
+            postponedTransitionBuffer.emplace_back(goRight, writer1, set<string>{variableName}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            vector<StatePointer> writeValueStates = {writer1, makeState()}; // first carry state cannot be reached here but makes the loop below easier
+            for (char c : binaryAddedValue) {
+                StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
+                StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
+                StatePointer newNormalState = makeState();
+                StatePointer newCarryState = makeState();
+                if(c == '0'){
+                    postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, set<string>{"0"}, true);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                    postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, set<string>{"1"}, true);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                    postponedTransitionBuffer.emplace_back(oldCarryState, newNormalState, set<string>{"0"}, true);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                    postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, set<string>{"1"}, true);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                }else if(c == '1'){
+                    postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, set<string>{"0"}, true);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                    postponedTransitionBuffer.emplace_back(oldNormalState, newCarryState, set<string>{"1"}, true);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                    postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, set<string>{"0"}, true);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                    postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, set<string>{"1"}, true);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                }
+            }
+            StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
+            StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
+            postponedTransitionBuffer.emplace_back(oldNormalState, destination);
+            postponedTransitionBuffer.emplace_back(oldCarryState, destination);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
 
         }
         else{
