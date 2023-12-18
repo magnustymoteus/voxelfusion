@@ -30,8 +30,11 @@ class Visualisation {
     ElementBuffer* EBO{nullptr};
     vector<GLfloat> vertices;
     vector<GLuint> indices;
+    float FOV;
+    float nearPlane;
+    float farPlane;
 public:
-    Visualisation();
+    Visualisation(float fov, float nearPlane, float farPlane);
     bool update();
     void rebuild(TMTape3D *tape);
     ~Visualisation();

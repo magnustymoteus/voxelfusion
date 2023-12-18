@@ -44,7 +44,8 @@ void createCube(vector<GLfloat>& vertices, vector<GLuint>& indices, int x, int y
     }
 }
 
-Visualisation::Visualisation() {
+Visualisation::Visualisation(float fov, float nearPlane, float farPlane) :
+FOV(fov), nearPlane(nearPlane), farPlane(farPlane) {
     glfwInit();
 
     // general opengl settings
@@ -86,7 +87,7 @@ bool Visualisation::update() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     camera->Inputs(window);
-    camera->Matrix(45.0f, 0.1f, 100.0f, *shaderProgram, "cameraMatrix");
+    camera->Matrix(FOV, nearPlane, farPlane, *shaderProgram, "cameraMatrix");
 
     VAO->Bind();
 
