@@ -1,0 +1,9 @@
+if reading S goto 4;
+write S;
+goto 1;
+move left;
+move left;
+move left;
+move left;
+move right until {S};
+accept;

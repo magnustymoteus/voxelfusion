@@ -6,9 +6,9 @@
 #include "MTMDTuringMachine/MTMDTuringMachine.h"
 #include "utils/utils.h"
 
-using std::ifstream, std::stringstream;
+using std::ifstream, std::stringstream, std::make_shared;
 
-class integrationTest : public ::testing::Test {
+class compilationTest : public ::testing::Test {
 protected:
 
     inline static ::shared_ptr<LALR1Parser> parser;
@@ -32,13 +32,28 @@ protected:
     };
 
     static void compareFiles(const string& real, const string& expected){
-        ::ifstream t(expected);
+        ::ifstream t(real);
         ::stringstream buffer;
         buffer << t.rdbuf();
         ::ifstream t2(expected);
         ::stringstream buffer2;
         buffer2 << t2.rdbuf();
         EXPECT_EQ(buffer2.str(), buffer.str());
+    }
+    static void compile(const string& codePath, shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D>>& tm){
+        auto lexer = initializeLexer(codePath);
+        const std::shared_ptr<STNode>& root = parser->parse(lexer->getTokenizedInput());
+        root->exportVisualization("test.dot");
+        auto *tape3d {new TMTape3D()};
+        auto *tape1d {new TMTape1D()};
+        auto tapes = std::make_tuple(tape3d, tape1d);
+        std::set<std::string> tapeAlphabet = {"B", "S"};
+        std::set<StatePointer> states;
+        map<TransitionDomain, TransitionImage> transitions;
+        TMGenerator generator{tapeAlphabet, transitions, states, false};
+        generator.assembleTasm(root);
+        FiniteControl control(states, transitions);
+        tm = make_shared<MTMDTuringMachine<TMTape3D, TMTape1D>>(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
     }
     virtual void SetUp() {
 
@@ -47,28 +62,26 @@ protected:
     }
 };
 
-TEST_F(integrationTest, DiagonalMove)
+TEST_F(compilationTest, DiagonalMove)
 {
-    auto lexer = initializeLexer("tasm/helloworld.tasm");
-    const std::shared_ptr<STNode>& root = parser->parse(lexer->getTokenizedInput());
-    root->exportVisualization("test.dot");
-    auto *tape3d {new TMTape3D()};
-    auto *tape1d {new TMTape1D()};
-    auto tapes = std::make_tuple(tape3d, tape1d);
-    std::set<std::string> tapeAlphabet = {"B", "S"};
-    std::set<StatePointer> states;
-    map<TransitionDomain, TransitionImage> transitions;
-    TMGenerator generator{tapeAlphabet, transitions, states};
-    generator.assembleTasm(root);
-    FiniteControl control(states, transitions);
-    MTMDTuringMachine<TMTape3D, TMTape1D> tm(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
-    utils::TMtoDotfile(tm, "tm.dot");
+    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D>> tm;
+    compile("tasm/helloworld.tasm", tm);
+    utils::TMtoDotfile(*tm, "tm.dot");
     compareFiles("tm.dot", "src/tests/comparison/diagonalMoveTM.dot");
 
-    tm.doTransitions(21);
-    EXPECT_EQ(tm.getFiniteControl().currentState->name, "1");
-    delete tape3d;
-    delete tape1d;
+    tm->doTransitions(21);
+    EXPECT_EQ(tm->getFiniteControl().currentState->name, "1");
+}
+TEST_F(compilationTest, basicConditionals)
+{
+    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D>> tm;
+    compile("tasm/conditional.tasm", tm);
+    utils::TMtoDotfile(*tm, "tm.dot");
+    compareFiles("tm.dot", "src/tests/comparison/basicConditionalsTM.dot");
+
+    tm->doTransitions(14);
+    EXPECT_EQ(tm->getFiniteControl().currentState->name, "9");
+    EXPECT_EQ(tm->getFiniteControl().currentState->type, State_Accepting);
 }
 
 
