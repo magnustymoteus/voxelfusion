@@ -52,7 +52,7 @@ class TMGenerator {
     int parseInteger(const shared_ptr<STNode>& root);
     set<string> parseIdentifierList(const shared_ptr<STNode>& root) const;
     void identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output) const;
-    string IntegerAsBitString(int in);
+    string IntegerAsBitString(int in, bool flipped = false);
 public:
     void assembleTasm(const shared_ptr<STNode> root);
 

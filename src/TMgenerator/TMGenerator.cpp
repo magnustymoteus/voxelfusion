@@ -40,9 +40,14 @@ void reverse(std::bitset<N> &b) {
         b[N-i-1] = t;
     }
 }
-string TMGenerator::IntegerAsBitString(int in) {
+string TMGenerator::IntegerAsBitString(int in, bool flipped) {
     auto bitset = std::bitset<BINARY_VALUE_WIDTH>(in);
+    if(flipped) { // two's complement time
+        bitset.flip();
+        bitset = bitset.to_ulong() + 1;
+    }
     reverse(bitset); //reverse to reduce necessary TM tape head travel e.g. for addition
+    if(!flipped && bitset.test(0)) throw std::runtime_error("The MSB for a non-negative integer should be 0 but is 1, pick a larger BINARY_VALUE_WIDTH");
     return bitset.to_string();
 }
 
@@ -412,7 +417,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<IntegerVariableCondition>"){
             string variableName = root->children[5]->token->lexeme;
-            int comparedValue = parseInteger(root->children[1]);
+            int comparedValue = parseInteger(root->children[3]);
             std::string binaryComparedValue = IntegerAsBitString(comparedValue);
             StatePointer standardDestination = makeState(currentLineNumber +1);
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
@@ -453,10 +458,10 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
             registerRegularNewline(standardDestination);
         }
-        else if(l == "<ImmediateAddition>"){
+        else if(l == "<ImmediateAddition>" || l == "<ImmediateSubtraction>"){
             string variableName = root->children[3]->token->lexeme;
             int addedValue = parseInteger(root->children[1]);
-            std::string binaryAddedValue = IntegerAsBitString(addedValue);
+            std::string binaryAddedValue = IntegerAsBitString(addedValue, l == "<ImmediateSubtraction>");
             StatePointer destination = makeState(currentLineNumber +1);
 
             //search for the tape begin marker
@@ -485,6 +490,8 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
                 StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
                 StatePointer newNormalState = makeState();
                 StatePointer newCarryState = makeState();
+                writeValueStates.push_back(newNormalState);
+                writeValueStates.push_back(newCarryState);
                 if(c == '0'){
                     postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, set<string>{"0"}, true);
                     std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
@@ -522,9 +529,12 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
             StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
             postponedTransitionBuffer.emplace_back(oldNormalState, destination);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
             postponedTransitionBuffer.emplace_back(oldCarryState, destination);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
             std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
+            registerRegularNewline(destination);
 
         }
         else{
