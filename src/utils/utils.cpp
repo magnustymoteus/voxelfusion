@@ -216,102 +216,72 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
             }
             tape[x] = TMPlane;
         }
-    } else{
-        // TODO: remove redundant code + do 2n+1 resize
-        tape.cells.resize(voxelSpace.size()+2);
-        //////////// top begin
-        TMTape2D zeroplane;
-        zeroplane.cells.resize(voxelSpace[0].size()+2);
-
-        TMTape1D line00;
-        line00.cells.resize(voxelSpace[0][0].size()+2);
-        for (unsigned int z = 0; z < voxelSpace[0][0].size()+2; z++) {
-            line00[z] = TMTapeCell("BB");
-        }
-        zeroplane[0] = line00;
-
+    } else{ // BB is a "bound blanco"
+        // Add extra top plane
+        TMTape2D topPlane;
         for (unsigned int y = 0; y < voxelSpace[0].size(); y++) {
             TMTape1D TMLine;
-            TMLine.cells.resize(voxelSpace[0][y].size()+2);
-            for (unsigned int z = 0; z < voxelSpace[0][y].size()+2; z++) {
-                TMLine.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
+            TMLine[-1] = TMTapeCell("BB");
+            for (unsigned int z = 0; z < voxelSpace[0][y].size(); z++) {
+                std::string symbol = "BB";
+                TMLine[z] = TMTapeCell(symbol);
             }
-            zeroplane.cells[y+1] = std::make_shared<TMTape1D>(TMLine);
+            TMLine[voxelSpace[0][y].size()] = TMTapeCell("BB");
+            topPlane[y] = TMLine;
         }
+        tape[-1] = topPlane;
+        // Top plane end
 
-        TMTape1D lastline0;
-        lastline0.cells.resize(voxelSpace[0][0].size()+2);
-        for (unsigned int z = 0; z < voxelSpace[0][0].size()+2; z++) {
-            lastline0.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
-        }
-        zeroplane.cells[zeroplane.cells.size()-1] = std::make_shared<TMTape1D>(lastline0);
-
-        tape.cells[0] = std::make_shared<TMTape2D>(zeroplane);
-        ////////////// top end
-
-        // Here we construct planes:
         for (unsigned int x = 0; x < voxelSpace.size(); x++) {
             TMTape2D TMPlane;
-            TMPlane.cells.resize(voxelSpace[x].size()+2);
-            // left size begin
-            TMTape1D line0;
-            line0.cells.resize(voxelSpace[x][0].size()+2);
-            for (unsigned int z = 0; z < voxelSpace[x][0].size()+2; z++) {
-                line0.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
+            // Left line
+            TMTape1D leftLine;
+            for (unsigned int z = 0; z < voxelSpace[0][0].size(); z++) {
+                std::string symbol = "BB";
+                leftLine[z] = TMTapeCell(symbol);
             }
-            TMPlane.cells[0] = std::make_shared<TMTape1D>(line0);
-            // left size end
-            // Here we construct lines for the plane:
+            TMPlane[-1] = leftLine;
+            // Left line end
+            // Reading the information in the vector
             for (unsigned int y = 0; y < voxelSpace[x].size(); y++) {
                 TMTape1D TMLine;
-                TMLine.cells.resize(voxelSpace[x][y].size()+2);
-                TMLine.cells[0] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
+                // Forward plane
+                TMLine[-1] = TMTapeCell("BB");
                 for (unsigned int z = 0; z < voxelSpace[x][y].size(); z++) {
                     std::string symbol = voxelSpace[x][y][z].occupied ? fillSymbol : "B";
-                    TMLine.cells[z+1] = std::make_shared<TMTapeCell>(TMTapeCell(symbol));
+                    TMLine[z] = TMTapeCell(symbol);
                 }
-                TMLine.cells[voxelSpace[x][y].size()+1] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
-                TMPlane.cells[y+1] = std::make_shared<TMTape1D>(TMLine);
+                // Back plane
+                TMLine[voxelSpace[x][y].size()] = TMTapeCell("BB");
+                TMPlane[y] = TMLine;
             }
-            // right size begin
-            TMTape1D lastline;
-            lastline.cells.resize(voxelSpace[x][0].size()+2);
-            for (unsigned int z = 0; z < voxelSpace[x][0].size()+2; z++) {
-                lastline.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
+            // End information reading
+            // Right line
+            TMTape1D rightLine;
+            for (unsigned int z = 0; z < voxelSpace[0][0].size(); z++) {
+                std::string symbol = "BB";
+                rightLine[z] = TMTapeCell(symbol);
             }
-            TMPlane.cells[voxelSpace[x][0].size()+1] = std::make_shared<TMTape1D>(lastline);
-            // right size end
-            tape.cells[x+1] = std::make_shared<TMTape2D>(TMPlane);
+            TMPlane[voxelSpace[x].size()] = rightLine;
+            // Left line end
+            tape[x] = TMPlane;
         }
-        //////////// bottom begin
-        TMTape2D lastplane;
-        lastplane.cells.resize(voxelSpace[0].size()+2);
 
-        TMTape1D linelast0;
-        linelast0.cells.resize(voxelSpace[0][0].size()+2);
-        for (unsigned int z = 0; z < voxelSpace[0][0].size()+2; z++) {
-            linelast0.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
-        }
-        lastplane.cells[0] = std::make_shared<TMTape1D>(linelast0);
 
+        // Add extra bottom plane
+        TMTape2D bottomPlane;
         for (unsigned int y = 0; y < voxelSpace[0].size(); y++) {
             TMTape1D TMLine;
-            TMLine.cells.resize(voxelSpace[0][y].size()+2);
-            for (unsigned int z = 0; z < voxelSpace[0][y].size()+2; z++) {
-                TMLine.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
+            TMLine[-1] = TMTapeCell("BB");
+            for (unsigned int z = 0; z < voxelSpace[0][y].size(); z++) {
+                std::string symbol = "BB";
+                TMLine[z] = TMTapeCell(symbol);
             }
-            lastplane.cells[y+1] = std::make_shared<TMTape1D>(TMLine);
+            TMLine[voxelSpace[0][y].size()] = TMTapeCell("BB");
+            bottomPlane[y] = TMLine;
         }
-
-        TMTape1D linelastlast;
-        linelastlast.cells.resize(voxelSpace[0][0].size()+2);
-        for (unsigned int z = 0; z < voxelSpace[0][0].size()+2; z++) {
-            linelastlast.cells[z] = std::make_shared<TMTapeCell>(TMTapeCell("BB"));
-        }
-        lastplane[lastplane.cells.size()-1] = linelastlast;
-
-        tape[voxelSpace.size()+1] = lastplane;
-        /////////// bottom end
+        tape[voxelSpace.size()] = bottomPlane;
+        // Bottom plane end
     }
 }
 
