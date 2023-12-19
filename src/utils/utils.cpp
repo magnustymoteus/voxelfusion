@@ -203,12 +203,14 @@ void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize)
 }
 
 void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol, bool edge){
+    unsigned int counter = 0;
     if(!edge) { // Yes, the code is almost the same, but otherwise it would be a mess
         for (unsigned int x = 0; x < voxelSpace.size(); x++) {
             TMTape2D TMPlane;
             for (unsigned int y = 0; y < voxelSpace[x].size(); y++) {
                 TMTape1D TMLine;
                 for (unsigned int z = 0; z < voxelSpace[x][y].size(); z++) {
+                    if (voxelSpace[x][y][z].occupied) counter++;
                     std::string symbol = voxelSpace[x][y][z].occupied ? fillSymbol : "B";
                     TMLine[z] = TMTapeCell(symbol);
                 }
@@ -248,6 +250,7 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
                 // Forward plane
                 TMLine[-1] = TMTapeCell("BB");
                 for (unsigned int z = 0; z < voxelSpace[x][y].size(); z++) {
+                    if (voxelSpace[x][y][z].occupied) counter++;
                     std::string symbol = voxelSpace[x][y][z].occupied ? fillSymbol : "B";
                     TMLine[z] = TMTapeCell(symbol);
                 }
@@ -263,7 +266,7 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
                 rightLine[z] = TMTapeCell(symbol);
             }
             TMPlane[voxelSpace[x].size()] = rightLine;
-            // Left line end
+            // Right line end
             tape[x] = TMPlane;
         }
 
@@ -283,6 +286,7 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
         tape[voxelSpace.size()] = bottomPlane;
         // Bottom plane end
     }
+    std::cout << "Filled blocks in voxelSpaceToTape: " << counter << std::endl;
 }
 
 void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
