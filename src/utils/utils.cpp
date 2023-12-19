@@ -96,10 +96,10 @@ bool utils::voxelTriangleIntersection(const int& x, const int& y, const int& z, 
     norm.normalise();
 
 
-    //-- fast box-plane test
-    float r = 0.5 * fabs(norm.x) + 0.5 * fabs(norm.y) + 0.5 * fabs(norm.z);
-    float s = norm.x * (0.5f - v[0].x) + norm.y * (0.5f - v[0].y) + norm.z * (0.5f - v[0].z);
-    if (fabs(s) > r) return false;
+//    //-- fast box-plane test
+//    float r = 0.5 * fabs(norm.x) + 0.5 * fabs(norm.y) + 0.5 * fabs(norm.z);
+//    float s = norm.x * (0.5f - v[0].x) + norm.y * (0.5f - v[0].y) + norm.z * (0.5f - v[0].z);
+//    if (fabs(s) > r) return false;
 
     //--- akenine-moller tests
     p.x = e[0].z * v[0].y - e[0].y * v[0].z;
@@ -155,7 +155,6 @@ bool utils::voxelTriangleIntersection(const int& x, const int& y, const int& z, 
     if (p.z < p.y) { min = p.z; max = p.y; }
     else { min = p.y; max = p.z; }
     rad = fabsf(e[2].y) * 0.5f + fabsf(e[2].x) * 0.5f; if (min > rad || max < -rad) return false;
-
     return true;
 }
 void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize){
@@ -171,9 +170,9 @@ void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize)
     translateAndScale(maxPoint, translationPoint, voxelSize);
 
     // Initialize the voxel space
-    voxelSpace.resize(static_cast<size_t>(std::ceil(maxPoint.x)),
-                     std::vector<std::vector<Voxel>>(static_cast<size_t>(std::ceil(maxPoint.y)),
-                                                     std::vector<Voxel>(static_cast<size_t>(std::ceil(maxPoint.z)))));
+    voxelSpace.resize(static_cast<size_t>(std::ceil(maxPoint.x)+1),
+                     std::vector<std::vector<Voxel>>(static_cast<size_t>(std::ceil(maxPoint.y)+1),
+                                                     std::vector<Voxel>(static_cast<size_t>(std::ceil(maxPoint.z)+1))));
     // Iterate through each face of the mesh and mark the intersected voxels
     for (const auto& face : mesh.faces) {
         for (size_t i = 0; i < face.point_indexes.size(); i += 3) { // Just for safety, normally it should give only one iteration
