@@ -324,3 +324,11 @@ void utils::finiteControlToDotfile(FiniteControl &control, const std::string &pa
     output << result;
     output.close();
 }
+
+void utils::objToTape(const std::string& path, TMTape3D& tape, const double& voxelSize, const std::string& fillSymbol, bool edge){
+    Mesh mesh;
+    VoxelSpace voxelSpace;
+    load_obj(path, mesh);
+    voxelise(mesh, voxelSpace, voxelSize);
+    voxelSpaceToTape(voxelSpace, tape, fillSymbol, edge);
+}
