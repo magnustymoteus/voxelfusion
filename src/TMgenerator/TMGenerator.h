@@ -48,10 +48,11 @@ class TMGenerator {
     void registerRegularNewline(StatePointer& state);
     StatePointer makeState(int beginStateOfThisLineNumber = 0, bool accepting=false);
 
-    TMTapeDirection parseDirection(const shared_ptr<STNode>& root);
-    int parseInteger(const shared_ptr<STNode>& root);
-    set<string> parseIdentifierList(const shared_ptr<STNode>& root) const;
-    void identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output) const;
+    static TMTapeDirection parseDirection(const shared_ptr<STNode>& root);
+    static int parseInteger(const shared_ptr<STNode>& root);
+    static string parseSymbolLiteral(const shared_ptr<STNode>& root);
+    static set<string> parseIdentifierList(const shared_ptr<STNode>& root);
+    static void identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output);
     string IntegerAsBitString(int in, bool flipped = false);
 public:
     void assembleTasm(const shared_ptr<STNode> root);

@@ -1,13 +1,14 @@
 {
   "Variables": [
     "<Statement>", "<Expression>", "<StatementList>", "<Direction>", "<IdentifierList>", "<IdentifierListPart>",
+    "<SymbolLiteral>",
     "<TapeMove>", "<TapeWrite>", "<Jump>", "<ReadCondition>", "<Accept>", "<Error>", "<ConditionalMove>",
     "<SymbolValueAssignment>", "<IntegerValueAssignment>", "<ImmediateSymbolValueAssignment>", "<SymbolVariableCondition>"
   , "<IntegerVariableCondition>", "<ImmediateAddition>", "<ImmediateSubtraction>", "<ImmediateMultiplication>", "<ImmediateDivision>"
   ],
   "Terminals": ["Identifier", "Integer",
     "{","}",
-    "if", "else", ";",
+    "if", "else", ";", "'",
     "==", "=", "+=", "-=", "*=", "/=",
     "move",
     "left", "right", "up", "down", "forwards", "backwards",
@@ -38,16 +39,16 @@
     {"head": "<Statement>", "body": ["<ImmediateDivision>"]},
 
     {"head": "<TapeMove>", "body": ["move", "<Direction>", ";"]},
-    {"head": "<TapeWrite>", "body": ["write", "Identifier", ";"]},
+    {"head": "<TapeWrite>", "body": ["write", "<SymbolLiteral>", ";"]},
     {"head": "<Jump>", "body": ["goto", "Integer", ";"]},
-    {"head": "<ReadCondition>", "body": ["if", "reading", "Identifier", "goto", "Integer", ";"]},
+    {"head": "<ReadCondition>", "body": ["if", "reading", "<SymbolLiteral>", "goto", "Integer", ";"]},
     {"head": "<Accept>", "body": ["accept", ";"]},
     {"head": "<Error>", "body": ["error", ";"]},
     {"head": "<ConditionalMove>", "body": ["move", "<Direction>", "until", "<IdentifierList>", ";"]},
-    {"head": "<SymbolValueAssignment>", "body": ["Identifier", "=", "Identifier", ";"]},
+    {"head": "<SymbolValueAssignment>", "body": ["Identifier", "=", "<SymbolLiteral>", ";"]},
     {"head": "<IntegerValueAssignment>", "body": ["Identifier", "=", "Integer", ";"]},
     {"head": "<ImmediateSymbolValueAssignment>", "body": ["Identifier", "=", "current", ";"]},
-    {"head": "<SymbolVariableCondition>", "body": ["if","Identifier", "==", "Identifier","goto","Integer", ";"]},
+    {"head": "<SymbolVariableCondition>", "body": ["if","Identifier", "==", "<SymbolLiteral>","goto","Integer", ";"]},
     {"head": "<IntegerVariableCondition>", "body": ["if","Identifier", "==", "Integer","goto","Integer", ";"]},
     {"head": "<ImmediateAddition>", "body": ["Identifier", "+=", "Integer", ";"]},
     {"head": "<ImmediateSubtraction>", "body": ["Identifier", "-=", "Integer", ";"]},
@@ -55,8 +56,10 @@
     {"head": "<ImmediateDivision>", "body": ["Identifier", "/=", "Integer", ";"]},
 
     {"head": "<IdentifierList>", "body": ["{", "<IdentifierListPart>", "}"]},
-    {"head": "<IdentifierListPart>", "body": ["<IdentifierListPart>",",","Identifier"]},
-    {"head": "<IdentifierListPart>", "body": ["Identifier"]},
+    {"head": "<IdentifierListPart>", "body": ["<IdentifierListPart>",",","<SymbolLiteral>"]},
+    {"head": "<IdentifierListPart>", "body": ["<SymbolLiteral>"]},
+
+    {"head": "<SymbolLiteral>", "body": ["'", "Identifier", "'"]},
 
 
     {"head": "<Direction>", "body": ["left"]},

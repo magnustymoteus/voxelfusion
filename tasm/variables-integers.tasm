@@ -2,7 +2,7 @@ T = 10;
 T = 4;
 goto 6;
 T = 3;
-P = ITWORKS;
+P = 'ITWORKS';
 if T == 4 goto 4;
 T = 5;
 T += 5;

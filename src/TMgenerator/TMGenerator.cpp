@@ -32,6 +32,10 @@ int TMGenerator::parseInteger(const shared_ptr<STNode> &root) {
     return std::stoi(root->token->lexeme);
 }
 
+string TMGenerator::parseSymbolLiteral(const shared_ptr<STNode> &root) {
+    return root->children[1]->token->lexeme;
+}
+
 template<std::size_t N> // https://stackoverflow.com/questions/48556547/how-to-reverse-bits-in-a-bitset
 void reverse(std::bitset<N> &b) {
     for(std::size_t i = 0; i < N/2; ++i) {
@@ -155,7 +159,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<TapeWrite>"){
             StatePointer destination = makeState(currentLineNumber +1);
-            string symbolName = root->children[1]->token->lexeme;
+            string symbolName = parseSymbolLiteral(root->children[1]);
             postponedTransitionBuffer.emplace_back(currentLineBeginState, destination);
             std::next(postponedTransitionBuffer.end(), -1)->toWrite = symbolName;
             registerRegularNewline(destination);
@@ -169,7 +173,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<ReadCondition>"){
             StatePointer standardDestination = makeState(currentLineNumber +1);
-            string symbolName = root->children[3]->token->lexeme;
+            string symbolName = parseSymbolLiteral(root->children[3]);
             postponedTransitionBuffer.emplace_back(currentLineBeginState, standardDestination, set<string>{symbolName});
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
             postponedTransitionBuffer.emplace_back(currentLineBeginState, conditionalDestinationLineNumber, set<string>{symbolName}, true);
@@ -270,7 +274,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<SymbolValueAssignment>"){
             string variableName = root->children[3]->token->lexeme;
-            string variableValue = root->children[1]->token->lexeme;
+            string variableValue = parseSymbolLiteral(root->children[1]);
             StatePointer destination = makeState(currentLineNumber +1);
             //search for the tape begin marker
             StatePointer goLeft = makeState();
@@ -318,7 +322,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<SymbolVariableCondition>"){
             string variableName = root->children[5]->token->lexeme;
-            string variableValue = root->children[3]->token->lexeme;
+            string variableValue = parseSymbolLiteral(root->children[3]);;
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
             StatePointer destination = makeState(currentLineNumber +1);
             //search for the tape begin marker
@@ -558,15 +562,15 @@ StatePointer TMGenerator::makeState(int beginStateOfThisLineNumber, bool accepti
     return newState;
 }
 
-void TMGenerator::identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output) const {
+void TMGenerator::identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output) {
     if(root->children.size() > 1){
         identifierListPartRecursiveParser(root->children.at(2), output);
     }
-    output.insert(root->children[0]->token->lexeme);
+    output.insert(parseSymbolLiteral(root->children[0]));
 
 }
 
-set<string> TMGenerator::parseIdentifierList(const shared_ptr<STNode> &root) const{
+set<string> TMGenerator::parseIdentifierList(const shared_ptr<STNode> &root) {
     set<string> output;
     identifierListPartRecursiveParser(root->children.at(1), output);
     return output;
