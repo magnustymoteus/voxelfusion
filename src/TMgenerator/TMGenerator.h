@@ -25,7 +25,7 @@ struct PostponedTransition{
     bool onlyTheseSymbols;
     int tape = 0;
     string toWrite;
-    vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary};
+    vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary, TMTapeDirection::Stationary};
 };
 
 class TMGenerator {
@@ -47,6 +47,7 @@ class TMGenerator {
 
     void registerRegularNewline(StatePointer& state);
     StatePointer makeState(int beginStateOfThisLineNumber = 0, bool accepting=false);
+    StatePointer MoveToVariableMarker(const string &variableName);
 
     static TMTapeDirection parseDirection(const shared_ptr<STNode>& root);
     static int parseInteger(const shared_ptr<STNode>& root);
