@@ -47,7 +47,7 @@ class TMGenerator {
 
     void registerRegularNewline(StatePointer& state);
     StatePointer makeState(int beginStateOfThisLineNumber = 0, bool accepting=false);
-    StatePointer MoveToVariableMarker(const string &variableName);
+    StatePointer MoveToVariableMarker(StatePointer startState, const string &variableName);
 
     static TMTapeDirection parseDirection(const shared_ptr<STNode>& root);
     static int parseInteger(const shared_ptr<STNode>& root);
@@ -60,6 +60,8 @@ public:
 
     TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
                 set<StatePointer> &states, bool readableStateNames = false);
+
+    StatePointer copyIntegerToThirdTape(StatePointer startState, const string &variableName);
 };
 
 
