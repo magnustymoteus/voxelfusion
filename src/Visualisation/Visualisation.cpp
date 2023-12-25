@@ -44,7 +44,8 @@ void createCube(vector<GLfloat>& vertices, vector<GLuint>& indices, int x, int y
     }
 }
 
-Visualisation::Visualisation() {
+Visualisation::Visualisation(float fov, float nearPlane, float farPlane) :
+FOV(fov), nearPlane(nearPlane), farPlane(farPlane) {
     glfwInit();
 
     // general opengl settings
@@ -52,7 +53,7 @@ Visualisation::Visualisation() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "yes", NULL, NULL);
+    window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Say 'Oh my god, it's so beautiful!'", NULL, NULL);
     if (window == NULL) {
         cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
@@ -86,7 +87,7 @@ bool Visualisation::update() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     camera->Inputs(window);
-    camera->Matrix(45.0f, 0.1f, 100.0f, *shaderProgram, "cameraMatrix");
+    camera->Matrix(FOV, nearPlane, farPlane, *shaderProgram, "cameraMatrix");
 
     VAO->Bind();
 

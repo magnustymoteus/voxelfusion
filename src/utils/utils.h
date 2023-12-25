@@ -28,6 +28,7 @@ public:
     static bool voxelTriangleIntersection(const int& x, const int& y, const int& z, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3);
     static void voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize=1);
     static void voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol="X", bool edge=false); // TODO: fillSymbol more flexible?
+    static void objToTape(const std::string& path, TMTape3D& tape, const double& voxelSize=1, const std::string& fillSymbol="X", bool edge=false);
     static void generateTerrain(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale);
     template<class... TMTapeType>
     static void TMtoDotfile(MTMDTuringMachine<TMTapeType...> TM, const std::string& path) {

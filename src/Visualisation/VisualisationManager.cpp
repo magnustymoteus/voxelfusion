@@ -3,7 +3,7 @@
 
 VisualisationManager::VisualisationManager() {
     glfwWorker = make_unique<thread>([this]{
-        Visualisation v;
+        Visualisation v(45.0f, 0.1f, 100.0f);
         bool go = true;
         while (go){
             bool rebuild = false;
