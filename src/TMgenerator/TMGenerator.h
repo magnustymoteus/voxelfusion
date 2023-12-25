@@ -23,11 +23,13 @@ struct PostponedTransition{
     int endLine;
     set<string> leftOutSymbols;
     bool onlyTheseSymbols;
-    vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary};
+    int tape = 0;
+    string toWrite;
+    vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary, TMTapeDirection::Stationary};
 };
 
 class TMGenerator {
-    const set<string> &tapeAlphabet;
+    set<string> &tapeAlphabet;
     map<TransitionDomain, TransitionImage>& transitions;
     set<StatePointer>& states;
     bool readableStateNames;
@@ -37,21 +39,31 @@ class TMGenerator {
     int currentLineNumber = 1;
     bool registerEndAsStartForNewLine = true;
     list<PostponedTransition> postponedTransitionBuffer;
+    inline static const string VariableTapeStart = "VTB";
+    inline static const string VariableTapeEnd = "VTE";
 
+    void alphabetExplorer(const shared_ptr<STNode>& root);
     void explorer(const shared_ptr<STNode>& root);
 
     void registerRegularNewline(StatePointer& state);
     StatePointer makeState(int beginStateOfThisLineNumber = 0, bool accepting=false);
+    StatePointer MoveToVariableMarker(StatePointer startState, const string &variableName);
 
-    TMTapeDirection parseDirection(const shared_ptr<STNode>& root);
-    int parseInteger(const shared_ptr<STNode>& root);
-    set<string> parseIdentifierList(const shared_ptr<STNode>& root) const;
-    void identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output) const;
+    static TMTapeDirection parseDirection(const shared_ptr<STNode>& root);
+    static int parseInteger(const shared_ptr<STNode>& root);
+    static string parseSymbolLiteral(const shared_ptr<STNode>& root);
+    static set<string> parseIdentifierList(const shared_ptr<STNode>& root);
+    static void identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output);
+    string IntegerAsBitString(int in, bool flipped = false);
 public:
     void assembleTasm(const shared_ptr<STNode> root);
 
-    TMGenerator(const set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
+    TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
                 set<StatePointer> &states, bool readableStateNames = false);
+
+    StatePointer copyIntegerToThirdTape(StatePointer startState, const string &variableName);
+
+    void addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract);
 };
 
 

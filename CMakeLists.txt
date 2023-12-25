@@ -23,7 +23,7 @@ endif (WIN32)
 
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
-
+add_compile_definitions(BINARY_VALUE_WIDTH=16)
 ADD_EXECUTABLE(voxelfusion src/main.cpp ${LIB} ${CFG} ${TM} ${LEXER} ${PARSER} ${VISUALISATION} ${UTILS} ${TM_GENERATION})
 
 target_link_libraries(voxelfusion glfw OpenGL::GL)

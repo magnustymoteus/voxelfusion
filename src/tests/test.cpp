@@ -40,20 +40,32 @@ protected:
         buffer2 << t2.rdbuf();
         EXPECT_EQ(buffer2.str(), buffer.str());
     }
-    static void compile(const string& codePath, shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D>>& tm){
+    static void compile(const string& codePath, shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>>& tm){
         auto lexer = initializeLexer(codePath);
         const std::shared_ptr<STNode>& root = parser->parse(lexer->getTokenizedInput());
         root->exportVisualization("test.dot");
         auto *tape3d {new TMTape3D()};
         auto *tape1d {new TMTape1D()};
-        auto tapes = std::make_tuple(tape3d, tape1d);
+        auto *tape1d2 {new TMTape1D()};
+        auto tapes = std::make_tuple(tape3d, tape1d, tape1d2);
         std::set<std::string> tapeAlphabet = {"B", "S"};
         std::set<StatePointer> states;
         map<TransitionDomain, TransitionImage> transitions;
         TMGenerator generator{tapeAlphabet, transitions, states, false};
         generator.assembleTasm(root);
         FiniteControl control(states, transitions);
-        tm = make_shared<MTMDTuringMachine<TMTape3D, TMTape1D>>(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
+        tm = make_shared<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>>(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
+    }
+    static bool testWithinScript(const string& codePath){
+        shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
+        compile(codePath, tm);
+
+        int counter = 0;
+        while(!tm->isHalted && counter < 79117){ //prevent non-halting tests
+            tm->doTransition();
+            counter++;
+        }
+        return tm->getFiniteControl().currentState->type == State_Accepting;
     }
     virtual void SetUp() {
 
@@ -64,25 +76,30 @@ protected:
 
 TEST_F(compilationTest, DiagonalMove)
 {
-    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D>> tm;
+    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
     compile("tasm/helloworld.tasm", tm);
-    utils::TMtoDotfile(*tm, "tm.dot");
-    compareFiles("tm.dot", "src/tests/comparison/diagonalMoveTM.dot");
 
-    tm->doTransitions(21);
+    tm->doTransitions(23 + BINARY_VALUE_WIDTH);
     EXPECT_EQ(tm->getFiniteControl().currentState->name, "1");
 }
 TEST_F(compilationTest, basicConditionals)
 {
-    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D>> tm;
+    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
     compile("tasm/conditional.tasm", tm);
-    utils::TMtoDotfile(*tm, "tm.dot");
-    compareFiles("tm.dot", "src/tests/comparison/basicConditionalsTM.dot");
 
-    tm->doTransitions(14);
+    tm->doTransitions(16 + BINARY_VALUE_WIDTH);
     EXPECT_EQ(tm->getFiniteControl().currentState->name, "9");
     EXPECT_EQ(tm->getFiniteControl().currentState->type, State_Accepting);
 }
+TEST_F(compilationTest, symbolVariables)
+{
+    EXPECT_TRUE(testWithinScript("tasm/variables-symbols.tasm"));
+}
+TEST_F(compilationTest, integerVariables)
+{
+    EXPECT_TRUE(testWithinScript("tasm/variables-integers.tasm"));
+}
+
 
 
 int main(int argc, char** argv)

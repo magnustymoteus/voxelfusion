@@ -1,5 +1,5 @@
-write S;
+write 'S';
 move right;
-write S;
+write 'S';
 move forwards;
 goto 1;
