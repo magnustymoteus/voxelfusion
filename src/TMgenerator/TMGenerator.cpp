@@ -489,7 +489,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             registerRegularNewline(destination);
 
         }
-        else if(l == "<BinaryAddition>"){
+        else if(l == "<BinaryAddition>" || l == "<BinarySubtraction>"){
             //seek second variable and copy to third tape
             string assignedVariableName = root->children[3]->token->lexeme;
             string readVariableName = root->children[1]->token->lexeme;
@@ -509,7 +509,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             postponedTransitionBuffer.emplace_back(doneMoving, writeValueStates[0], set<string>{assignedVariableName}, true);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
             std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-            addThirdToSecond(writeValueStates);
+            addThirdToSecond(writeValueStates, l == "<BinarySubtraction>");
             //move back to start of third tape and erase
             StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
             StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
@@ -795,7 +795,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
 
             // add once
             vector<StatePointer> writeValueStates2 = {moveBackToMultiplicandValue, makeState()};
-            addThirdToSecond(writeValueStates2);
+            addThirdToSecond(writeValueStates2, false);
             StatePointer oldNormalState = *std::next(writeValueStates2.end(), -2);
             StatePointer oldCarryState = *std::next(writeValueStates2.end(), -1);
             //Tape head on third tape back to start
@@ -845,7 +845,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
     }
 }
 
-void TMGenerator::addThirdToSecond(vector<StatePointer> &writeValueStates) {
+void TMGenerator::addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract) {
     for (int i = 0; i < BINARY_VALUE_WIDTH; ++i) {
         StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
         StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
@@ -853,42 +853,82 @@ void TMGenerator::addThirdToSecond(vector<StatePointer> &writeValueStates) {
         StatePointer newCarryState = makeState();
         writeValueStates.push_back(newNormalState);
         writeValueStates.push_back(newCarryState);
-        for(const string& ignoredSymbol: tapeAlphabet){
-            //no carry
-            transitions.insert({
-                                       TransitionDomain(oldNormalState, {ignoredSymbol, "0", "0"}),
-                                       TransitionImage(newNormalState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
-                               });
-            transitions.insert({
-                                       TransitionDomain(oldNormalState, {ignoredSymbol, "1", "0"}),
-                                       TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
-                               });
-            transitions.insert({
-                                       TransitionDomain(oldNormalState, {ignoredSymbol, "0", "1"}),
-                                       TransitionImage(newNormalState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
-                               });
-            transitions.insert({
-                                       TransitionDomain(oldNormalState, {ignoredSymbol, "1", "1"}),
-                                       TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
-                               });
-            //yes carry
-            transitions.insert({
-                                       TransitionDomain(oldCarryState, {ignoredSymbol, "0", "0"}),
-                                       TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
-                               });
-            transitions.insert({
-                                       TransitionDomain(oldCarryState, {ignoredSymbol, "1", "0"}),
-                                       TransitionImage(newCarryState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
-                               });
-            transitions.insert({
-                                       TransitionDomain(oldCarryState, {ignoredSymbol, "0", "1"}),
-                                       TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
-                               });
-            transitions.insert({
-                                       TransitionDomain(oldCarryState, {ignoredSymbol, "1", "1"}),
-                                       TransitionImage(newCarryState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
-                               });
+        if(!subtract){
+            for(const string& ignoredSymbol: tapeAlphabet){
+                //no carry
+                transitions.insert({
+                                           TransitionDomain(oldNormalState, {ignoredSymbol, "0", "0"}),
+                                           TransitionImage(newNormalState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldNormalState, {ignoredSymbol, "1", "0"}),
+                                           TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldNormalState, {ignoredSymbol, "0", "1"}),
+                                           TransitionImage(newNormalState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldNormalState, {ignoredSymbol, "1", "1"}),
+                                           TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
+                                   });
+                //yes carry
+                transitions.insert({
+                                           TransitionDomain(oldCarryState, {ignoredSymbol, "0", "0"}),
+                                           TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldCarryState, {ignoredSymbol, "1", "0"}),
+                                           TransitionImage(newCarryState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldCarryState, {ignoredSymbol, "0", "1"}),
+                                           TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldCarryState, {ignoredSymbol, "1", "1"}),
+                                           TransitionImage(newCarryState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                                   });
 
+            }
+        }else{
+            for(const string& ignoredSymbol: tapeAlphabet){
+                //no carry
+                transitions.insert({
+                                           TransitionDomain(oldNormalState, {ignoredSymbol, "0", "0"}),
+                                           TransitionImage(newNormalState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldNormalState, {ignoredSymbol, "1", "0"}),
+                                           TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldNormalState, {ignoredSymbol, "0", "1"}),
+                                           TransitionImage(newCarryState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldNormalState, {ignoredSymbol, "1", "1"}),
+                                           TransitionImage(newNormalState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
+                                   });
+                //yes carry
+                transitions.insert({
+                                           TransitionDomain(oldCarryState, {ignoredSymbol, "0", "0"}),
+                                           TransitionImage(newCarryState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldCarryState, {ignoredSymbol, "1", "0"}),
+                                           TransitionImage(newNormalState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldCarryState, {ignoredSymbol, "0", "1"}),
+                                           TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(oldCarryState, {ignoredSymbol, "1", "1"}),
+                                           TransitionImage(newCarryState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                                   });
+
+            }
         }
     }
 }

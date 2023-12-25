@@ -63,7 +63,7 @@ public:
 
     StatePointer copyIntegerToThirdTape(StatePointer startState, const string &variableName);
 
-    void addThirdToSecond(vector<StatePointer> &writeValueStates);
+    void addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract);
 };
 
 
