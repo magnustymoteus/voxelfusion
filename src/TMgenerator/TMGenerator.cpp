@@ -653,67 +653,100 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             }
             registerRegularNewline(standardDestination);
         }
-        else if(l == "<BinaryMultiplication>"){
+        else if(l == "<BinaryMultiplication>" || l == "<ImmediateMultiplication>"){
             string assignedVariableName = root->children[3]->token->lexeme;
-            string readVariableName = root->children[1]->token->lexeme;
             StatePointer destination = makeState(currentLineNumber +1);
-            // copy the multiplier to third tape
-            StatePointer goRight = MoveToVariableMarker(currentLineBeginState, readVariableName);
-            StatePointer moveToValue = makeState();
-            postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{readVariableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-            StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, readVariableName);
-            // copy the multiplier to sysvar
-            StatePointer moveToVTB = makeState();
-            postponedTransitionBuffer.emplace_back(doneCopying, moveToVTB, std::set<string>{VariableTapeStart});
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
-            postponedTransitionBuffer.emplace_back(moveToVTB, moveToVTB, std::set<string>{VariableTapeStart});
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+            StatePointer sysVarLoaded;
+            if(l == "<ImmediateMultiplication>"){
+                // write the multiplier to sysvar
+                int multiplier = parseInteger(root->children[1]);
+                std::string binaryMultiplier = IntegerAsBitString(multiplier);
+                StatePointer moveToVTB = makeState();
+                postponedTransitionBuffer.emplace_back(currentLineBeginState, moveToVTB, std::set<string>{VariableTapeStart});
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+                postponedTransitionBuffer.emplace_back(moveToVTB, moveToVTB, std::set<string>{VariableTapeStart});
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
 
-            vector<StatePointer> writeValueStates = {makeState()};
-            postponedTransitionBuffer.emplace_back(moveToVTB, writeValueStates[0], set<string>{VariableTapeStart}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-
-            for (int i = 0; i < BINARY_VALUE_WIDTH; ++i) {
-                StatePointer oldState = *std::next(writeValueStates.end(), -1);
-                StatePointer newState = makeState();
-                writeValueStates.push_back(newState);
-                for(const string& ignoredSymbol: tapeAlphabet){
-                    transitions.insert({
-                                               TransitionDomain(oldState, {ignoredSymbol, "0", "0"}),
-                                               TransitionImage(newState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldState, {ignoredSymbol, "1", "1"}),
-                                               TransitionImage(newState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldState, {ignoredSymbol, "1", "0"}),
-                                               TransitionImage(newState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldState, {ignoredSymbol, "0", "1"}),
-                                               TransitionImage(newState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
-                                       });
-
+                StatePointer writer1 = makeState();
+                postponedTransitionBuffer.emplace_back(moveToVTB, writer1, set<string>{VariableTapeStart}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                vector<StatePointer> writeValueStates1 = { writer1};
+                for (char c : binaryMultiplier) {
+                    writeValueStates1.emplace_back(makeState());
+                    auto last = std::next(writeValueStates1.end(), -1);
+                    auto penultimate = std::next(last, -1);
+                    postponedTransitionBuffer.emplace_back(*penultimate, *last);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
                 }
+                sysVarLoaded = *std::next(writeValueStates1.end(), -1);
+            }else{
+                string readVariableName = root->children[1]->token->lexeme;
+                // copy the multiplier to third tape
+                StatePointer goRight = MoveToVariableMarker(currentLineBeginState, readVariableName);
+                StatePointer moveToValue = makeState();
+                postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{readVariableName}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, readVariableName);
+                // copy the multiplier to sysvar
+                StatePointer moveToVTB = makeState();
+                postponedTransitionBuffer.emplace_back(doneCopying, moveToVTB, std::set<string>{VariableTapeStart});
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+                postponedTransitionBuffer.emplace_back(moveToVTB, moveToVTB, std::set<string>{VariableTapeStart});
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+
+                vector<StatePointer> writeValueStates = {makeState()};
+                postponedTransitionBuffer.emplace_back(moveToVTB, writeValueStates[0], set<string>{VariableTapeStart}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+                for (int i = 0; i < BINARY_VALUE_WIDTH; ++i) {
+                    StatePointer oldState = *std::next(writeValueStates.end(), -1);
+                    StatePointer newState = makeState();
+                    writeValueStates.push_back(newState);
+                    for(const string& ignoredSymbol: tapeAlphabet){
+                        transitions.insert({
+                                                   TransitionDomain(oldState, {ignoredSymbol, "0", "0"}),
+                                                   TransitionImage(newState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                                           });
+                        transitions.insert({
+                                                   TransitionDomain(oldState, {ignoredSymbol, "1", "1"}),
+                                                   TransitionImage(newState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                                           });
+                        transitions.insert({
+                                                   TransitionDomain(oldState, {ignoredSymbol, "1", "0"}),
+                                                   TransitionImage(newState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                                           });
+                        transitions.insert({
+                                                   TransitionDomain(oldState, {ignoredSymbol, "0", "1"}),
+                                                   TransitionImage(newState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                                           });
+
+                    }
+                }
+
+                StatePointer eraser = makeState();
+                postponedTransitionBuffer.emplace_back(*std::next(writeValueStates.end(), -1), eraser);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+                // erase multiplier from third tape
+                postponedTransitionBuffer.emplace_back(eraser, eraser, set<string>{"0", "1"}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+                std::next(postponedTransitionBuffer.end(), -1)->toWrite = "B";
+                sysVarLoaded = eraser;
+
             }
 
-            StatePointer eraser = makeState();
-            postponedTransitionBuffer.emplace_back(*std::next(writeValueStates.end(), -1), eraser);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
-            // erase multiplier from sysvar
-            postponedTransitionBuffer.emplace_back(eraser, eraser, set<string>{"0", "1"}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
-            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "B";
             // put multiplicand on third tape
-            StatePointer goRight2 = MoveToVariableMarker(eraser, assignedVariableName);
+            StatePointer goRight2 = MoveToVariableMarker(sysVarLoaded, assignedVariableName);
             StatePointer moveToValue2 = makeState();
             postponedTransitionBuffer.emplace_back(goRight2, moveToValue2, std::set<string>{assignedVariableName}, true);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
