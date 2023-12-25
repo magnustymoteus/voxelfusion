@@ -38,7 +38,7 @@ using namespace std;
 int main() {
     string code;
     string line;
-    ifstream input ("tasm/variables.tasm");
+    ifstream input ("tasm/variables-integers.tasm");
     if (input.is_open())
     {
         while ( getline (input, line) )
@@ -58,15 +58,16 @@ int main() {
     root->exportVisualization("test.dot");
     auto *tape3d {new TMTape3D()};
     auto *tape1d {new TMTape1D()};
-    auto tapes = std::make_tuple(tape3d, tape1d);
+    auto *tape1d2 {new TMTape1D()};
+    auto tapes = std::make_tuple(tape3d, tape1d, tape1d2);
     std::set<std::string> tapeAlphabet = {"B", "S"};
     std::set<StatePointer> states;
     map<TransitionDomain, TransitionImage> transitions;
-    TMGenerator generator{tapeAlphabet, transitions, states, false};
+    TMGenerator generator{tapeAlphabet, transitions, states, true};
     generator.assembleTasm(root);
     FiniteControl control(states, transitions);
-    MTMDTuringMachine<TMTape3D, TMTape1D> tm(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
-    utils::TMtoDotfile(tm, "tm.dot");
+    MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D> tm(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
+    //utils::TMtoDotfile(tm, "tm.dot");
     /*auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
     auto *tape1d {new TMTape1D()};
@@ -90,7 +91,7 @@ int main() {
         {            TransitionDomain(state3, {"B", "A", "B"}),
                 TransitionImage(state4, {"1", "1", "0"}, {Front, Right, Left}),
         },
-        {            TransitionDomain(state4, {"B", "B", "B"}),
+    {            TransitionDomain(state4, {"B", "B", "B"}),
                 TransitionImage(state4, {"1", "B", "B"}, {Front, Right, Left}),
         }
         });
@@ -103,6 +104,7 @@ int main() {
     //v->waitForExit();
     delete tape3d;
 //    delete tape2d;
-//    delete tape1d;
+    delete tape1d;
+    delete tape1d2;
     return 0;
 }

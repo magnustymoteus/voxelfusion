@@ -1,7 +1,6 @@
 #include <bitset>
 #include "TMGenerator.h"
 #include <algorithm>
-#define BINARY_VALUE_WIDTH 6
 using std::to_string, std::cout, std::cerr, std::endl, std::runtime_error;
 
 TMGenerator::TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
@@ -191,11 +190,10 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             registerRegularNewline(conditionalDestination);
         }
         else if(l == "<Accept>"){
-            StatePointer destination = makeState(currentLineNumber +1, true);
+            StatePointer destination = makeState(0, true);
             postponedTransitionBuffer.emplace_back(currentLineBeginState, destination);
-            registerEndAsStartForNewLine = false;
-            registerRegularNewline(destination);
-            registerEndAsStartForNewLine = true;
+            StatePointer nextLineDummy = makeState(currentLineNumber +1, false);
+            registerRegularNewline(nextLineDummy);
         }
         else if(l == "<ImmediateSymbolValueAssignment>"){
             string variableName = root->children[3]->token->lexeme;

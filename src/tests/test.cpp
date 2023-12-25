@@ -56,6 +56,17 @@ protected:
         FiniteControl control(states, transitions);
         tm = make_shared<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>>(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
     }
+    static bool testWithinScript(const string& codePath){
+        shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
+        compile(codePath, tm);
+
+        int counter = 0;
+        while(!tm->isHalted && counter < 79117){ //prevent non-halting tests
+            tm->doTransition();
+            counter++;
+        }
+        return tm->getFiniteControl().currentState->type == State_Accepting;
+    }
     virtual void SetUp() {
 
     }
@@ -67,23 +78,28 @@ TEST_F(compilationTest, DiagonalMove)
 {
     shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
     compile("tasm/helloworld.tasm", tm);
-    utils::TMtoDotfile(*tm, "tm.dot");
-    //compareFiles("tm.dot", "src/tests/comparison/diagonalMoveTM.dot");
 
-    tm->doTransitions(23);
+    tm->doTransitions(23 + BINARY_VALUE_WIDTH);
     EXPECT_EQ(tm->getFiniteControl().currentState->name, "1");
 }
 TEST_F(compilationTest, basicConditionals)
 {
     shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
     compile("tasm/conditional.tasm", tm);
-    utils::TMtoDotfile(*tm, "tm.dot");
-    //compareFiles("tm.dot", "src/tests/comparison/basicConditionalsTM.dot"); TODO replace with tape check
 
-    tm->doTransitions(16);
+    tm->doTransitions(16 + BINARY_VALUE_WIDTH);
     EXPECT_EQ(tm->getFiniteControl().currentState->name, "9");
     EXPECT_EQ(tm->getFiniteControl().currentState->type, State_Accepting);
 }
+TEST_F(compilationTest, symbolVariables)
+{
+    EXPECT_TRUE(testWithinScript("tasm/variables-symbols.tasm"));
+}
+TEST_F(compilationTest, integerVariables)
+{
+    EXPECT_TRUE(testWithinScript("tasm/variables-integers.tasm"));
+}
+
 
 
 int main(int argc, char** argv)
