@@ -62,6 +62,8 @@ public:
                 set<StatePointer> &states, bool readableStateNames = false);
 
     StatePointer copyIntegerToThirdTape(StatePointer startState, const string &variableName);
+
+    void addThirdToSecond(vector<StatePointer> &writeValueStates);
 };
 
 

@@ -1,7 +1,7 @@
 #include <bitset>
 #include "TMGenerator.h"
 #include <algorithm>
-#define BINARY_VALUE_WIDTH 32
+#define BINARY_VALUE_WIDTH 6
 using std::to_string, std::cout, std::cerr, std::endl, std::runtime_error;
 
 TMGenerator::TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
@@ -57,10 +57,12 @@ string TMGenerator::IntegerAsBitString(int in, bool flipped) {
 }
 
 void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
-    StatePointer initializationState1 = make_shared<const State>(to_string(-2), true);
+    StatePointer initializationState1 = make_shared<const State>(to_string(-3), true);
     states.insert(initializationState1);
-    StatePointer initializationState2 = make_shared<const State>(to_string(-1), false);
+    StatePointer initializationState2 = make_shared<const State>(to_string(-2), false);
     states.insert(initializationState2);
+    StatePointer initializationState3 = make_shared<const State>(to_string(-1), false);
+    states.insert(initializationState3);
     currentLineBeginState = make_shared<const State>(to_string(currentStateNumber), false);
     currentStateNumber++;
     states.insert(currentLineBeginState);
@@ -74,15 +76,33 @@ void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
     tapeAlphabet.insert("1");
 
 
+    vector<StatePointer> writeValueStates = {initializationState2};
+    for (int i = 0; i < BINARY_VALUE_WIDTH - 1; ++i) {
+        StatePointer writeValueState = make_shared<const State>("sysvar"+to_string(i), true);
+        writeValueStates.push_back(writeValueState);
+    }
     for (const string& ignoredSymbol: tapeAlphabet) {
         //add start symbol
         transitions.insert({
                TransitionDomain(initializationState1, {ignoredSymbol, "B", "B"}),
                TransitionImage(initializationState2, {ignoredSymbol, VariableTapeStart, "B"}, {Stationary, Right, Stationary})
        });
+        // add system variable
+        for (int i = 0; i < BINARY_VALUE_WIDTH -1; ++i) {
+            StatePointer previous = writeValueStates[i];
+            StatePointer newState = writeValueStates[i+1];
+            transitions.insert({
+                   TransitionDomain(previous, {ignoredSymbol, "B", "B"}),
+                   TransitionImage(newState, {ignoredSymbol, "0", "B"}, {Stationary, Right, Stationary})
+           });
+        }
+        transitions.insert({
+               TransitionDomain(*std::next(writeValueStates.end(), -1), {ignoredSymbol, "B", "B"}),
+               TransitionImage(initializationState3, {ignoredSymbol, "0", "B"}, {Stationary, Right, Stationary})
+       });
         //add end symbol
         transitions.insert({
-               TransitionDomain(initializationState2, {ignoredSymbol, "B", "B"}),
+               TransitionDomain(initializationState3, {ignoredSymbol, "B", "B"}),
                TransitionImage(currentLineBeginState, {ignoredSymbol, VariableTapeEnd, "B"}, {Stationary, Left, Stationary})
        });
     }
@@ -489,51 +509,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             postponedTransitionBuffer.emplace_back(doneMoving, writeValueStates[0], set<string>{assignedVariableName}, true);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
             std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-            for (int i = 0; i < BINARY_VALUE_WIDTH; ++i) {
-                StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
-                StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
-                StatePointer newNormalState = makeState();
-                StatePointer newCarryState = makeState();
-                writeValueStates.push_back(newNormalState);
-                writeValueStates.push_back(newCarryState);
-                for(const string& ignoredSymbol: tapeAlphabet){
-                    //no carry
-                    transitions.insert({
-                                               TransitionDomain(oldNormalState, {ignoredSymbol, "0", "0"}),
-                                               TransitionImage(newNormalState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldNormalState, {ignoredSymbol, "1", "0"}),
-                                               TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldNormalState, {ignoredSymbol, "0", "1"}),
-                                               TransitionImage(newNormalState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldNormalState, {ignoredSymbol, "1", "1"}),
-                                               TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
-                                       });
-                    //yes carry
-                    transitions.insert({
-                                               TransitionDomain(oldCarryState, {ignoredSymbol, "0", "0"}),
-                                               TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldCarryState, {ignoredSymbol, "1", "0"}),
-                                               TransitionImage(newCarryState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldCarryState, {ignoredSymbol, "0", "1"}),
-                                               TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
-                                       });
-                    transitions.insert({
-                                               TransitionDomain(oldCarryState, {ignoredSymbol, "1", "1"}),
-                                               TransitionImage(newCarryState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
-                                       });
-
-                }
-            }
+            addThirdToSecond(writeValueStates);
             //move back to start of third tape and erase
             StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
             StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
@@ -583,7 +559,6 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
                 StatePointer newState = makeState();
                 checkValueStates.push_back(newState);
                 for(const string& ignoredSymbol: tapeAlphabet){
-                    //no carry
                     transitions.insert({
                                                TransitionDomain(oldState, {ignoredSymbol, "0", "0"}),
                                                TransitionImage(newState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
@@ -678,8 +653,242 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             }
             registerRegularNewline(standardDestination);
         }
+        else if(l == "<BinaryMultiplication>"){
+            string assignedVariableName = root->children[3]->token->lexeme;
+            string readVariableName = root->children[1]->token->lexeme;
+            StatePointer destination = makeState(currentLineNumber +1);
+            // copy the multiplier to third tape
+            StatePointer goRight = MoveToVariableMarker(currentLineBeginState, readVariableName);
+            StatePointer moveToValue = makeState();
+            postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{readVariableName}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, readVariableName);
+            // copy the multiplier to sysvar
+            StatePointer moveToVTB = makeState();
+            postponedTransitionBuffer.emplace_back(doneCopying, moveToVTB, std::set<string>{VariableTapeStart});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+            postponedTransitionBuffer.emplace_back(moveToVTB, moveToVTB, std::set<string>{VariableTapeStart});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+
+            vector<StatePointer> writeValueStates = {makeState()};
+            postponedTransitionBuffer.emplace_back(moveToVTB, writeValueStates[0], set<string>{VariableTapeStart}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+            for (int i = 0; i < BINARY_VALUE_WIDTH; ++i) {
+                StatePointer oldState = *std::next(writeValueStates.end(), -1);
+                StatePointer newState = makeState();
+                writeValueStates.push_back(newState);
+                for(const string& ignoredSymbol: tapeAlphabet){
+                    transitions.insert({
+                                               TransitionDomain(oldState, {ignoredSymbol, "0", "0"}),
+                                               TransitionImage(newState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                                       });
+                    transitions.insert({
+                                               TransitionDomain(oldState, {ignoredSymbol, "1", "1"}),
+                                               TransitionImage(newState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                                       });
+                    transitions.insert({
+                                               TransitionDomain(oldState, {ignoredSymbol, "1", "0"}),
+                                               TransitionImage(newState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                                       });
+                    transitions.insert({
+                                               TransitionDomain(oldState, {ignoredSymbol, "0", "1"}),
+                                               TransitionImage(newState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                                       });
+
+                }
+            }
+
+            StatePointer eraser = makeState();
+            postponedTransitionBuffer.emplace_back(*std::next(writeValueStates.end(), -1), eraser);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+            // erase multiplier from sysvar
+            postponedTransitionBuffer.emplace_back(eraser, eraser, set<string>{"0", "1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "B";
+            // put multiplicand on third tape
+            StatePointer goRight2 = MoveToVariableMarker(eraser, assignedVariableName);
+            StatePointer moveToValue2 = makeState();
+            postponedTransitionBuffer.emplace_back(goRight2, moveToValue2, std::set<string>{assignedVariableName}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            StatePointer doneCopying2 = copyIntegerToThirdTape(moveToValue2, assignedVariableName);
+            // erase multiplicand from second tape to start from 0 properly
+            StatePointer eraseMultiplicand = makeState();
+            postponedTransitionBuffer.emplace_back(doneCopying2, eraseMultiplicand, std::set<string>{"0", "1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+            postponedTransitionBuffer.emplace_back(eraseMultiplicand, eraseMultiplicand, std::set<string>{"0", "1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+            //check counter != 0
+            StatePointer moveToVTB2 = makeState();
+            postponedTransitionBuffer.emplace_back(eraseMultiplicand, moveToVTB2, std::set<string>{VariableTapeStart});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+            postponedTransitionBuffer.emplace_back(moveToVTB2, moveToVTB2, std::set<string>{VariableTapeStart});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+            StatePointer checkIsNotZero = makeState();
+            StatePointer prepareCounterDecrement = makeState();
+            StatePointer multiplicationDone = makeState();
+            postponedTransitionBuffer.emplace_back(moveToVTB2, checkIsNotZero, std::set<string>{VariableTapeStart}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(checkIsNotZero, checkIsNotZero, std::set<string>{"0"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(checkIsNotZero, prepareCounterDecrement, std::set<string>{"1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            postponedTransitionBuffer.emplace_back(checkIsNotZero, multiplicationDone, std::set<string>{VariableTapeStart, "0", "1"});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+            // decrement counter
+            // move to counter start
+            postponedTransitionBuffer.emplace_back(prepareCounterDecrement, prepareCounterDecrement, std::set<string>{"0", "1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+            StatePointer counterDecrement = makeState();
+            postponedTransitionBuffer.emplace_back(prepareCounterDecrement, counterDecrement, std::set<string>{VariableTapeStart}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            StatePointer counterDecrementBorrowing = makeState();
+            StatePointer doneDecrementing = makeState();
+            postponedTransitionBuffer.emplace_back(counterDecrement, doneDecrementing, std::set<string>{"1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+            postponedTransitionBuffer.emplace_back(counterDecrement, counterDecrementBorrowing, std::set<string>{"0"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+            postponedTransitionBuffer.emplace_back(counterDecrementBorrowing, counterDecrementBorrowing, std::set<string>{"0"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+            postponedTransitionBuffer.emplace_back(counterDecrementBorrowing, doneDecrementing, std::set<string>{"1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+
+            StatePointer moveBackToMultiplicand = makeState();
+            postponedTransitionBuffer.emplace_back(doneDecrementing, moveBackToMultiplicand, std::set<string>{assignedVariableName});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(moveBackToMultiplicand, moveBackToMultiplicand, std::set<string>{assignedVariableName});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            StatePointer moveBackToMultiplicandValue = makeState();
+            postponedTransitionBuffer.emplace_back(moveBackToMultiplicand, moveBackToMultiplicandValue, std::set<string>{assignedVariableName}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+
+            // add once
+            vector<StatePointer> writeValueStates2 = {moveBackToMultiplicandValue, makeState()};
+            addThirdToSecond(writeValueStates2);
+            StatePointer oldNormalState = *std::next(writeValueStates2.end(), -2);
+            StatePointer oldCarryState = *std::next(writeValueStates2.end(), -1);
+            //Tape head on third tape back to start
+            StatePointer ThirdTapeBackToStart1 = makeState();
+            StatePointer ThirdTapeBackToStart2 = makeState();
+            postponedTransitionBuffer.emplace_back(oldNormalState, ThirdTapeBackToStart1, std::set<string>{"B"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+            postponedTransitionBuffer.emplace_back(oldCarryState, ThirdTapeBackToStart1, std::set<string>{"B"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+            postponedTransitionBuffer.emplace_back(ThirdTapeBackToStart1, ThirdTapeBackToStart2, std::set<string>{"0", "1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+            postponedTransitionBuffer.emplace_back(ThirdTapeBackToStart2, ThirdTapeBackToStart2, std::set<string>{"0", "1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+
+            // go back to check counter
+            postponedTransitionBuffer.emplace_back(ThirdTapeBackToStart2, moveToVTB2, std::set<string>{"B"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Right;
+
+            // if multiplication done, erase third tape
+            postponedTransitionBuffer.emplace_back(multiplicationDone, multiplicationDone, std::set<string>{"0", "1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Right;
+            StatePointer eraser2 = makeState();
+            postponedTransitionBuffer.emplace_back(multiplicationDone, eraser2, std::set<string>{"B"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+            postponedTransitionBuffer.emplace_back(eraser2, eraser2, std::set<string>{"0", "1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "B";
+            postponedTransitionBuffer.emplace_back(eraser2, destination, std::set<string>{"B"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+
+
+
+            registerRegularNewline(destination);
+        }
         else{
             cerr << "Instruction " << l << "is currently not supported by the compiler" << endl;
+        }
+    }
+}
+
+void TMGenerator::addThirdToSecond(vector<StatePointer> &writeValueStates) {
+    for (int i = 0; i < BINARY_VALUE_WIDTH; ++i) {
+        StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
+        StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
+        StatePointer newNormalState = makeState();
+        StatePointer newCarryState = makeState();
+        writeValueStates.push_back(newNormalState);
+        writeValueStates.push_back(newCarryState);
+        for(const string& ignoredSymbol: tapeAlphabet){
+            //no carry
+            transitions.insert({
+                                       TransitionDomain(oldNormalState, {ignoredSymbol, "0", "0"}),
+                                       TransitionImage(newNormalState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                               });
+            transitions.insert({
+                                       TransitionDomain(oldNormalState, {ignoredSymbol, "1", "0"}),
+                                       TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
+                               });
+            transitions.insert({
+                                       TransitionDomain(oldNormalState, {ignoredSymbol, "0", "1"}),
+                                       TransitionImage(newNormalState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                               });
+            transitions.insert({
+                                       TransitionDomain(oldNormalState, {ignoredSymbol, "1", "1"}),
+                                       TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
+                               });
+            //yes carry
+            transitions.insert({
+                                       TransitionDomain(oldCarryState, {ignoredSymbol, "0", "0"}),
+                                       TransitionImage(newNormalState, {ignoredSymbol, "1", "0"}, {Stationary, Right, Right})
+                               });
+            transitions.insert({
+                                       TransitionDomain(oldCarryState, {ignoredSymbol, "1", "0"}),
+                                       TransitionImage(newCarryState, {ignoredSymbol, "0", "0"}, {Stationary, Right, Right})
+                               });
+            transitions.insert({
+                                       TransitionDomain(oldCarryState, {ignoredSymbol, "0", "1"}),
+                                       TransitionImage(newCarryState, {ignoredSymbol, "0", "1"}, {Stationary, Right, Right})
+                               });
+            transitions.insert({
+                                       TransitionDomain(oldCarryState, {ignoredSymbol, "1", "1"}),
+                                       TransitionImage(newCarryState, {ignoredSymbol, "1", "1"}, {Stationary, Right, Right})
+                               });
+
         }
     }
 }
