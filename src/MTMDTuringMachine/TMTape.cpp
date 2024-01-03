@@ -6,6 +6,7 @@
 #include "TMTapeUtils.h"
 
 #include <iostream>
+#include <random>
 
 TMTapeCell & TMTape1D::operator[](const int &index) {
     PRECONDITION(cells.size() % 2 == 1);
@@ -149,4 +150,14 @@ void TMTape3D::print() const {
         std::cout << std::endl;
     }
 }
-
+TMTapeProbabilisticDirection::TMTapeProbabilisticDirection(const std::vector<TMTapeDirection> &directions,
+                                                           const std::vector<float> &probabilities)
+                                                           : directions(directions), probabilities(probabilities)
+                                                           {
+    assert(directions.size() == probabilities.size());
+                                                           }
+TMTapeDirection TMTapeProbabilisticDirection::operator()() const {
+    std::mt19937 gen(std::random_device{}());
+    std::discrete_distribution<std::size_t> index{probabilities.begin(), probabilities.end()};
+    return directions[index(gen)];
+}

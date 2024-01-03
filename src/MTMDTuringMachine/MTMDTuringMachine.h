@@ -21,7 +21,7 @@
 // TODO: invariants (pre- and post- conditions), halting states, testing for multi tape scenarios
 template<class ...TMTapeType>
 class MTMDTuringMachine {
-private:
+protected:
     const std::set<std::string> tapeAlphabet;
     const std::set<std::string> inputAlphabet;
 
@@ -62,7 +62,7 @@ public:
           int i=0;
             std::apply([&](auto&&... currentTape){
               ((currentTape->replaceCurrentSymbol(image.replacementSymbols[i]),
-                      currentTape->moveTapeHead(image.directions[i]),
+                      currentTape->moveTapeHead(image.directions[i]()),
                      i++), ...);
               }, tapes);
             if(control.currentState->type != State_NonHalting) {

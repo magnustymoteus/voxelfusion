@@ -36,11 +36,14 @@ struct TransitionImage {
      * */
     const State state;
     const std::vector<std::string> replacementSymbols;
-    const std::vector<TMTapeDirection> directions;
+    const std::vector<TMTapeProbabilisticDirection> directions;
     TransitionImage(const StatePointer &state,
                     const std::vector<std::string> &replacementSymbols,
-                    const std::vector<TMTapeDirection> &directions) :
+                    const std::vector<TMTapeProbabilisticDirection> &directions) :
             state(*state), replacementSymbols(replacementSymbols), directions(directions) {}
+    TransitionImage(const StatePointer &state,
+                    const std::vector<std::string> &replacementSymbols,
+                    const std::vector<TMTapeDirection> &directionsArg);
 };
 
 
