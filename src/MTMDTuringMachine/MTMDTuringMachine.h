@@ -62,7 +62,7 @@ public:
           int i=0;
             std::apply([&](auto&&... currentTape){
               ((currentTape->replaceCurrentSymbol(image.replacementSymbols[i]),
-                      currentTape->moveTapeHead(image.directions[i]()),
+                      currentTape->moveTapeHead(image.directions[i].direction),
                      i++), ...);
               }, tapes);
             if(control.currentState->type != State_NonHalting) {

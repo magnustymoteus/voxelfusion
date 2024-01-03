@@ -11,20 +11,15 @@
 
 enum TMTapeDirection {Left='L',Right='R',Up='U',Down='D',Front='F',Back='B',Stationary='S'};
 
-/**
- * @brief A functor which holds directions and their respective probabilities
- */
 class TMTapeProbabilisticDirection {
-protected:
     const std::vector<TMTapeDirection> directions;
     const std::vector<float> probabilities;
 public:
+    const TMTapeDirection direction;
     TMTapeProbabilisticDirection(const std::vector<TMTapeDirection> &directions,
                                  const std::vector<float> &probabilities);
     explicit TMTapeProbabilisticDirection(const TMTapeDirection &direction)
-    : directions({direction}), probabilities({1.0f}) {}
-
-    TMTapeDirection operator()() const;
+    : directions({direction}), probabilities({1.0f}), direction(direction) {}
 };
 
 
