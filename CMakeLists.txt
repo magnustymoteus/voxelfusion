@@ -13,6 +13,7 @@ file(GLOB_RECURSE LEXER src/Lexer/*.cpp)
 file(GLOB_RECURSE VISUALISATION src/Visualisation/*.cpp)
 file(GLOB_RECURSE UTILS src/utils/*.cpp src/utils/*.cc)
 file(GLOB_RECURSE TM_GENERATION src/TMgenerator/*.cpp)
+file(GLOB_RECURSE OBJ_PARSER src/OBJParser/*.cpp src/OBJParser/*.h)
 list(APPEND VISUALISATION src/lib/glad/src/glad.c)
 
 include_directories(src src/lib src/lib/glad/include src/utils)
@@ -24,7 +25,7 @@ endif (WIN32)
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 add_compile_definitions(BINARY_VALUE_WIDTH=16)
-ADD_EXECUTABLE(voxelfusion src/main.cpp ${LIB} ${CFG} ${TM} ${LEXER} ${PARSER} ${VISUALISATION} ${UTILS} ${TM_GENERATION})
+ADD_EXECUTABLE(voxelfusion src/main.cpp ${LIB} ${CFG} ${TM} ${LEXER} ${PARSER} ${VISUALISATION} ${UTILS} ${TM_GENERATION} ${OBJ_PARSER})
 
 target_link_libraries(voxelfusion glfw OpenGL::GL)
 

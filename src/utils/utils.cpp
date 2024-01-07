@@ -312,7 +312,8 @@ void utils::finiteControlToDotfile(FiniteControl &control, const std::string &pa
         std::string replacedBy = std::accumulate(transition.second.replacementSymbols.begin(), transition.second.replacementSymbols.end(), std::string(""));
         std::string direction;
         for(auto& dir: transition.second.directions){
-            char a = static_cast<char>(dir.direction);
+            // here we assume that no probability between directions is involved (every direction has 100% chance)
+            char a = static_cast<char>(dir());
             direction.push_back(a);
             direction += " | ";
         }

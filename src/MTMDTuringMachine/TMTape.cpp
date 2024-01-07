@@ -150,15 +150,16 @@ void TMTape3D::print() const {
         std::cout << std::endl;
     }
 }
-std::size_t generateProbabilisticIndex(const std::vector<float> &probabilities) {
-    std::mt19937 gen(std::random_device{}());
-    std::discrete_distribution<std::size_t> index{probabilities.begin(), probabilities.end()};
-    return index(gen);
-}
+
 TMTapeProbabilisticDirection::TMTapeProbabilisticDirection(const std::vector<TMTapeDirection> &directions,
                                                            const std::vector<float> &probabilities)
-                                                           : directions(directions), probabilities(probabilities),
-                                                           direction(directions[generateProbabilisticIndex(probabilities)])
+                                                           : directions(directions), probabilities(probabilities)
                                                            {
     assert(directions.size() == probabilities.size());
                                                            }
+
+TMTapeDirection TMTapeProbabilisticDirection::operator()() const {
+    std::mt19937 gen(std::random_device{}());
+    std::discrete_distribution<std::size_t> index{probabilities.begin(), probabilities.end()};
+    return directions[index(gen)];
+}
