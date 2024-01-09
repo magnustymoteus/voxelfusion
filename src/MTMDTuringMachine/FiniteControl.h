@@ -9,6 +9,8 @@
 
 #include "TMTape.h"
 
+#define SYMBOL_ANY "ANY"
+
 enum StateType {State_NonHalting, State_Accepting, State_Rejecting};
 
 struct State {
@@ -23,10 +25,10 @@ struct State {
 typedef std::shared_ptr<const State> StatePointer;
 
 struct TransitionDomain {
-    const State state;
+    const StatePointer state;
     const std::vector<std::string> replacedSymbols;
     TransitionDomain(const StatePointer &state, const std::vector<std::string> &replacedSymbols) :
-            state(*state), replacedSymbols(replacedSymbols) {}
+            state(state), replacedSymbols(replacedSymbols) {}
 
     bool operator<(const TransitionDomain &other) const;
 };
@@ -34,13 +36,13 @@ struct TransitionImage {
     /* Invariants:
      * |directions| = |replacingSymbols|
      * */
-    const State state;
+    const StatePointer state;
     const std::vector<std::string> replacementSymbols;
     const std::vector<TMTapeProbabilisticDirection> directions;
     TransitionImage(const StatePointer &state,
                     const std::vector<std::string> &replacementSymbols,
                     const std::vector<TMTapeProbabilisticDirection> &directions) :
-            state(*state), replacementSymbols(replacementSymbols), directions(directions) {}
+            state(state), replacementSymbols(replacementSymbols), directions(directions) {}
     TransitionImage(const StatePointer &state,
                     const std::vector<std::string> &replacementSymbols,
                     const std::vector<TMTapeDirection> &directionsArg);
@@ -56,7 +58,7 @@ public:
     std::map<TransitionDomain, TransitionImage> transitions;
 
     FiniteControl(const std::set<StatePointer> &states, const std::map<TransitionDomain, TransitionImage> &transitions);
-    void setCurrentState(const State &newCurrentState) {currentState = std::make_shared<const State>(newCurrentState);}
+    void setCurrentState(const StatePointer &newCurrentState) {currentState = newCurrentState;}
 };
 
 
