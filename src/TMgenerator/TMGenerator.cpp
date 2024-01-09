@@ -797,7 +797,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             tapeMove(TMTapeDirection::Down, backDown, startZReset);
             immediateAddition("Z", decrement, startZReset, zDecrement);
             StatePointer zMove = makeState();
-            IntegerCompare("Z", zero, startZReset, 0, zDecrement, destination);
+            IntegerCompare("Z", zero, backDown, 0, zDecrement, destination);
             registerRegularNewline(destination);
         }
         else{
