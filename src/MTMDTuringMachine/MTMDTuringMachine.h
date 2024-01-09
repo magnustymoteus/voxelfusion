@@ -60,10 +60,11 @@ public:
           // Picks the first symbols match in sorted std::map
           for(auto iter=control.transitions.begin(); iter != control.transitions.end(); iter++) {
               if(control.currentState == iter->first.state) {
-                  bool match = true;
+                  bool match = false;
                   for (int i = 0; i < iter->first.replacedSymbols.size(); i++) {
-                      const std::string &currentSymbol = iter->first.replacedSymbols[i];
-                      if (currentSymbols[i] != currentSymbol && currentSymbol != SYMBOL_ANY) match = false;
+                      const std::string currentSymbol = iter->first.replacedSymbols[i];
+                      if (currentSymbols[i] != currentSymbol && currentSymbol != SYMBOL_ANY) break;
+                      if(i==iter->first.replacedSymbols.size()-1) match = true;
                   }
                   if (match) return iter;
               }
