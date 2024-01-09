@@ -34,7 +34,8 @@ namespace TokenMapping {
                          "into",
                          "until",
                          "current",
-                         "left", "right", "up", "down", "forwards", "backwards"}},
+                         "left", "right", "up", "down", "forwards", "backwards",
+                         "CA", "for", "run", "in"}},
         {Token_Operator,{"==", "=", "+=", "-=", "*=", "/="}},
         {Token_Punctuator, {"{","}",";", ",", "'"}}
     };

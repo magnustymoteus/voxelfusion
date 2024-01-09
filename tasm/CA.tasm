@@ -1,0 +1,5 @@
+CA for 'B' {
+    write 'A';
+};
+run CA in 3,3,3;
+write 'B';

@@ -41,6 +41,8 @@ class TMGenerator {
     list<PostponedTransition> postponedTransitionBuffer;
     inline static const string VariableTapeStart = "VTB";
     inline static const string VariableTapeEnd = "VTE";
+    StatePointer CAstart;
+    StatePointer CAend;
 
     void alphabetExplorer(const shared_ptr<STNode>& root);
     void explorer(const shared_ptr<STNode>& root);
@@ -64,6 +66,21 @@ public:
     StatePointer copyIntegerToThirdTape(StatePointer startState, const string &variableName);
 
     void addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract);
+
+    void currentIntoVariable(const string &variableName, const StatePointer &beginState,
+                             const StatePointer &destination);
+
+    void tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination);
+
+    void immediateAddition(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
+                           StatePointer &destination);
+
+    void
+    IntegerCompare(const string &variableName, string &binaryComparedValue, StatePointer &standardDestination,
+                   int conditionalDestinationLineNumber, StatePointer beginState, StatePointer conditionalEndState = nullptr);
+
+    void integerAssignment(const string &variableName, string &binaryAssignedValue, StatePointer &beginState,
+                            StatePointer &destination);
 };
 
 
