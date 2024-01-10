@@ -5,7 +5,8 @@
     "<TapeMove>", "<TapeWrite>", "<Jump>", "<ReadCondition>", "<Accept>", "<Error>", "<ConditionalMove>",
     "<SymbolValueAssignment>", "<IntegerValueAssignment>", "<ImmediateSymbolValueAssignment>", "<SymbolVariableCondition>"
   , "<IntegerVariableCondition>", "<ImmediateAddition>", "<ImmediateSubtraction>", "<ImmediateMultiplication>", "<ImmediateDivision>",
-    "<BinaryAddition>", "<BinarySubtraction>","<BinaryMultiplication>","<BinaryDivision>", "<BinaryVariableCondition>"
+    "<BinaryAddition>", "<BinarySubtraction>","<BinaryMultiplication>","<BinaryDivision>", "<BinaryVariableCondition>",
+    "<CellularAutomatonDeclaration>", "<CellularAutomatonRun>"
   ],
   "Terminals": ["Identifier", "Integer",
     "{","}",
@@ -14,7 +15,7 @@
     "move",
     "left", "right", "up", "down", "forwards", "backwards",
     "write", "goto", "reading", "accept", "error", "until", ",",
-    "into", "current"
+    "into", "current", "CA", "for", "in", "run"
   ],
   "Productions": [
     {"head": "<Statement>", "body": ["{", "<StatementList>", "}"]},
@@ -43,6 +44,8 @@
     {"head": "<Statement>", "body": ["<BinaryMultiplication>"]},
     {"head": "<Statement>", "body": ["<BinaryDivision>"]},
     {"head": "<Statement>", "body": ["<BinaryVariableCondition>"]},
+    {"head": "<Statement>", "body": ["<CellularAutomatonDeclaration>"]},
+    {"head": "<Statement>", "body": ["<CellularAutomatonRun>"]},
 
     {"head": "<TapeMove>", "body": ["move", "<Direction>", ";"]},
     {"head": "<TapeWrite>", "body": ["write", "<SymbolLiteral>", ";"]},
@@ -65,6 +68,8 @@
     {"head": "<BinarySubtraction>", "body": ["Identifier", "-=", "Identifier", ";"]},
     {"head": "<BinaryMultiplication>", "body": ["Identifier", "*=", "Identifier", ";"]},
     {"head": "<BinaryDivision>", "body": ["Identifier", "/=", "Identifier", ";"]},
+    {"head": "<CellularAutomatonDeclaration>", "body": ["CA", "for", "<SymbolLiteral>", "{", "<StatementList>", "}", ";"]},
+    {"head": "<CellularAutomatonRun>", "body": ["run", "CA", "in", "Integer", ",", "Integer", ",", "Integer", ";"]},
 
     {"head": "<IdentifierList>", "body": ["{", "<IdentifierListPart>", "}"]},
     {"head": "<IdentifierListPart>", "body": ["<IdentifierListPart>",",","<SymbolLiteral>"]},

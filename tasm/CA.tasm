@@ -1,0 +1,11 @@
+CA for 'B' {
+    write 'A';
+};
+CA for 'A' {
+    write 'B';
+};
+C = 0;
+run CA in 2,2,2;
+C += 1;
+if C == 2 goto 12;
+goto 8;

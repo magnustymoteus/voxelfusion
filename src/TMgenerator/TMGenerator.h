@@ -25,7 +25,7 @@ struct PostponedTransition{
     bool onlyTheseSymbols;
     int tape = 0;
     string toWrite;
-    vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary, TMTapeDirection::Stationary};
+    vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary, TMTapeDirection::Stationary, TMTapeDirection::Stationary};
 };
 
 class TMGenerator {
@@ -37,10 +37,11 @@ class TMGenerator {
     StatePointer currentLineBeginState;
     int currentStateNumber = 0;
     int currentLineNumber = 1;
-    bool registerEndAsStartForNewLine = true;
     list<PostponedTransition> postponedTransitionBuffer;
     inline static const string VariableTapeStart = "VTB";
     inline static const string VariableTapeEnd = "VTE";
+    StatePointer CAstart;
+    StatePointer CAend;
 
     void alphabetExplorer(const shared_ptr<STNode>& root);
     void explorer(const shared_ptr<STNode>& root);
@@ -55,6 +56,8 @@ class TMGenerator {
     static set<string> parseIdentifierList(const shared_ptr<STNode>& root);
     static void identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output);
     string IntegerAsBitString(int in, bool flipped = false);
+
+    StatePointer getNextLineStartState();
 public:
     void assembleTasm(const shared_ptr<STNode> root);
 
@@ -64,6 +67,26 @@ public:
     StatePointer copyIntegerToThirdTape(StatePointer startState, const string &variableName);
 
     void addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract);
+
+    void currentIntoVariable(const string &variableName, const StatePointer &beginState,
+                             const StatePointer &destination, int tapeIndex);
+
+    void tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination);
+
+    void immediateAddition(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
+                           StatePointer &destination);
+
+    void
+    IntegerCompare(const string &variableName, string &binaryComparedValue, StatePointer &standardDestination,
+                   int conditionalDestinationLineNumber, StatePointer beginState, StatePointer conditionalEndState = nullptr);
+
+    void integerAssignment(const string &variableName, string &binaryAssignedValue, StatePointer &beginState,
+                            StatePointer &destination);
+
+    void doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &beginState, StatePointer &destination,
+                                    StatePointer thingStart, StatePointer thingEnd);
+
+    void updateHistoryTape(int z, int y, int x, StatePointer &beginState, StatePointer &endState);
 };
 
 

@@ -1,6 +1,7 @@
 #include <bitset>
 #include "TMGenerator.h"
 #include <algorithm>
+
 using std::to_string, std::cout, std::cerr, std::endl, std::runtime_error;
 
 TMGenerator::TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
@@ -12,9 +13,14 @@ TMGenerator::TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, Transi
 void TMGenerator::registerRegularNewline(StatePointer &state) {
     currentLineBeginState = state;
     currentLineNumber++;
-    if(registerEndAsStartForNewLine){
-        lineStartStates[currentLineNumber] = currentLineBeginState;
-    }
+    lineStartStates[currentLineNumber] = currentLineBeginState;
+}
+StatePointer TMGenerator::getNextLineStartState() {
+    currentLineBeginState = makeState(currentLineNumber +1);
+    currentLineNumber++;
+    lineStartStates[currentLineNumber] = currentLineBeginState;
+
+    return currentLineBeginState;
 }
 TMTapeDirection TMGenerator::parseDirection(const shared_ptr<STNode> &root) {
     //<Direction> -> e.g. right
@@ -73,6 +79,15 @@ void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
     tapeAlphabet.insert(VariableTapeEnd);
     tapeAlphabet.insert("0");
     tapeAlphabet.insert("1");
+    tapeAlphabet.insert("L");
+    tapeAlphabet.insert("R");
+    tapeAlphabet.insert("U");
+    tapeAlphabet.insert("D");
+    tapeAlphabet.insert("F");
+    tapeAlphabet.insert("T");
+    tapeAlphabet.insert("X");
+    tapeAlphabet.insert("Y");
+    tapeAlphabet.insert("Z");
 
 
     vector<StatePointer> writeValueStates = {initializationState2};
@@ -82,26 +97,26 @@ void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
     }
     //add start symbol
     transitions.insert({
-           TransitionDomain(initializationState1, {SYMBOL_ANY, "B", "B"}),
-           TransitionImage(initializationState2, {SYMBOL_ANY, VariableTapeStart, "B"}, {Stationary, Right, Stationary})
+           TransitionDomain(initializationState1, {SYMBOL_ANY, "B", "B", SYMBOL_ANY}),
+           TransitionImage(initializationState2, {SYMBOL_ANY, VariableTapeStart, "B", SYMBOL_ANY}, {Stationary, Right, Stationary, Stationary})
    });
     // add system variable
     for (int i = 0; i < BINARY_VALUE_WIDTH -1; ++i) {
         StatePointer previous = writeValueStates[i];
         StatePointer newState = writeValueStates[i+1];
         transitions.insert({
-               TransitionDomain(previous, {SYMBOL_ANY, "B", "B"}),
-               TransitionImage(newState, {SYMBOL_ANY, "0", "B"}, {Stationary, Right, Stationary})
+               TransitionDomain(previous, {SYMBOL_ANY, "B", "B", SYMBOL_ANY}),
+               TransitionImage(newState, {SYMBOL_ANY, "0", "B", SYMBOL_ANY}, {Stationary, Right, Stationary, Stationary})
        });
     }
     transitions.insert({
-           TransitionDomain(*std::next(writeValueStates.end(), -1), {SYMBOL_ANY, "B", "B"}),
-           TransitionImage(initializationState3, {SYMBOL_ANY, "0", "B"}, {Stationary, Right, Stationary})
+           TransitionDomain(*std::next(writeValueStates.end(), -1), {SYMBOL_ANY, "B", "B", SYMBOL_ANY}),
+           TransitionImage(initializationState3, {SYMBOL_ANY, "0", "B", SYMBOL_ANY}, {Stationary, Right, Stationary, Stationary})
    });
     //add end symbol
     transitions.insert({
-           TransitionDomain(initializationState3, {SYMBOL_ANY, "B", "B"}),
-           TransitionImage(currentLineBeginState, {SYMBOL_ANY, VariableTapeEnd, "B"}, {Stationary, Left, Stationary})
+           TransitionDomain(initializationState3, {SYMBOL_ANY, "B", "B", SYMBOL_ANY}),
+           TransitionImage(currentLineBeginState, {SYMBOL_ANY, VariableTapeEnd, "B", SYMBOL_ANY}, {Stationary, Left, Stationary, Stationary})
    });
 
     explorer(root);
@@ -121,8 +136,8 @@ void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
         }
         for (const string& symbol: relevantSymbols) {
             string replacedBy = transition.toWrite.empty() ? symbol : transition.toWrite;
-            vector<string> replacedSymbols{SYMBOL_ANY, SYMBOL_ANY};
-            vector<string> replacementSymbols{SYMBOL_ANY, SYMBOL_ANY};
+            vector<string> replacedSymbols{SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY};
+            vector<string> replacementSymbols{SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY};
             replacedSymbols.insert(next(replacedSymbols.begin(), transition.tape), symbol);
             replacementSymbols.insert(next(replacementSymbols.begin(), transition.tape), replacedBy);
             transitions.insert({
@@ -143,133 +158,61 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
     }else if(l == "<Statement>"){
         explorer(root->children[0]);
     }else{
-        //cout << root->label << " " << root->token << endl;
         if(l == "<TapeMove>"){
-            StatePointer destination = makeState(currentLineNumber +1);
+            StatePointer first = currentLineBeginState;
+            StatePointer destination = getNextLineStartState();
             TMTapeDirection direction = parseDirection(root->children[1]);
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, destination);
-            std::next(postponedTransitionBuffer.end(), -1)->directions[0] = direction;
-            registerRegularNewline(destination);
+            tapeMove(direction, first, destination);
         }
         else if(l == "<TapeWrite>"){
-            StatePointer destination = makeState(currentLineNumber +1);
+            StatePointer first = currentLineBeginState;
+            StatePointer destination = getNextLineStartState();
             string symbolName = parseSymbolLiteral(root->children[1]);
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, destination);
+            postponedTransitionBuffer.emplace_back(first, destination);
             std::next(postponedTransitionBuffer.end(), -1)->toWrite = symbolName;
-            registerRegularNewline(destination);
         }
         else if(l == "<Jump>"){
+            StatePointer first = currentLineBeginState;
             int destinationLineNumber = parseInteger(root->children[1]);
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, destinationLineNumber);
+            postponedTransitionBuffer.emplace_back(first, destinationLineNumber);
             //next line prep
-            StatePointer successor = makeState(currentLineNumber +1);
-            registerRegularNewline(successor);
+            StatePointer successor = getNextLineStartState();
         }
         else if(l == "<ReadCondition>"){
-            StatePointer standardDestination = makeState(currentLineNumber +1);
+            StatePointer first = currentLineBeginState;
+            StatePointer standardDestination = getNextLineStartState();
             string symbolName = parseSymbolLiteral(root->children[3]);
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, standardDestination, set<string>{symbolName});
+            postponedTransitionBuffer.emplace_back(first, standardDestination, set<string>{symbolName});
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, conditionalDestinationLineNumber, set<string>{symbolName}, true);
-
-            registerRegularNewline(standardDestination);
+            postponedTransitionBuffer.emplace_back(first, conditionalDestinationLineNumber, set<string>{symbolName}, true);
         }
         else if(l == "<ConditionalMove>"){
+            StatePointer first = currentLineBeginState;
             TMTapeDirection direction = parseDirection(root->children.at(3));
             auto symbols = parseIdentifierList(root->children.at(1));
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, currentLineBeginState, symbols);
+            postponedTransitionBuffer.emplace_back(first, first, symbols);
             std::next(postponedTransitionBuffer.end(), -1)->directions[0] = direction;
-            StatePointer conditionalDestination = makeState(currentLineNumber +1);
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, conditionalDestination, symbols, true);
-            registerRegularNewline(conditionalDestination);
+            StatePointer conditionalDestination = getNextLineStartState();
+            postponedTransitionBuffer.emplace_back(first, conditionalDestination, symbols, true);
         }
         else if(l == "<Accept>"){
+            StatePointer first = currentLineBeginState;
             StatePointer destination = makeState(0, true);
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, destination);
-            StatePointer nextLineDummy = makeState(currentLineNumber +1, false);
-            registerRegularNewline(nextLineDummy);
+            postponedTransitionBuffer.emplace_back(first, destination);
+            StatePointer nextLineDummy = getNextLineStartState();
         }
         else if(l == "<ImmediateSymbolValueAssignment>"){
+            StatePointer first = currentLineBeginState;
             string variableName = root->children[3]->token->lexeme;
-            StatePointer destination = makeState(currentLineNumber +1);
-            for (const string& symbolToWrite: tapeAlphabet) {
-                //search for the tape begin marker
-                StatePointer goLeft = makeState();
-                transitions.insert({
-                                           TransitionDomain(currentLineBeginState, {symbolToWrite, SYMBOL_ANY, SYMBOL_ANY}),
-                                           TransitionImage(goLeft, {symbolToWrite, SYMBOL_ANY, SYMBOL_ANY}, {Stationary, Stationary, Stationary})
-                                   });
-                for (const string& ignoredSymbol: tapeAlphabet) {
-                    if(ignoredSymbol != VariableTapeStart){
-                        transitions.insert({
-                                                   TransitionDomain(goLeft, {symbolToWrite, ignoredSymbol, SYMBOL_ANY}),
-                                                   TransitionImage(goLeft, {symbolToWrite, ignoredSymbol, SYMBOL_ANY}, {Stationary, Left, Stationary})
-                                           });
-                    }
-
-                }
-                //move right until variable name or tape end found
-                StatePointer goRight = makeState();
-                transitions.insert({
-                                           TransitionDomain(goLeft, {symbolToWrite, VariableTapeStart, SYMBOL_ANY}),
-                                           TransitionImage(goRight, {symbolToWrite, VariableTapeStart, SYMBOL_ANY}, {Stationary, Right, Stationary})
-                                   });
-                for (const string& ignoredSymbol: tapeAlphabet) {
-                    if(ignoredSymbol == variableName || ignoredSymbol == VariableTapeEnd) continue;
-                    transitions.insert({
-                                               TransitionDomain(goRight, {symbolToWrite, ignoredSymbol, SYMBOL_ANY}),
-                                               TransitionImage(goRight, {symbolToWrite, ignoredSymbol, SYMBOL_ANY}, {Stationary, Right, Stationary})
-                                       });
-                }
-                // option 1: variable name found: overwrite current value, whatever it is
-                StatePointer writer = makeState();
-                transitions.insert({
-                                           TransitionDomain(goRight, {symbolToWrite, variableName, SYMBOL_ANY}),
-                                           TransitionImage(writer, {symbolToWrite, variableName, SYMBOL_ANY}, {Stationary, Right, Stationary})
-                                   });
-                for(const string& ignoredSymbol: tapeAlphabet){
-                    if(ignoredSymbol == symbolToWrite) continue;
-                    transitions.insert({
-                                               TransitionDomain(writer, {symbolToWrite, ignoredSymbol, SYMBOL_ANY}),
-                                               TransitionImage(writer, {symbolToWrite, symbolToWrite, SYMBOL_ANY}, {Stationary, Stationary, Stationary})
-                                       });
-                }
-                transitions.insert({
-                                           TransitionDomain(writer, {symbolToWrite, symbolToWrite, SYMBOL_ANY}),
-                                           TransitionImage(destination, {symbolToWrite, symbolToWrite, SYMBOL_ANY}, {Stationary, Right, Stationary})
-                                   });
-                // option 2: tape end found: overwrite it and put a new tape end to the right
-                StatePointer writeName = makeState();
-                //write the name
-                transitions.insert({
-                                           TransitionDomain(goRight, {symbolToWrite, VariableTapeEnd, SYMBOL_ANY}),
-                                           TransitionImage(writeName, {symbolToWrite, variableName, SYMBOL_ANY}, {Stationary, Right, Stationary})
-                                   });
-                StatePointer writeValue = makeState();
-                //write the value
-                transitions.insert({
-                                           TransitionDomain(writeName, {symbolToWrite, SYMBOL_ANY, SYMBOL_ANY}),
-                                           TransitionImage(writeValue, {symbolToWrite, symbolToWrite, SYMBOL_ANY}, {Stationary, Right, Stationary})
-                                   });
-                for(const string& ignoredSymbol: tapeAlphabet){
-                    if(ignoredSymbol == VariableTapeEnd) continue;
-                    transitions.insert({
-                                               TransitionDomain(writeValue, {symbolToWrite, ignoredSymbol, SYMBOL_ANY}),
-                                               TransitionImage(writeValue, {symbolToWrite, VariableTapeEnd, SYMBOL_ANY}, {Stationary, Stationary, Stationary})
-                                       });
-                }
-                transitions.insert({
-                                           TransitionDomain(writeValue, {symbolToWrite, VariableTapeEnd, SYMBOL_ANY}),
-                                           TransitionImage(destination, {symbolToWrite, VariableTapeEnd, SYMBOL_ANY}, {Stationary, Stationary, Stationary})
-                                   });
-            }
-            registerRegularNewline(destination);
+            StatePointer destination = getNextLineStartState();
+            currentIntoVariable(variableName, first, destination, 0);
         }
         else if(l == "<SymbolValueAssignment>"){
+            StatePointer first = currentLineBeginState;
             string variableName = root->children[3]->token->lexeme;
             string variableValue = parseSymbolLiteral(root->children[1]);
-            StatePointer destination = makeState(currentLineNumber +1);
-            StatePointer goRight = MoveToVariableMarker(currentLineBeginState, variableName);
+            StatePointer destination = getNextLineStartState();
+            StatePointer goRight = MoveToVariableMarker(first, variableName);
             // option 1: variable name found: overwrite current value, whatever it is
                 StatePointer writer = makeState();
                 postponedTransitionBuffer.emplace_back(goRight, writer, set<string>{variableName}, true);
@@ -298,16 +241,15 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
                 std::next(postponedTransitionBuffer.end(), -1)->toWrite = VariableTapeEnd;
                 postponedTransitionBuffer.emplace_back(writeValue, destination, set<string>{VariableTapeEnd}, true);
                 std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            registerRegularNewline(destination);
         }
         else if(l == "<SymbolVariableCondition>"){
+            StatePointer first = currentLineBeginState;
             string variableName = root->children[5]->token->lexeme;
             string variableValue = parseSymbolLiteral(root->children[3]);
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
-            StatePointer destination = makeState(currentLineNumber +1);
             //search for the tape begin marker
             StatePointer goLeft = makeState();
-            postponedTransitionBuffer.emplace_back(currentLineBeginState, goLeft);
+            postponedTransitionBuffer.emplace_back(first, goLeft);
             postponedTransitionBuffer.emplace_back(goLeft, goLeft, set<string>{VariableTapeStart});
             std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
@@ -326,165 +268,45 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
             std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
             //regular condition logic
-            StatePointer standardDestination = makeState(currentLineNumber +1);
+            StatePointer standardDestination = getNextLineStartState();
             postponedTransitionBuffer.emplace_back(observe, standardDestination, set<string>{variableValue});
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
             postponedTransitionBuffer.emplace_back(observe, conditionalDestinationLineNumber, set<string>{variableValue}, true);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
 
-            registerRegularNewline(standardDestination);
-
         }else if(l == "<IntegerValueAssignment>"){
+            StatePointer first = currentLineBeginState;
             string variableName = root->children[3]->token->lexeme;
             int assignedValue = parseInteger(root->children[1]);
             std::string binaryAssignedValue = IntegerAsBitString(assignedValue);
-            StatePointer destination = makeState(currentLineNumber +1);
-            StatePointer goRight = MoveToVariableMarker(currentLineBeginState, variableName);
-
-            // option 1: variable name found: overwrite current value, whatever it is
-                StatePointer writer1 = makeState();
-                postponedTransitionBuffer.emplace_back(goRight, writer1, set<string>{variableName}, true);
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                vector<StatePointer> writeValueStates1 = { writer1};
-                for (char c : binaryAssignedValue) {
-                    writeValueStates1.emplace_back(makeState());
-                    auto last = std::next(writeValueStates1.end(), -1);
-                    auto penultimate = std::next(last, -1);
-                    postponedTransitionBuffer.emplace_back(*penultimate, *last);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                }
-                postponedTransitionBuffer.emplace_back(*std::next(writeValueStates1.end(), -1), destination);
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
-            // option 2: tape end found: overwrite it and put a new tape end to the right
-                StatePointer writeName = makeState();
-                //write the name
-                postponedTransitionBuffer.emplace_back(goRight, writeName, set<string>{VariableTapeEnd}, true);
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                std::next(postponedTransitionBuffer.end(), -1)->toWrite = variableName;
-                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-
-                vector<StatePointer> writeValueStates2 = {writeName};
-                for (char c : binaryAssignedValue) {
-                    writeValueStates2.emplace_back(makeState());
-                    auto last = std::next(writeValueStates2.end(), -1);
-                    auto penultimate = std::next(last, -1);
-                    postponedTransitionBuffer.emplace_back(*penultimate, *last);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                }
-                StatePointer writeTapeEnd = makeState();
-                postponedTransitionBuffer.emplace_back(*std::next(writeValueStates2.end(), -1), writeTapeEnd, set<string>{VariableTapeEnd});
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                std::next(postponedTransitionBuffer.end(), -1)->toWrite = VariableTapeEnd;
-                postponedTransitionBuffer.emplace_back(writeTapeEnd, destination, set<string>{VariableTapeEnd}, true);
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            registerRegularNewline(destination);
+            StatePointer destination = getNextLineStartState();
+            integerAssignment(variableName, binaryAssignedValue, first, destination);
         }
         else if(l == "<IntegerVariableCondition>"){
+            StatePointer first = currentLineBeginState;
             string variableName = root->children[5]->token->lexeme;
             int comparedValue = parseInteger(root->children[3]);
             std::string binaryComparedValue = IntegerAsBitString(comparedValue);
-            StatePointer standardDestination = makeState(currentLineNumber +1);
+            StatePointer standardDestination = getNextLineStartState();
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
-            StatePointer goRight = MoveToVariableMarker(currentLineBeginState, variableName);
-
-            //bitwise comparison
-            StatePointer reader1 = makeState();
-            postponedTransitionBuffer.emplace_back(goRight, reader1, set<string>{variableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-            vector<StatePointer> readerStates = {reader1};
-            for (char c : binaryComparedValue) {
-                readerStates.emplace_back(makeState());
-                auto last = std::next(readerStates.end(), -1);
-                auto penultimate = std::next(last, -1);
-                postponedTransitionBuffer.emplace_back(*penultimate, *last, set<string>{string(1, c)}, true);
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                postponedTransitionBuffer.emplace_back(*penultimate, standardDestination, set<string>{string(1, c)});
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
-            }
-            postponedTransitionBuffer.emplace_back(*std::next(readerStates.end(), -1), conditionalDestinationLineNumber);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            registerRegularNewline(standardDestination);
+            IntegerCompare(variableName, binaryComparedValue, standardDestination,
+                           conditionalDestinationLineNumber, first);
         }
         else if(l == "<ImmediateAddition>" || l == "<ImmediateSubtraction>"){
+            StatePointer first = currentLineBeginState;
             string variableName = root->children[3]->token->lexeme;
             int addedValue = parseInteger(root->children[1]);
             std::string binaryAddedValue = IntegerAsBitString(addedValue, l == "<ImmediateSubtraction>");
-            StatePointer destination = makeState(currentLineNumber +1);
-            StatePointer goRight = MoveToVariableMarker(currentLineBeginState, variableName);
-
-            //start adding
-            StatePointer writer1 = makeState();
-            postponedTransitionBuffer.emplace_back(goRight, writer1, set<string>{variableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-            vector<StatePointer> writeValueStates = {writer1, makeState()}; // first carry state cannot be reached here but makes the loop below easier
-            for (char c : binaryAddedValue) {
-                StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
-                StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
-                StatePointer newNormalState = makeState();
-                StatePointer newCarryState = makeState();
-                writeValueStates.push_back(newNormalState);
-                writeValueStates.push_back(newCarryState);
-                if(c == '0'){
-                    postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, set<string>{"0"}, true);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                    postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, set<string>{"1"}, true);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                    postponedTransitionBuffer.emplace_back(oldCarryState, newNormalState, set<string>{"0"}, true);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                    postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, set<string>{"1"}, true);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                }else if(c == '1'){
-                    postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, set<string>{"0"}, true);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                    postponedTransitionBuffer.emplace_back(oldNormalState, newCarryState, set<string>{"1"}, true);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                    postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, set<string>{"0"}, true);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                    postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, set<string>{"1"}, true);
-                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
-                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                }
-            }
-            StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
-            StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
-            postponedTransitionBuffer.emplace_back(oldNormalState, destination);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
-            postponedTransitionBuffer.emplace_back(oldCarryState, destination);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
-            registerRegularNewline(destination);
-
+            StatePointer destination = getNextLineStartState();
+            immediateAddition(variableName, binaryAddedValue, first, destination);
         }
         else if(l == "<BinaryAddition>" || l == "<BinarySubtraction>"){
+            StatePointer first = currentLineBeginState;
             //seek second variable and copy to third tape
             string assignedVariableName = root->children[3]->token->lexeme;
             string readVariableName = root->children[1]->token->lexeme;
-            StatePointer destination = makeState(currentLineNumber +1);
-            StatePointer goRight = MoveToVariableMarker(currentLineBeginState, readVariableName);
+            StatePointer destination = getNextLineStartState();
+            StatePointer goRight = MoveToVariableMarker(first, readVariableName);
             StatePointer moveToValue = makeState();
             postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{readVariableName}, true);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
@@ -518,17 +340,16 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             std::next(postponedTransitionBuffer.end(), -1)->toWrite = "B";
 
             postponedTransitionBuffer.emplace_back(eraser, destination, set<string>{"B"}, true);
-
-            registerRegularNewline(destination);
         }
         else if(l == "<BinaryVariableCondition>"){
+            StatePointer first = currentLineBeginState;
             string leftVariableName = root->children[5]->token->lexeme;
             string rightVariableName = root->children[3]->token->lexeme;
-            StatePointer standardDestination = makeState(currentLineNumber +1);
+            StatePointer standardDestination = getNextLineStartState();
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
 
             // seek second variable and copy it to third tape
-            StatePointer goRight = MoveToVariableMarker(currentLineBeginState, rightVariableName);
+            StatePointer goRight = MoveToVariableMarker(first, rightVariableName);
             StatePointer moveToValue = makeState();
             postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{rightVariableName}, true);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
@@ -549,20 +370,20 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
                 StatePointer newState = makeState();
                 checkValueStates.push_back(newState);
                 transitions.insert({
-                                           TransitionDomain(oldState, {SYMBOL_ANY, "0", "0"}),
-                                           TransitionImage(newState, {SYMBOL_ANY, "0", "0"}, {Stationary, Right, Right})
+                                           TransitionDomain(oldState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                           TransitionImage(newState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                    });
                 transitions.insert({
-                                           TransitionDomain(oldState, {SYMBOL_ANY, "1", "1"}),
-                                           TransitionImage(newState, {SYMBOL_ANY, "1", "1"}, {Stationary, Right, Right})
+                                           TransitionDomain(oldState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                           TransitionImage(newState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                    });
                 transitions.insert({
-                                           TransitionDomain(oldState, {SYMBOL_ANY, "1", "0"}),
-                                           TransitionImage(falseEraser, {SYMBOL_ANY, "1", "0"}, {Stationary, Stationary, Stationary})
+                                           TransitionDomain(oldState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}),
+                                           TransitionImage(falseEraser, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}, {Stationary, Stationary, Stationary, Stationary})
                                    });
                 transitions.insert({
-                                           TransitionDomain(oldState, {SYMBOL_ANY, "0", "1"}),
-                                           TransitionImage(falseEraser, {SYMBOL_ANY, "0", "1"}, {Stationary, Stationary, Stationary})
+                                           TransitionDomain(oldState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}),
+                                           TransitionImage(falseEraser, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}, {Stationary, Stationary, Stationary, Stationary})
                                    });
             }
             // erase if false
@@ -604,8 +425,8 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             for(const string& copiedSymbol: tapeAlphabet){
                 if(copiedSymbol == "0" || copiedSymbol == "1") continue;
                 transitions.insert({
-                                           TransitionDomain(moveToValue, {SYMBOL_ANY, copiedSymbol, "B"}),
-                                           TransitionImage(doneCopying2, {SYMBOL_ANY, copiedSymbol, copiedSymbol}, {Stationary, Right, Stationary})
+                                           TransitionDomain(moveToValue, {SYMBOL_ANY, copiedSymbol, "B", SYMBOL_ANY}),
+                                           TransitionImage(doneCopying2, {SYMBOL_ANY, copiedSymbol, copiedSymbol, SYMBOL_ANY}, {Stationary, Right, Stationary, Stationary})
                                    });
             }
             //move to the value
@@ -620,32 +441,32 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             for(const string& comparedSymbol1: tapeAlphabet){
                 if(comparedSymbol1 == "0" || comparedSymbol1 == "1") continue;
                 transitions.insert({
-                                           TransitionDomain(checkSingleValue, {SYMBOL_ANY, comparedSymbol1, comparedSymbol1}),
-                                           TransitionImage(symbolTrueIntermediate, {SYMBOL_ANY, comparedSymbol1, "B"}, {Stationary, Stationary, Stationary})
+                                           TransitionDomain(checkSingleValue, {SYMBOL_ANY, comparedSymbol1, comparedSymbol1, SYMBOL_ANY}),
+                                           TransitionImage(symbolTrueIntermediate, {SYMBOL_ANY, comparedSymbol1, "B", SYMBOL_ANY}, {Stationary, Stationary, Stationary, Stationary})
                                    });
                 for(const string& comparedSymbol2: tapeAlphabet){
                     if(comparedSymbol2 == "0" || comparedSymbol2 == "1") continue;
                     if(comparedSymbol1 != comparedSymbol2){
                         transitions.insert({
-                                                   TransitionDomain(checkSingleValue, {SYMBOL_ANY, comparedSymbol1, comparedSymbol2}),
-                                                   TransitionImage(standardDestination, {SYMBOL_ANY, comparedSymbol1, "B"}, {Stationary, Stationary, Stationary})
+                                                   TransitionDomain(checkSingleValue, {SYMBOL_ANY, comparedSymbol1, comparedSymbol2, SYMBOL_ANY}),
+                                                   TransitionImage(standardDestination, {SYMBOL_ANY, comparedSymbol1, "B", SYMBOL_ANY}, {Stationary, Stationary, Stationary, Stationary})
                                            });
 
                     }
                 }
             }
-            registerRegularNewline(standardDestination);
         }
         else if(l == "<BinaryMultiplication>" || l == "<ImmediateMultiplication>"){
+            StatePointer first = currentLineBeginState;
             string assignedVariableName = root->children[3]->token->lexeme;
-            StatePointer destination = makeState(currentLineNumber +1);
+            StatePointer destination = getNextLineStartState();
             StatePointer sysVarLoaded;
             if(l == "<ImmediateMultiplication>"){
                 // write the multiplier to sysvar
                 int multiplier = parseInteger(root->children[1]);
                 std::string binaryMultiplier = IntegerAsBitString(multiplier);
                 StatePointer moveToVTB = makeState();
-                postponedTransitionBuffer.emplace_back(currentLineBeginState, moveToVTB, std::set<string>{VariableTapeStart});
+                postponedTransitionBuffer.emplace_back(first, moveToVTB, std::set<string>{VariableTapeStart});
                 std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
                 std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
                 postponedTransitionBuffer.emplace_back(moveToVTB, moveToVTB, std::set<string>{VariableTapeStart});
@@ -670,7 +491,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             }else{
                 string readVariableName = root->children[1]->token->lexeme;
                 // copy the multiplier to third tape
-                StatePointer goRight = MoveToVariableMarker(currentLineBeginState, readVariableName);
+                StatePointer goRight = MoveToVariableMarker(first, readVariableName);
                 StatePointer moveToValue = makeState();
                 postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{readVariableName}, true);
                 std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
@@ -695,20 +516,20 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
                     StatePointer newState = makeState();
                     writeValueStates.push_back(newState);
                     transitions.insert({
-                                               TransitionDomain(oldState, {SYMBOL_ANY, "0", "0"}),
-                                               TransitionImage(newState, {SYMBOL_ANY, "0", "0"}, {Stationary, Right, Right})
+                                               TransitionDomain(oldState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                               TransitionImage(newState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                        });
                     transitions.insert({
-                                               TransitionDomain(oldState, {SYMBOL_ANY, "1", "1"}),
-                                               TransitionImage(newState, {SYMBOL_ANY, "1", "1"}, {Stationary, Right, Right})
+                                               TransitionDomain(oldState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                               TransitionImage(newState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                        });
                     transitions.insert({
-                                               TransitionDomain(oldState, {SYMBOL_ANY, "1", "0"}),
-                                               TransitionImage(newState, {SYMBOL_ANY, "0", "0"}, {Stationary, Right, Right})
+                                               TransitionDomain(oldState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}),
+                                               TransitionImage(newState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                        });
                     transitions.insert({
-                                               TransitionDomain(oldState, {SYMBOL_ANY, "0", "1"}),
-                                               TransitionImage(newState, {SYMBOL_ANY, "1", "1"}, {Stationary, Right, Right})
+                                               TransitionDomain(oldState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}),
+                                               TransitionImage(newState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                        });
                 }
 
@@ -847,14 +668,381 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             postponedTransitionBuffer.emplace_back(eraser2, destination, std::set<string>{"B"}, true);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
             std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+        }
+        else if(l == "<CellularAutomatonDeclaration>"){
+            string symbolName = parseSymbolLiteral(root->children[4]);
+            if (!CAstart) CAstart = makeState();
+            if (!CAend) CAend = makeState();
+            StatePointer getDirections = makeState();
+            postponedTransitionBuffer.emplace_back(CAstart, getDirections, std::set<string>{symbolName}, true);
+            // put all the directions in variables
+            StatePointer previous = getDirections;
+            for (auto &direction: map<std::pair<TMTapeDirection, TMTapeDirection>, string>{{{TMTapeDirection::Left,  TMTapeDirection::Right}, "L"},
+                                                                                           {{TMTapeDirection::Right, TMTapeDirection::Left},  "R"},
+                                                                                           {{TMTapeDirection::Up,    TMTapeDirection::Down},  "U"},
+                                                                                           {{TMTapeDirection::Down,  TMTapeDirection::Up},    "D"},
+                                                                                           {{TMTapeDirection::Front, TMTapeDirection::Back},  "F"},
+                                                                                           {{TMTapeDirection::Back,  TMTapeDirection::Front}, "T"}}) {
+                StatePointer move = makeState();
+                tapeMove(direction.first.first, previous, move);
+                StatePointer store = makeState();
+                currentIntoVariable(direction.second, move, store, 3);
+                StatePointer goBack = makeState();
+                tapeMove(direction.first.second, store, goBack);
+                previous = goBack;
+            }
+            StatePointer temporarilyHiddenDestination = currentLineBeginState;
+            currentLineBeginState = previous;
+            currentLineNumber++;
+            explorer(root->children[2]);
+            postponedTransitionBuffer.emplace_back(currentLineBeginState, CAend);
+            registerRegularNewline(temporarilyHiddenDestination);
 
+        }
+        else if(l == "<CellularAutomatonRun>"){ // NEVER PUT THIS IN A SCRIPT MULTIPLE TIMES
+            StatePointer first = currentLineBeginState;
+            int z = parseInteger(root->children[1]);
+            int y = parseInteger(root->children[3]);
+            int x = parseInteger(root->children[5]);
+            StatePointer destination = getNextLineStartState();
 
-
-            registerRegularNewline(destination);
+            // update the history tape
+            StatePointer historyUpdated = makeState();
+            updateHistoryTape(z, y, x, first, historyUpdated);
+            // execute the CA
+            doThingForEveryVoxelInCube(z, y, x, historyUpdated, destination, CAstart, CAend);
         }
         else{
             cerr << "Instruction " << l << "is currently not supported by the compiler" << endl;
         }
+    }
+}
+
+void TMGenerator::updateHistoryTape(int z, int y, int x, StatePointer &beginState, StatePointer &endState) {
+    StatePointer start = makeState();
+    StatePointer end = makeState();
+    for(const auto& writtenSymbol: tapeAlphabet){
+        transitions.insert({
+                   TransitionDomain(start, {writtenSymbol, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}),
+                   TransitionImage(end, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, writtenSymbol}, {Stationary, Stationary, Stationary, Stationary})
+           });
+    }
+    doThingForEveryVoxelInCube(z, y, x, beginState, endState, start, end);
+}
+
+void TMGenerator::doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &beginState, StatePointer &destination,
+                                             StatePointer thingStart, StatePointer thingEnd) {
+    std::string xString = IntegerAsBitString(x);
+    std::string yString = IntegerAsBitString(y);
+    std::string zString = IntegerAsBitString(z);
+
+    std::string increment = IntegerAsBitString(1);
+    std::string decrement = IntegerAsBitString(1, true);
+    StatePointer initX = makeState();
+    StatePointer initY = makeState();
+    std::string zero = IntegerAsBitString(0);
+    integerAssignment("X", zero, beginState, initX);
+    integerAssignment("Y", zero, initX, initY);
+    integerAssignment("Z", zero, initY, thingStart);
+
+    // from thingStart to thingEnd, the actual thing gets executed
+
+
+    // move forward
+    StatePointer moveForward = makeState();
+    tapeMove(Front, thingEnd, moveForward);
+    // increment X var
+    StatePointer incrementX = makeState();
+    immediateAddition("X", increment, moveForward, incrementX);
+
+
+    StatePointer yCheck = makeState();
+    StatePointer zCheck = makeState();
+
+    // check if X == x
+    StatePointer shiftY = makeState();
+    IntegerCompare("X", xString, thingStart, 0, incrementX, shiftY);
+    //  if so, move right(increment Y) and back while decrementing X until X is zero
+    StatePointer yIncrement = makeState();
+    StatePointer startXReset = makeState();
+    tapeMove(Right, shiftY, yIncrement);
+    immediateAddition("Y", increment, yIncrement, startXReset);
+    StatePointer xDecrement = makeState();
+    immediateAddition("X", decrement, startXReset, xDecrement);
+    StatePointer xMove = makeState();
+    tapeMove(Back, xDecrement, xMove);
+    IntegerCompare("X", zero, startXReset, 0, xMove, yCheck);
+
+    // check if Y == y
+    StatePointer shiftZ = makeState();
+    IntegerCompare("Y", yString, thingStart, 0, yCheck, shiftZ);
+    //  if so, move up(increment Z) and left while decrementing Y until Y is zero
+    StatePointer zIncrement = makeState();
+    StatePointer startYReset = makeState();
+    tapeMove(Up, shiftZ, zIncrement);
+    immediateAddition("Z", increment, zIncrement, startYReset);
+    StatePointer yDecrement = makeState();
+    immediateAddition("Y", decrement, startYReset, yDecrement);
+    StatePointer yMove = makeState();
+    tapeMove(Left, yDecrement, yMove);
+    IntegerCompare("Y", zero, startYReset, 0, yMove, zCheck);
+    // check if Z == z
+    StatePointer backDown = makeState();
+    IntegerCompare("Z", zString, thingStart, 0, zCheck, backDown);
+    //  if so, move down while decrementing Z until Z is zero AND THEN EXIT
+    StatePointer startZReset = makeState();
+    StatePointer zDecrement = makeState();
+    tapeMove(Down, backDown, startZReset);
+    immediateAddition("Z", decrement, startZReset, zDecrement);
+    StatePointer zMove = makeState();
+    IntegerCompare("Z", zero, backDown, 0, zDecrement, destination);
+}
+
+void
+TMGenerator::integerAssignment(const string &variableName, string &binaryAssignedValue, StatePointer &beginState,
+                               StatePointer &destination) {
+    StatePointer goRight = MoveToVariableMarker(beginState, variableName);
+
+    // option 1: variable name found: overwrite current value, whatever it is
+    StatePointer writer1 = makeState();
+    postponedTransitionBuffer.emplace_back(goRight, writer1, std::set<string>{variableName}, true);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+    std::vector<StatePointer> writeValueStates1 = {writer1};
+    for (char c : binaryAssignedValue) {
+        writeValueStates1.emplace_back(makeState());
+        auto last = std::next(writeValueStates1.end(), -1);
+        auto penultimate = std::next(last, -1);
+        postponedTransitionBuffer.emplace_back(*penultimate, *last);
+        std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+        std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
+        std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+    }
+    postponedTransitionBuffer.emplace_back(*std::next(writeValueStates1.end(), -1), destination);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
+    // option 2: tape end found: overwrite it and put a new tape end to the right
+    StatePointer writeName = makeState();
+    //write the name
+    postponedTransitionBuffer.emplace_back(goRight, writeName, std::set<string>{VariableTapeEnd}, true);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->toWrite = variableName;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+
+    std::vector<StatePointer> writeValueStates2 = {writeName};
+    for (char c : binaryAssignedValue) {
+        writeValueStates2.emplace_back(makeState());
+        auto last = std::next(writeValueStates2.end(), -1);
+        auto penultimate = std::next(last, -1);
+        postponedTransitionBuffer.emplace_back(*penultimate, *last);
+        std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+        std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
+        std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+    }
+    StatePointer writeTapeEnd = makeState();
+    postponedTransitionBuffer.emplace_back(*std::next(writeValueStates2.end(), -1), writeTapeEnd, std::set<string>{VariableTapeEnd});
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->toWrite = VariableTapeEnd;
+    postponedTransitionBuffer.emplace_back(writeTapeEnd, destination, std::set<string>{VariableTapeEnd}, true);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+}
+
+void
+TMGenerator::IntegerCompare(const string &variableName, string &binaryComparedValue, StatePointer &standardDestination,
+                            int conditionalDestinationLineNumber, StatePointer beginState, StatePointer conditionalEndState) {
+    StatePointer goRight = MoveToVariableMarker(beginState, variableName);
+
+    //bitwise comparison
+    StatePointer reader1 = makeState();
+    postponedTransitionBuffer.emplace_back(goRight, reader1, std::set<string>{variableName}, true);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+    std::vector<StatePointer> readerStates = {reader1};
+    for (char c : binaryComparedValue) {
+        readerStates.emplace_back(makeState());
+        auto last = std::next(readerStates.end(), -1);
+        auto penultimate = std::next(last, -1);
+        postponedTransitionBuffer.emplace_back(*penultimate, *last, std::set<string>{string(1, c)}, true);
+        std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+        std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+        postponedTransitionBuffer.emplace_back(*penultimate, standardDestination, std::set<string>{string(1, c)});
+        std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+        std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
+    }
+    if(conditionalEndState == nullptr){
+        postponedTransitionBuffer.emplace_back(*std::next(readerStates.end(), -1), conditionalDestinationLineNumber);
+    }else{
+        postponedTransitionBuffer.emplace_back(*std::next(readerStates.end(), -1), conditionalEndState);
+    }
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+}
+
+void
+TMGenerator::immediateAddition(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
+                               StatePointer &destination) {
+    StatePointer goRight = MoveToVariableMarker(startingState, variableName);
+
+    //start adding
+    StatePointer writer1 = makeState();
+    postponedTransitionBuffer.emplace_back(goRight, writer1, std::set<string>{variableName}, true);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+    std::vector<StatePointer> writeValueStates = {writer1, makeState()}; // first carry state cannot be reached here but makes the loop below easier
+    for (char c : binaryAddedValue) {
+        StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
+        StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
+        StatePointer newNormalState = makeState();
+        StatePointer newCarryState = makeState();
+        writeValueStates.push_back(newNormalState);
+        writeValueStates.push_back(newCarryState);
+        if(c == '0'){
+            postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, std::set<string>{"0"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, std::set<string>{"1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(oldCarryState, newNormalState, std::set<string>{"0"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, std::set<string>{"1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+        }else if(c == '1'){
+            postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, std::set<string>{"0"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(oldNormalState, newCarryState, std::set<string>{"1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, std::set<string>{"0"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(oldCarryState, newCarryState, std::set<string>{"1"}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+        }
+    }
+    StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
+    StatePointer oldCarryState = *std::next(writeValueStates.end(), -1);
+    postponedTransitionBuffer.emplace_back(oldNormalState, destination);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
+    postponedTransitionBuffer.emplace_back(oldCarryState, destination);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
+}
+
+void TMGenerator::tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination) {
+    postponedTransitionBuffer.emplace_back(beginState, destination);
+    std::next(postponedTransitionBuffer.end(), -1)->directions[0] = direction;
+}
+
+void TMGenerator::currentIntoVariable(const string &variableName, const StatePointer &beginState,
+                                      const StatePointer &destination, int tapeIndex) {
+    assert(tapeIndex >= 0 && tapeIndex != 1);
+    for (const string& symbolToWrite: tapeAlphabet) {
+        //search for the tape begin marker
+        StatePointer goLeft = makeState();
+        postponedTransitionBuffer.emplace_back(beginState, goLeft, std::set<string>{symbolToWrite}, true);
+        postponedTransitionBuffer.back().tape = tapeIndex;
+        for (const string& ignoredSymbol: tapeAlphabet) {
+            if(ignoredSymbol != VariableTapeStart){
+                vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
+                *std::next(replaced.begin(), tapeIndex) = symbolToWrite;
+                transitions.insert({
+                                           TransitionDomain(goLeft, replaced),
+                                           TransitionImage(goLeft, replaced, {Stationary, Left, Stationary, Stationary})
+                                   });
+            }
+
+        }
+        //move right until variable name or tape end found
+        StatePointer goRight = makeState();
+        vector<string> replaced1 = {SYMBOL_ANY, VariableTapeStart, SYMBOL_ANY, SYMBOL_ANY};
+        *std::next(replaced1.begin(), tapeIndex) = symbolToWrite;
+        transitions.insert({
+               TransitionDomain(goLeft, replaced1),
+               TransitionImage(goRight, replaced1, {Stationary, Right, Stationary, Stationary})
+       });
+        for (const string& ignoredSymbol: tapeAlphabet) {
+            if(ignoredSymbol == variableName || ignoredSymbol == VariableTapeEnd) continue;
+            vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
+            *std::next(replaced.begin(), tapeIndex) = symbolToWrite;
+            transitions.insert({
+                                       TransitionDomain(goRight, replaced),
+                                       TransitionImage(goRight, replaced, {Stationary, Right, Stationary, Stationary})
+                               });
+        }
+        // option 1: variable name found: overwrite current value, whatever it is
+        StatePointer writer = makeState();
+        vector<string> replaced2 = {SYMBOL_ANY, variableName, SYMBOL_ANY, SYMBOL_ANY};
+        *std::next(replaced2.begin(), tapeIndex) = symbolToWrite;
+        transitions.insert({
+                                   TransitionDomain(goRight, replaced2),
+                                   TransitionImage(writer, replaced2, {Stationary, Right, Stationary, Stationary})
+                           });
+        for(const string& ignoredSymbol: tapeAlphabet){
+            if(ignoredSymbol == symbolToWrite) continue;
+            vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
+            vector<string> replacement = {SYMBOL_ANY, symbolToWrite, SYMBOL_ANY, SYMBOL_ANY};
+            *std::next(replaced.begin(), tapeIndex) = symbolToWrite;
+            *std::next(replacement.begin(), tapeIndex) = symbolToWrite;
+            transitions.insert({
+                                       TransitionDomain(writer, replaced),
+                                       TransitionImage(writer, replacement, {Stationary, Stationary, Stationary, Stationary})
+                               });
+        }
+        vector<string> replaced3 = {SYMBOL_ANY, symbolToWrite, SYMBOL_ANY, SYMBOL_ANY};
+        *std::next(replaced3.begin(), tapeIndex) = symbolToWrite;
+        transitions.insert({
+                                   TransitionDomain(writer, replaced3),
+                                   TransitionImage(destination, replaced3, {Stationary, Right, Stationary, Stationary})
+                           });
+        // option 2: tape end found: overwrite it and put a new tape end to the right
+        StatePointer writeName = makeState();
+        //write the name
+        vector<string> replaced4 = {SYMBOL_ANY, VariableTapeEnd, SYMBOL_ANY, SYMBOL_ANY};
+        vector<string> replaced5 = {SYMBOL_ANY, variableName, SYMBOL_ANY, SYMBOL_ANY};
+        *std::next(replaced4.begin(), tapeIndex) = symbolToWrite;
+        *std::next(replaced5.begin(), tapeIndex) = symbolToWrite;
+        transitions.insert({
+                                   TransitionDomain(goRight, replaced4),
+                                   TransitionImage(writeName, replaced5, {Stationary, Right, Stationary, Stationary})
+                           });
+        StatePointer writeValue = makeState();
+        //write the value
+        vector<string> replaced6 = {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY};
+        vector<string> replaced7 = {SYMBOL_ANY, symbolToWrite, SYMBOL_ANY, SYMBOL_ANY};
+        *std::next(replaced6.begin(), tapeIndex) = symbolToWrite;
+        *std::next(replaced7.begin(), tapeIndex) = symbolToWrite;
+        transitions.insert({
+                                   TransitionDomain(writeName, replaced6),
+                                   TransitionImage(writeValue, replaced7, {Stationary, Right, Stationary, Stationary})
+                           });
+        for(const string& ignoredSymbol: tapeAlphabet){
+            if(ignoredSymbol == VariableTapeEnd) continue;
+            vector<string> replaced8 = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
+            vector<string> replaced9 = {SYMBOL_ANY, VariableTapeEnd, SYMBOL_ANY, SYMBOL_ANY};
+            *std::next(replaced8.begin(), tapeIndex) = symbolToWrite;
+            *std::next(replaced9.begin(), tapeIndex) = symbolToWrite;
+            transitions.insert({
+                                       TransitionDomain(writeValue, replaced8),
+                                       TransitionImage(writeValue, replaced9, {Stationary, Stationary, Stationary, Stationary})
+                               });
+        }
+        vector<string> replaced10 = {SYMBOL_ANY, VariableTapeEnd, SYMBOL_ANY, SYMBOL_ANY};
+        *std::next(replaced10.begin(), tapeIndex) = symbolToWrite;
+        transitions.insert({
+                                   TransitionDomain(writeValue, replaced10),
+                                   TransitionImage(destination, replaced10, {Stationary, Stationary, Stationary, Stationary})
+                           });
     }
 }
 
@@ -869,72 +1057,72 @@ void TMGenerator::addThirdToSecond(vector<StatePointer> &writeValueStates, bool 
         if(!subtract){
             //no carry
             transitions.insert({
-                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "0", "0"}),
-                                       TransitionImage(newNormalState, {SYMBOL_ANY, "0", "0"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                       TransitionImage(newNormalState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "1", "0"}),
-                                       TransitionImage(newNormalState, {SYMBOL_ANY, "1", "0"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}),
+                                       TransitionImage(newNormalState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "0", "1"}),
-                                       TransitionImage(newNormalState, {SYMBOL_ANY, "1", "1"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}),
+                                       TransitionImage(newNormalState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "1", "1"}),
-                                       TransitionImage(newCarryState, {SYMBOL_ANY, "0", "1"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                       TransitionImage(newCarryState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             //yes carry
             transitions.insert({
-                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "0", "0"}),
-                                       TransitionImage(newNormalState, {SYMBOL_ANY, "1", "0"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                       TransitionImage(newNormalState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "1", "0"}),
-                                       TransitionImage(newCarryState, {SYMBOL_ANY, "0", "0"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}),
+                                       TransitionImage(newCarryState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "0", "1"}),
-                                       TransitionImage(newCarryState, {SYMBOL_ANY, "0", "1"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}),
+                                       TransitionImage(newCarryState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "1", "1"}),
-                                       TransitionImage(newCarryState, {SYMBOL_ANY, "1", "1"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                       TransitionImage(newCarryState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
         }else{
             //no carry
             transitions.insert({
-                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "0", "0"}),
-                                       TransitionImage(newNormalState, {SYMBOL_ANY, "0", "0"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                       TransitionImage(newNormalState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "1", "0"}),
-                                       TransitionImage(newNormalState, {SYMBOL_ANY, "1", "0"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}),
+                                       TransitionImage(newNormalState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "0", "1"}),
-                                       TransitionImage(newCarryState, {SYMBOL_ANY, "1", "1"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}),
+                                       TransitionImage(newCarryState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "1", "1"}),
-                                       TransitionImage(newNormalState, {SYMBOL_ANY, "0", "1"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldNormalState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                       TransitionImage(newNormalState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             //yes carry
             transitions.insert({
-                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "0", "0"}),
-                                       TransitionImage(newCarryState, {SYMBOL_ANY, "1", "0"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                       TransitionImage(newCarryState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "1", "0"}),
-                                       TransitionImage(newNormalState, {SYMBOL_ANY, "0", "0"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "1", "0", SYMBOL_ANY}),
+                                       TransitionImage(newNormalState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "0", "1"}),
-                                       TransitionImage(newCarryState, {SYMBOL_ANY, "0", "1"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}),
+                                       TransitionImage(newCarryState, {SYMBOL_ANY, "0", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "1", "1"}),
-                                       TransitionImage(newCarryState, {SYMBOL_ANY, "1", "1"}, {Stationary, Right, Right})
+                                       TransitionDomain(oldCarryState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                       TransitionImage(newCarryState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                                });
         }
     }
@@ -950,42 +1138,42 @@ StatePointer TMGenerator::copyIntegerToThirdTape(StatePointer startState, const 
     for (int i = 0; i < BINARY_VALUE_WIDTH - 1; ++i) {
         copyStates.push_back(makeState());
         transitions.insert({
-                                   TransitionDomain(copyStates[i], {SYMBOL_ANY, "0", "B"}),
-                                   TransitionImage(copyStates[i+1], {SYMBOL_ANY, "0", "0"}, {Stationary, Right, Right})
+                                   TransitionDomain(copyStates[i], {SYMBOL_ANY, "0", "B", SYMBOL_ANY}),
+                                   TransitionImage(copyStates[i+1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                            });
         transitions.insert({
-                                   TransitionDomain(copyStates[i], {SYMBOL_ANY, "1", "B"}),
-                                   TransitionImage(copyStates[i+1], {SYMBOL_ANY, "1", "1"}, {Stationary, Right, Right})
+                                   TransitionDomain(copyStates[i], {SYMBOL_ANY, "1", "B", SYMBOL_ANY}),
+                                   TransitionImage(copyStates[i+1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                            });
         //prepare return
         if(i == 0){
             transitions.insert({
-                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "0", "0"}),
-                                       TransitionImage(doneCopying, {SYMBOL_ANY, "0", "0"}, {Stationary, Left, Left})
+                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                       TransitionImage(doneCopying, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "1", "1"}),
-                                       TransitionImage(doneCopying, {SYMBOL_ANY, "1", "1"}, {Stationary, Left, Left})
+                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                       TransitionImage(doneCopying, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
                                });
         }else{
             transitions.insert({
-                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "0", "0"}),
-                                       TransitionImage(copyStates[i], {SYMBOL_ANY, "0", "0"}, {Stationary, Left, Left})
+                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                       TransitionImage(copyStates[i], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
                                });
             transitions.insert({
-                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "1", "1"}),
-                                       TransitionImage(copyStates[i], {SYMBOL_ANY, "1", "1"}, {Stationary, Left, Left})
+                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                       TransitionImage(copyStates[i], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
                                });
         }
     }
     //the last one is special
     transitions.insert({
-                               TransitionDomain(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "0", "B"}),
-                               TransitionImage(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "0", "0"}, {Stationary, Stationary, Stationary})
+                               TransitionDomain(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "0", "B", SYMBOL_ANY}),
+                               TransitionImage(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Stationary, Stationary, Stationary})
                        });
     transitions.insert({
-                               TransitionDomain(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "1", "B"}),
-                               TransitionImage(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "1", "1"}, {Stationary, Stationary, Stationary})
+                               TransitionDomain(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "1", "B", SYMBOL_ANY}),
+                               TransitionImage(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Stationary, Stationary, Stationary})
                        });
     return doneCopying;
 }
@@ -1047,7 +1235,6 @@ void TMGenerator::alphabetExplorer(const shared_ptr<STNode> &root) {
         }
     }
 }
-
 PostponedTransition::PostponedTransition(const StatePointer& start, const StatePointer& end, const set<string>& leftOutSymbols, bool onlyTheseSymbols)
 : startState(start), endState(end), startLine(0), endLine(0), leftOutSymbols(leftOutSymbols), onlyTheseSymbols(onlyTheseSymbols) {}
 
