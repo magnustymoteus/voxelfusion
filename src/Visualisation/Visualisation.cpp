@@ -107,28 +107,22 @@ void Visualisation::rebuild(TMTape3D *tape) {
     vertices.clear();
     indices.clear();
 
-    try{
-        const int greatest3DSize = tape->getCells().size();
-        const int greatest2DSize = TMTapeUtils::getGreatestSize(tape->getCells());
-        const long greatestSize = TMTapeUtils::getGreatestSize(tape->at(0).cells);
-        for (int x= -greatest3DSize / 2; x <= greatest3DSize / 2; x++) {
-            for(int y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
-                for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
-                    // Segfault warning!
-                    string symbol = tape->at(x).at(y).at(z).symbol;
-                    if(symbol != "B"){
-                        if(colorMap.find(symbol) == colorMap.end()){
-                            createCube(vertices, indices, x, y, z, 1, colorMap.at("default"));
-                        }else{
-                            createCube(vertices, indices, x, y, z, 1,  colorMap.at(symbol));
-                        }
+    const int greatest3DSize = tape->getCells().size();
+    const int greatest2DSize = TMTapeUtils::getGreatestSize(tape->getCells());
+    const long greatestSize = TMTapeUtils::getGreatestSize(tape->at(0).cells);
+    for (int x= -greatest3DSize / 2; x <= greatest3DSize / 2; x++) {
+        for(int y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
+            for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
+                string symbol = tape->at(x).at(y).at(z).symbol;
+                if(symbol != "B"){
+                    if(colorMap.find(symbol) == colorMap.end()){
+                        createCube(vertices, indices, x, y, z, 1, colorMap.at("default"));
+                    }else{
+                        createCube(vertices, indices, x, y, z, 1,  colorMap.at(symbol));
                     }
                 }
             }
         }
-    }
-    catch (const std::out_of_range& oor) {
-        std::cerr << "Out of Range error: " << oor.what() << '\n';
     }
 
     if(!VAO){ //first time
@@ -139,8 +133,8 @@ void Visualisation::rebuild(TMTape3D *tape) {
         EBO = new ElementBuffer(&indices[0], indices.size() * sizeof(GLfloat));
 
         EBO->Bind();
-        VAO->LinkVertexBuffer(*VBO, 0, 3, GL_FLOAT, 6 * sizeof(GLfloat), (void*)0);
-        VAO->LinkVertexBuffer(*VBO, 1, 3, GL_FLOAT, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+        VAO->LinkVertexBufferAttribute(*VBO, 0, 3, GL_FLOAT, 6 * sizeof(GLfloat), (void *) 0);
+        VAO->LinkVertexBufferAttribute(*VBO, 1, 3, GL_FLOAT, 6 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
 
     }else{
         VAO->Bind();
