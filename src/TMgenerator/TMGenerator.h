@@ -25,7 +25,7 @@ struct PostponedTransition{
     bool onlyTheseSymbols;
     int tape = 0;
     string toWrite;
-    vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary, TMTapeDirection::Stationary};
+    vector<TMTapeDirection> directions = {TMTapeDirection::Stationary, TMTapeDirection::Stationary, TMTapeDirection::Stationary, TMTapeDirection::Stationary};
 };
 
 class TMGenerator {
@@ -37,7 +37,6 @@ class TMGenerator {
     StatePointer currentLineBeginState;
     int currentStateNumber = 0;
     int currentLineNumber = 1;
-    bool registerEndAsStartForNewLine = true;
     list<PostponedTransition> postponedTransitionBuffer;
     inline static const string VariableTapeStart = "VTB";
     inline static const string VariableTapeEnd = "VTE";
@@ -57,6 +56,8 @@ class TMGenerator {
     static set<string> parseIdentifierList(const shared_ptr<STNode>& root);
     static void identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output);
     string IntegerAsBitString(int in, bool flipped = false);
+
+    StatePointer getNextLineStartState();
 public:
     void assembleTasm(const shared_ptr<STNode> root);
 
@@ -68,7 +69,7 @@ public:
     void addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract);
 
     void currentIntoVariable(const string &variableName, const StatePointer &beginState,
-                             const StatePointer &destination);
+                             const StatePointer &destination, int tapeIndex);
 
     void tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination);
 
@@ -81,6 +82,9 @@ public:
 
     void integerAssignment(const string &variableName, string &binaryAssignedValue, StatePointer &beginState,
                             StatePointer &destination);
+
+    void doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &beginState, StatePointer &destination,
+                                    StatePointer thingStart, StatePointer thingEnd);
 };
 
 
