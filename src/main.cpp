@@ -67,7 +67,7 @@ int main() {
     TMGenerator generator{tapeAlphabet, transitions, states, true};
     generator.assembleTasm(root);
     FiniteControl control(states, transitions);
-    MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D> tm(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
+    MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D> tm(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
     //utils::TMtoDotfile(tm, "tm.dot");
     /*auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
