@@ -30,13 +30,18 @@ vector<GLuint> baseIndices = {
         0, 1, 4
 };
 
-void createCube(vector<GLfloat>& vertices, vector<GLuint>& indices, int x, int y, int z, float scale) {
-    int startingIndex = vertices.size()/3;
+void
+createCube(vector<GLfloat> &vertices, vector<GLuint> &indices, int x, int y, int z, float scale, const Color &color) {
+    int startingIndex = vertices.size()/7;
     for(unsigned int i = 0; i < baseVertices.size(); i += 3)
     {
         vertices.push_back(baseVertices[i] * scale + x);
         vertices.push_back(baseVertices[i+1] * scale + y);
         vertices.push_back(baseVertices[i+2] * scale + z);
+        vertices.push_back(color.r);
+        vertices.push_back(color.g);
+        vertices.push_back(color.b);
+        vertices.push_back(color.a);
     }
     for (unsigned int i = 0; i < baseIndices.size(); i++)
     {
@@ -44,8 +49,8 @@ void createCube(vector<GLfloat>& vertices, vector<GLuint>& indices, int x, int y
     }
 }
 
-Visualisation::Visualisation(float fov, float nearPlane, float farPlane) :
-FOV(fov), nearPlane(nearPlane), farPlane(farPlane) {
+Visualisation::Visualisation(float fov, float nearPlane, float farPlane, map<string, Color>& colorMap) :
+FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
     glfwInit();
 
     // general opengl settings
@@ -103,20 +108,24 @@ void Visualisation::rebuild(TMTape3D *tape) {
     vertices.clear();
     indices.clear();
 
-    const int greatest2DSize = TMTapeUtils::getGreatestSize(tape->cells);
-    int x = static_cast<int>(-(tape->cells.size() / 2));
-    for (const auto& currentCellRow : tape->cells) {
-        const long greatestSize = TMTapeUtils::getGreatestSize(currentCellRow->cells);
+    const int greatest3DSize = tape->getCells().size();
+    const int greatest2DSize = TMTapeUtils::getGreatestSize(tape->getCells());
+    const long greatestSize = TMTapeUtils::getGreatestSize(tape->at(0).cells);
+    for (int x= -greatest3DSize / 2; x <= greatest3DSize / 2; x++) {
         for(int y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
             for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
-                // Segfault warning!
-                if((*currentCellRow)[y][z].symbol != "B"){
-                    createCube(vertices, indices, x, y, z, 1);
+                string symbol = tape->at(x).at(y).at(z).symbol;
+                if(symbol != "B"){
+                    if(colorMap.find(symbol) == colorMap.end()){
+                        createCube(vertices, indices, x, y, z, 1, colorMap.at("default"));
+                    }else{
+                        createCube(vertices, indices, x, y, z, 1,  colorMap.at(symbol));
+                    }
                 }
             }
         }
-        x++;
     }
+
     if(!VAO){ //first time
         VAO = new VertexArray();
         VAO->Bind();
@@ -125,7 +134,8 @@ void Visualisation::rebuild(TMTape3D *tape) {
         EBO = new ElementBuffer(&indices[0], indices.size() * sizeof(GLfloat));
 
         EBO->Bind();
-        VAO->LinkVertexBuffer(*VBO, 0);
+        VAO->LinkVertexBufferAttribute(*VBO, 0, 3, GL_FLOAT, 7 * sizeof(GLfloat), (void *) 0);
+        VAO->LinkVertexBufferAttribute(*VBO, 1, 4, GL_FLOAT, 7 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
 
     }else{
         VAO->Bind();
@@ -146,3 +156,5 @@ Visualisation::~Visualisation() {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
+
+Color::Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}

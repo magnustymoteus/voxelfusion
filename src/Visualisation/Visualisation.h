@@ -10,6 +10,7 @@ using namespace std;
 #include <cmath>
 #include <thread>
 #include <memory>
+#include <map>
 
 
 // Class structure roughly based upon https://www.youtube.com/watch?v=greXpRqCTKs&list=PLPaoO-vpZnumdcb4tZc4x5Q-v7CkrQ6M-&index=5
@@ -20,6 +21,16 @@ using namespace std;
 #include "Visualisation/Camera.h"
 
 #include "MTMDTuringMachine/TMTape.h"
+
+
+struct Color{
+    float r;
+    float g;
+    float b;
+    float a;
+
+    Color(float r, float g, float b, float a);
+};
 
 class Visualisation {
     GLFWwindow* window;
@@ -33,8 +44,9 @@ class Visualisation {
     float FOV;
     float nearPlane;
     float farPlane;
+    const map<string, Color>& colorMap;
 public:
-    Visualisation(float fov, float nearPlane, float farPlane);
+    Visualisation(float fov, float nearPlane, float farPlane, map<string, Color>& colorMap);
     bool update();
     void rebuild(TMTape3D *tape);
     ~Visualisation();
