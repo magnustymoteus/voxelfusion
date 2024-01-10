@@ -3,7 +3,9 @@
 //
 
 #include "TMTape.h"
-#include "TMTapeUtils.h"
+#include "lib/invariants.h"
+#include "MTMDTuringMachine/TMTapeUtils.h"
+
 
 #include <iostream>
 #include <random>
@@ -29,17 +31,17 @@ unsigned int TMTape3D::getElementSize() const {return TMTapeUtils::getGreatestSi
 
 void TMTape1D::replaceCurrentSymbol(const std::string &newSymbol) {
     PRECONDITION(cells.size() % 2 == 1);
-    (*this)[currentIndex].symbol = newSymbol;
+    if(newSymbol != SYMBOL_ANY) (*this)[currentIndex].symbol = newSymbol;
     POSTCONDITION(cells.size() % 2 == 1);
 }
 void TMTape2D::replaceCurrentSymbol(const std::string &newSymbol) {
     PRECONDITION(cells.size() % 2 == 1);
-    (*this)[currentIndex].replaceCurrentSymbol(newSymbol);
+    if(newSymbol != SYMBOL_ANY) (*this)[currentIndex].replaceCurrentSymbol(newSymbol);
     POSTCONDITION(cells.size() % 2 == 1);
 }
 void TMTape3D::replaceCurrentSymbol(const std::string &newSymbol) {
     PRECONDITION(cells.size() % 2 == 1);
-    (*this)[currentIndex].replaceCurrentSymbol(newSymbol);
+    if(newSymbol != SYMBOL_ANY) (*this)[currentIndex].replaceCurrentSymbol(newSymbol);
     POSTCONDITION(cells.size() % 2 == 1);
 }
 

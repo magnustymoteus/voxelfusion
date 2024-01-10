@@ -25,6 +25,7 @@ bool TransitionDomain::operator<(const TransitionDomain &other) const {
     return false;
 }
 
+
 TransitionImage::TransitionImage(const StatePointer &state, const std::vector<std::string> &replacementSymbols,
                                  const std::vector<TMTapeDirection> &directionsArg) :
         state(state), replacementSymbols(replacementSymbols),

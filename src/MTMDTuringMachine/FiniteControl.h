@@ -9,8 +9,6 @@
 
 #include "TMTape.h"
 
-#define SYMBOL_ANY "ANY"
-
 enum StateType {State_NonHalting, State_Accepting, State_Rejecting};
 
 struct State {
@@ -32,6 +30,7 @@ struct TransitionDomain {
 
     bool operator<(const TransitionDomain &other) const;
 };
+
 struct TransitionImage {
     /* Invariants:
      * |directions| = |replacingSymbols|

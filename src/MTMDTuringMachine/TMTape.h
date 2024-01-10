@@ -11,6 +11,8 @@
 
 enum TMTapeDirection {Left='L',Right='R',Up='U',Down='D',Front='F',Back='B',Stationary='S'};
 
+#define SYMBOL_ANY "ANY"
+
 /**
  * @brief A functor that outputs a direction depending on their probability
  */
