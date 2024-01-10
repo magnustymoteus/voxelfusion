@@ -32,7 +32,7 @@ vector<GLuint> baseIndices = {
 
 void
 createCube(vector<GLfloat> &vertices, vector<GLuint> &indices, int x, int y, int z, float scale, const Color &color) {
-    int startingIndex = vertices.size()/6;
+    int startingIndex = vertices.size()/7;
     for(unsigned int i = 0; i < baseVertices.size(); i += 3)
     {
         vertices.push_back(baseVertices[i] * scale + x);
@@ -41,6 +41,7 @@ createCube(vector<GLfloat> &vertices, vector<GLuint> &indices, int x, int y, int
         vertices.push_back(color.r);
         vertices.push_back(color.g);
         vertices.push_back(color.b);
+        vertices.push_back(color.a);
     }
     for (unsigned int i = 0; i < baseIndices.size(); i++)
     {
@@ -133,8 +134,8 @@ void Visualisation::rebuild(TMTape3D *tape) {
         EBO = new ElementBuffer(&indices[0], indices.size() * sizeof(GLfloat));
 
         EBO->Bind();
-        VAO->LinkVertexBufferAttribute(*VBO, 0, 3, GL_FLOAT, 6 * sizeof(GLfloat), (void *) 0);
-        VAO->LinkVertexBufferAttribute(*VBO, 1, 3, GL_FLOAT, 6 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
+        VAO->LinkVertexBufferAttribute(*VBO, 0, 3, GL_FLOAT, 7 * sizeof(GLfloat), (void *) 0);
+        VAO->LinkVertexBufferAttribute(*VBO, 1, 4, GL_FLOAT, 7 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
 
     }else{
         VAO->Bind();

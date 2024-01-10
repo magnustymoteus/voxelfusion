@@ -3,7 +3,7 @@
 
 VisualisationManager::VisualisationManager() {
     glfwWorker = make_unique<thread>([this]{
-        map<string, Color> colorMap{{"A", Color(1.0f, 0.0f, 0.0f, 1.0f)},
+        map<string, Color> colorMap{{"A", Color(1.0f, 0.0f, 0.0f, .5f)},
                                     {"default", Color(0.0f, 0.0f, 0.0f, 1.0f)}};
         Visualisation v(45.0f, 0.1f, 100.0f, colorMap);
         bool go = true;
