@@ -57,9 +57,10 @@ int main() {
     const std::shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
     root->exportVisualization("test.dot");
     auto *tape3d {new TMTape3D()};
-    auto *tape1d {new TMTape1D()};
-    auto *tape1d2 {new TMTape1D()};
-    auto tapes = std::make_tuple(tape3d, tape1d, tape1d2);
+    auto *varTape {new TMTape1D()};
+    auto *tempVarTape {new TMTape1D()};
+    auto *historyTape {new TMTape3D()};
+    auto tapes = std::make_tuple(tape3d, varTape, tempVarTape, historyTape);
     std::set<std::string> tapeAlphabet = {"B", "S"};
     std::set<StatePointer> states;
     map<TransitionDomain, TransitionImage> transitions;
@@ -103,9 +104,9 @@ int main() {
     tm.doTransitions(10);
     //v->waitForExit();
     delete tape3d;
-//    delete tape2d;
-    delete tape1d;
-    delete tape1d2;
+    delete varTape;
+    delete tempVarTape;
+    delete historyTape;
 //    delete tape1d;
 //    //========================================================
 //    // Start voxelisation test

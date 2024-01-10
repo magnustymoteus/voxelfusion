@@ -85,6 +85,8 @@ public:
 
     void doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &beginState, StatePointer &destination,
                                     StatePointer thingStart, StatePointer thingEnd);
+
+    void updateHistoryTape(int z, int y, int x, StatePointer &beginState, StatePointer &endState);
 };
 
 

@@ -706,25 +706,28 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             int x = parseInteger(root->children[5]);
             StatePointer destination = getNextLineStartState();
 
-
-            // execute the CA
-            StatePointer CADone = makeState();
-            doThingForEveryVoxelInCube(z, y, x, first, CADone, CAstart, CAend);
             // update the history tape
-            StatePointer start = makeState();
-            StatePointer end = makeState();
-            for(const auto& writtenSymbol: tapeAlphabet){
-                transitions.insert({
-                           TransitionDomain(start, {writtenSymbol, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}),
-                           TransitionImage(end, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, writtenSymbol}, {Stationary, Stationary, Stationary, Stationary})
-                   });
-            }
-            doThingForEveryVoxelInCube(z, y, x, CADone, destination, start, end);
+            StatePointer historyUpdated = makeState();
+            updateHistoryTape(z, y, x, first, historyUpdated);
+            // execute the CA
+            doThingForEveryVoxelInCube(z, y, x, historyUpdated, destination, CAstart, CAend);
         }
         else{
             cerr << "Instruction " << l << "is currently not supported by the compiler" << endl;
         }
     }
+}
+
+void TMGenerator::updateHistoryTape(int z, int y, int x, StatePointer &beginState, StatePointer &endState) {
+    StatePointer start = makeState();
+    StatePointer end = makeState();
+    for(const auto& writtenSymbol: tapeAlphabet){
+        transitions.insert({
+                   TransitionDomain(start, {writtenSymbol, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}),
+                   TransitionImage(end, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, writtenSymbol}, {Stationary, Stationary, Stationary, Stationary})
+           });
+    }
+    doThingForEveryVoxelInCube(z, y, x, beginState, endState, start, end);
 }
 
 void TMGenerator::doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &beginState, StatePointer &destination,
