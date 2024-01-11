@@ -101,7 +101,36 @@ TEST_F(compilationTest, integerVariables)
     EXPECT_TRUE(testWithinScript("tasm/variables-integers.tasm"));
 }
 
+TEST_F(compilationTest, basicVoxelisation){
+    const StatePointer startState = std::make_shared<const State>("q0", true);
 
+    std::set<StatePointer> states  = {startState};
+    FiniteControl control(states, {
+            {
+                    TransitionDomain(startState, {"D"}),
+                    TransitionImage(startState, {"D"}, std::vector<TMTapeDirection>{Left})
+            }
+    });
+    auto tape {new TMTape3D()};
+    EXPECT_NO_FATAL_FAILURE(utils::objToTape("objs/test0.obj", *tape, 0.1, "D", false));
+}
+
+TEST_F(compilationTest, basicTerrainGeneration){
+    const StatePointer startState = std::make_shared<const State>("q0", true);
+
+    std::set<StatePointer> states  = {startState};
+    FiniteControl control(states, {
+            {
+                    TransitionDomain(startState, {"D"}),
+                    TransitionImage(startState, {"D"}, std::vector<TMTapeDirection>{Left})
+            }
+    });
+    Mesh mesh;
+    VoxelSpace voxelSpace;
+    auto tape {new TMTape3D()};
+    EXPECT_NO_FATAL_FAILURE(utils::generateTerrain(voxelSpace, 30, 30, 5, 0.5));
+    EXPECT_NO_FATAL_FAILURE(utils::voxelSpaceToTape(voxelSpace, *tape, "D"));
+}
 
 int main(int argc, char** argv)
 {

@@ -108,57 +108,5 @@ int main() {
     delete tempVarTape;
     delete historyTape;
 //    delete tape1d;
-//    //========================================================
-//    // Start voxelisation test
-//    //========================================================
-//    const StatePointer startState = std::make_shared<const State>("q0", true);
-//
-//    std::set<StatePointer> states  = {startState};
-//    FiniteControl control(states, {
-//            {
-//                    TransitionDomain(startState, {"D"}),
-//                    TransitionImage(startState, {"D"}, {Left})
-//            }
-//    });
-//    auto tape {new TMTape3D()};
-//    utils::objToTape("tests/parsing/obj/teapot.obj", *tape, 0.1, "D", false);
-//
-//    (*tape)[0][0][0].symbol = "D";
-//    // tuple needs to have pointers of tapes
-//    std::tuple<TMTape3D*> tapes = std::make_tuple(tape);
-//    MTMDTuringMachine<TMTape3D> tm({"B", "D"}, {"B", "D"}, tapes, control, updateVisualisation);
-//    VisualisationManager* v = VisualisationManager::getInstance();
-//    tm.doTransition();
-//    v->waitForExit();
-//    //=========================================================
-//    // End voxelisation test
-//    //=========================================================
-//    //=========================================================
-//    // Start terrain generation test
-//    //=========================================================
-//    const StatePointer startState = std::make_shared<const State>("q0", true);
-//
-//    std::set<StatePointer> states  = {startState};
-//    FiniteControl control(states, {
-//            {
-//                    TransitionDomain(startState, {"D"}),
-//                    TransitionImage(startState, {"D"}, {Left})
-//            }
-//    });
-//    Mesh mesh;
-//    VoxelSpace voxelSpace;
-//    auto tape {new TMTape3D()};
-//    utils::generateTerrain(voxelSpace, 30, 30, 5, 0.5);
-//    utils::voxelSpaceToTape(voxelSpace, *tape, "D");
-//
-//    // tuple needs to have pointers of tapes
-//    std::tuple<TMTape3D*> tapes = std::make_tuple(tape);
-//    MTMDTuringMachine<TMTape3D> tm({"B", "D"}, {"B", "D"}, tapes, control, updateVisualisation);
-//    VisualisationManager* v = VisualisationManager::getInstance();
-//    tm.doTransition();
-//    v->waitForExit();
-//    //=========================================================
-//    // End terrain generation test
-//    //=========================================================
     return 0;
 }
