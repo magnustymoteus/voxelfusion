@@ -10,6 +10,7 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
+#include <thread>
 #include "MTMDTuringMachine/TMTape.h"
 #include "PerlinNoise.h"
 
@@ -173,31 +174,28 @@ void utils::voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize)
     voxelSpace.resize(static_cast<size_t>(std::ceil(maxPoint.x)+1),
                      std::vector<std::vector<Voxel>>(static_cast<size_t>(std::ceil(maxPoint.y)+1),
                                                      std::vector<Voxel>(static_cast<size_t>(std::ceil(maxPoint.z)+1))));
-    // Iterate through each face of the mesh and mark the intersected voxels
-    for (const auto& face : mesh.faces) {
-        for (size_t i = 0; i < face.point_indexes.size(); i += 3) { // Just for safety, normally it should give only one iteration
-            // Get the points
-            Vector3D v0 = mesh.points[face.point_indexes[i]];
-            Vector3D v1 = mesh.points[face.point_indexes[i + 1]];
-            Vector3D v2 = mesh.points[face.point_indexes[i + 2]];
-            // Translate and scale them
-            translateAndScale(v0, translationPoint, voxelSize);
-            translateAndScale(v1, translationPoint, voxelSize);
-            translateAndScale(v2, translationPoint, voxelSize);
+    // Calculate optimal number of threads
+    const int num_threads = std::thread::hardware_concurrency();
+    // Get number of elements
+    const int num_elements = mesh.faces.size();
+    // Thread vector
+    std::vector<std::thread> threads;
+    // Chunk size
+    int chunk_size = num_elements / num_threads;
+    // Start index
+    int start = 0;
+    static int processed = 0;
+    for (int i = 0; i < num_threads - 1; ++i) {
+        int end = start + chunk_size;
+        threads.emplace_back(voxeliseFace, std::ref(mesh), std::ref(voxelSpace), std::ref(voxelSize), std::ref(translationPoint), start, end);
+        start = end;
+    }
 
-            // Iterate through each voxel
-            for(unsigned x = 0; x != voxelSpace.size(); x++){
-                for(unsigned y = 0; y != voxelSpace[x].size(); y++){
-                    for(unsigned z = 0; z != voxelSpace[x][y].size(); z++){
-                        // Check if the voxel intersects the current triangle
-//                        if(x == 3 && y==3){
-//                            std::cout << std::endl;
-//                        }
-                        if(voxelTriangleIntersection(x,y,z,v0,v1,v2)) voxelSpace[x][y][z].occupied = true;
-                    }
-                }
-            }
-        }
+    // The last thread handles the remaining elements
+    threads.emplace_back(voxeliseFace, std::ref(mesh), std::ref(voxelSpace), std::ref(voxelSize), std::ref(translationPoint), start, num_elements);
+    // Wait for all threads to finish
+    for (auto& thread : threads) {
+        thread.join();
     }
 }
 
@@ -331,4 +329,26 @@ void utils::objToTape(const std::string& path, TMTape3D& tape, const double& vox
     load_obj(path, mesh);
     voxelise(mesh, voxelSpace, voxelSize);
     voxelSpaceToTape(voxelSpace, tape, fillSymbol, edge);
+}
+
+void utils::voxeliseFace(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize, const Vector3D& translationPoint, int start, int end) {
+    for(int f = start; f != end; ++f) {
+        // Get the points
+        Vector3D v0 = mesh.points[mesh.faces[f].point_indexes[0]];
+        Vector3D v1 = mesh.points[mesh.faces[f].point_indexes[1]];
+        Vector3D v2 = mesh.points[mesh.faces[f].point_indexes[2]];
+        // Translate and scale them
+        translateAndScale(v0, translationPoint, voxelSize);
+        translateAndScale(v1, translationPoint, voxelSize);
+        translateAndScale(v2, translationPoint, voxelSize);
+
+        // Iterate through each voxel
+        for (unsigned x = 0; x != voxelSpace.size(); x++) {
+            for (unsigned y = 0; y != voxelSpace[x].size(); y++) {
+                for (unsigned z = 0; z != voxelSpace[x][y].size(); z++) {
+                    if (voxelTriangleIntersection(x, y, z, v0, v1, v2)) voxelSpace[x][y][z].occupied = true;
+                }
+            }
+        }
+    }
 }

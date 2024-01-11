@@ -10,6 +10,7 @@
 #include <fstream>
 #include <numeric>
 #include "../MTMDTuringMachine/MTMDTuringMachine.h"
+#include "Mesh.h"
 
 struct Voxel;
 class TMTape3D;
@@ -35,6 +36,8 @@ public:
         FiniteControl control = TM.getFiniteControl();
         finiteControlToDotfile(control, path);
     }
+private:
+    static void voxeliseFace(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize, const Vector3D& translationPoint, int start, int end);
 };
 
 
