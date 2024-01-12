@@ -40,24 +40,25 @@ protected:
         buffer2 << t2.rdbuf();
         EXPECT_EQ(buffer2.str(), buffer.str());
     }
-    static void compile(const string& codePath, shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>>& tm){
+    static void compile(const string& codePath, shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D>>& tm){
         auto lexer = initializeLexer(codePath);
         const std::shared_ptr<STNode>& root = parser->parse(lexer->getTokenizedInput());
         root->exportVisualization("test.dot");
         auto *tape3d {new TMTape3D()};
         auto *tape1d {new TMTape1D()};
         auto *tape1d2 {new TMTape1D()};
-        auto tapes = std::make_tuple(tape3d, tape1d, tape1d2);
+        auto *history {new TMTape3D()};
+        auto tapes = std::make_tuple(tape3d, tape1d, tape1d2, history);
         std::set<std::string> tapeAlphabet = {"B", "S"};
         std::set<StatePointer> states;
         map<TransitionDomain, TransitionImage> transitions;
         TMGenerator generator{tapeAlphabet, transitions, states, false};
         generator.assembleTasm(root);
         FiniteControl control(states, transitions);
-        tm = make_shared<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>>(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
+        tm = make_shared<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D>>(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
     }
     static bool testWithinScript(const string& codePath){
-        shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
+        shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D>> tm;
         compile(codePath, tm);
 
         int counter = 0;
@@ -76,7 +77,7 @@ protected:
 
 TEST_F(compilationTest, DiagonalMove)
 {
-    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
+    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D>> tm;
     compile("tasm/helloworld.tasm", tm);
 
     tm->doTransitions(23 + BINARY_VALUE_WIDTH);
@@ -84,7 +85,7 @@ TEST_F(compilationTest, DiagonalMove)
 }
 TEST_F(compilationTest, basicConditionals)
 {
-    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D>> tm;
+    shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D>> tm;
     compile("tasm/conditional.tasm", tm);
 
     tm->doTransitions(16 + BINARY_VALUE_WIDTH);
@@ -100,7 +101,36 @@ TEST_F(compilationTest, integerVariables)
     EXPECT_TRUE(testWithinScript("tasm/variables-integers.tasm"));
 }
 
+TEST_F(compilationTest, basicVoxelisation){
+    const StatePointer startState = std::make_shared<const State>("q0", true);
 
+    std::set<StatePointer> states  = {startState};
+    FiniteControl control(states, {
+            {
+                    TransitionDomain(startState, {"D"}),
+                    TransitionImage(startState, {"D"}, std::vector<TMTapeDirection>{Left})
+            }
+    });
+    auto tape {new TMTape3D()};
+    EXPECT_NO_FATAL_FAILURE(utils::objToTape("objs/test0.obj", *tape, 0.1, "D", false));
+}
+
+TEST_F(compilationTest, basicTerrainGeneration){
+    const StatePointer startState = std::make_shared<const State>("q0", true);
+
+    std::set<StatePointer> states  = {startState};
+    FiniteControl control(states, {
+            {
+                    TransitionDomain(startState, {"D"}),
+                    TransitionImage(startState, {"D"}, std::vector<TMTapeDirection>{Left})
+            }
+    });
+    Mesh mesh;
+    VoxelSpace voxelSpace;
+    auto tape {new TMTape3D()};
+    EXPECT_NO_FATAL_FAILURE(utils::generateTerrain(voxelSpace, 30, 30, 5, 0.5));
+    EXPECT_NO_FATAL_FAILURE(utils::voxelSpaceToTape(voxelSpace, *tape, "D"));
+}
 
 int main(int argc, char** argv)
 {

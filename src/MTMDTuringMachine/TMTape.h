@@ -76,8 +76,8 @@ public:
     TMTape1D at(const signed int &index) const;
 };
 class TMTape3D final : public TMTape {
-public:
     std::vector<std::shared_ptr<TMTape2D>> cells;
+public:
 
     TMTape3D() : TMTape(), cells({std::make_shared<TMTape2D>()}) {}
     ~TMTape3D() final = default;
@@ -91,6 +91,7 @@ public:
 
     TMTape2D& operator[](const signed int &index);
     TMTape2D at(const signed int &index) const;
+    const std::vector<std::shared_ptr<TMTape2D>>& getCells(){return cells;};
 };
 typedef std::vector<TMTape*> TMTapes;
 #endif //MTMDTURINGMACHINE_TMTAPE_H

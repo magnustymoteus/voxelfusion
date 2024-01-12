@@ -11,7 +11,7 @@
  */
 class OBJParser {
 public:
-    Mesh parse(const std::string objPath) const;
+    static Mesh parse(const std::string objPath);
 };
 
 

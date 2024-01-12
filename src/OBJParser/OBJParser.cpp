@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-Mesh OBJParser::parse(const std::string objPath) const {
+Mesh OBJParser::parse(const std::string objPath) {
     std::ifstream file(objPath);
     if(!file.is_open()) {
         throw std::runtime_error("Cannot open .obj file "+objPath);
@@ -24,7 +24,13 @@ Mesh OBJParser::parse(const std::string objPath) const {
         else if(currentToken == "f") {
             Face face;
             int pointIndex;
-            while(sstream >> pointIndex) face.point_indexes.push_back(pointIndex);
+            std::string subtoken;
+            while(std::getline(sstream, subtoken, ' ')){
+                std::stringstream tokenstream(subtoken);
+                while(tokenstream >> pointIndex) {
+                    face.point_indexes.push_back(--pointIndex);
+                }
+            }
             result.faces.push_back(face);
         }
     }

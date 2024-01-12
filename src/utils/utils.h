@@ -10,6 +10,7 @@
 #include <fstream>
 #include <numeric>
 #include "../MTMDTuringMachine/MTMDTuringMachine.h"
+#include "Mesh.h"
 
 struct Voxel;
 class TMTape3D;
@@ -23,6 +24,7 @@ class utils {
     static void finiteControlToDotfile(FiniteControl& control, const std::string& path);
 public:
     static void load_obj(const std::string& path, Mesh& mesh);
+    static void load_obj2(const std::string& path, Mesh& mesh);
     static BoundingBox calculateBoundingBox(const Mesh& mesh);
     static void translateAndScale(Vector3D& point, const Vector3D& translatePoint, double scaler);
     static bool voxelTriangleIntersection(const int& x, const int& y, const int& z, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3);
@@ -35,6 +37,8 @@ public:
         FiniteControl control = TM.getFiniteControl();
         finiteControlToDotfile(control, path);
     }
+private:
+    static void voxeliseFace(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize, const Vector3D& translationPoint, int start, int end);
 };
 
 
