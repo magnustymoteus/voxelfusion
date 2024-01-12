@@ -3,6 +3,7 @@
 //
 
 #include "utils.h"
+#include "OBJParser/OBJParser.h"
 #include "obj_parser.h"
 #include "Mesh.h"
 #include "vector/vector3d.h"
@@ -15,7 +16,7 @@
 #include "PerlinNoise.h"
 
 void utils::load_obj(const std::string& path, Mesh& mesh){
-// Get the object
+    // Get the object
     obj::OBJFile obj_parser;
     std::ifstream input_stream(path);
     input_stream >> obj_parser;
@@ -53,6 +54,10 @@ void utils::load_obj(const std::string& path, Mesh& mesh){
         figure.faces.push_back(face);
     }
     mesh = figure;
+}
+
+void utils::load_obj2(const std::string& path, Mesh& mesh){
+    mesh = OBJParser::parse(path);
 }
 
 // Function to calculate the bounding box of a mesh
@@ -326,7 +331,7 @@ void utils::finiteControlToDotfile(FiniteControl &control, const std::string &pa
 void utils::objToTape(const std::string& path, TMTape3D& tape, const double& voxelSize, const std::string& fillSymbol, bool edge){
     Mesh mesh;
     VoxelSpace voxelSpace;
-    load_obj(path, mesh);
+    load_obj2(path, mesh);
     voxelise(mesh, voxelSpace, voxelSize);
     voxelSpaceToTape(voxelSpace, tape, fillSymbol, edge);
 }
