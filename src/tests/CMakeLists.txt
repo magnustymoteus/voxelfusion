@@ -9,7 +9,7 @@ FetchContent_MakeAvailable(googletest)
 add_library(GTest::GTest INTERFACE IMPORTED)
 target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
-add_executable(test test.cpp ${LIB} ${CFG} ${TM} ${LEXER} ${PARSER} ${UTILS} ${TM_GENERATION})
+add_executable(test test.cpp ${LIB} ${CFG} ${TM} ${LEXER} ${PARSER} ${UTILS} ${TM_GENERATION} ${OBJ_PARSER})
 
 target_link_libraries(test
         PRIVATE

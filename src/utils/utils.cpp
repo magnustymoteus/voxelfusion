@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cmath>
 #include <thread>
+#include <string>
 #include "MTMDTuringMachine/TMTape.h"
 #include "PerlinNoise.h"
 
