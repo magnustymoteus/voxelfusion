@@ -79,15 +79,15 @@ void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
     tapeAlphabet.insert(VariableTapeEnd);
     tapeAlphabet.insert("0");
     tapeAlphabet.insert("1");
-    tapeAlphabet.insert("L");
-    tapeAlphabet.insert("R");
-    tapeAlphabet.insert("U");
-    tapeAlphabet.insert("D");
-    tapeAlphabet.insert("F");
-    tapeAlphabet.insert("T");
-    tapeAlphabet.insert("X");
-    tapeAlphabet.insert("Y");
-    tapeAlphabet.insert("Z");
+    tapeAlphabet.insert("Left");
+    tapeAlphabet.insert("Right");
+    tapeAlphabet.insert("Up");
+    tapeAlphabet.insert("Down");
+    tapeAlphabet.insert("Front");
+    tapeAlphabet.insert("Back");
+    tapeAlphabet.insert("Xcounter");
+    tapeAlphabet.insert("Ycounter");
+    tapeAlphabet.insert("Zcounter");
 
 
     vector<StatePointer> writeValueStates = {initializationState2};
@@ -162,7 +162,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             StatePointer first = currentLineBeginState;
             StatePointer destination = getNextLineStartState();
             TMTapeDirection direction = parseDirection(root->children[1]);
-            tapeMove(direction, first, destination);
+            tapeMove(direction, first, destination, 0);
         }
         else if(l == "<TapeWrite>"){
             StatePointer first = currentLineBeginState;
@@ -677,18 +677,18 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             postponedTransitionBuffer.emplace_back(CAstart, getDirections, std::set<string>{symbolName}, true);
             // put all the directions in variables
             StatePointer previous = getDirections;
-            for (auto &direction: map<std::pair<TMTapeDirection, TMTapeDirection>, string>{{{TMTapeDirection::Left,  TMTapeDirection::Right}, "L"},
-                                                                                           {{TMTapeDirection::Right, TMTapeDirection::Left},  "R"},
-                                                                                           {{TMTapeDirection::Up,    TMTapeDirection::Down},  "U"},
-                                                                                           {{TMTapeDirection::Down,  TMTapeDirection::Up},    "D"},
-                                                                                           {{TMTapeDirection::Front, TMTapeDirection::Back},  "F"},
-                                                                                           {{TMTapeDirection::Back,  TMTapeDirection::Front}, "T"}}) {
+            for (auto &direction: map<std::pair<TMTapeDirection, TMTapeDirection>, string>{{{TMTapeDirection::Left,  TMTapeDirection::Right}, "Left"},
+                                                                                           {{TMTapeDirection::Right, TMTapeDirection::Left},  "Right"},
+                                                                                           {{TMTapeDirection::Up,    TMTapeDirection::Down},  "Up"},
+                                                                                           {{TMTapeDirection::Down,  TMTapeDirection::Up},    "Down"},
+                                                                                           {{TMTapeDirection::Front, TMTapeDirection::Back},  "Front"},
+                                                                                           {{TMTapeDirection::Back,  TMTapeDirection::Front}, "Back"}}) {
                 StatePointer move = makeState();
-                tapeMove(direction.first.first, previous, move);
+                tapeMove(direction.first.first, previous, move, 3);
                 StatePointer store = makeState();
                 currentIntoVariable(direction.second, move, store, 3);
                 StatePointer goBack = makeState();
-                tapeMove(direction.first.second, store, goBack);
+                tapeMove(direction.first.second, store, goBack, 3);
                 previous = goBack;
             }
             StatePointer temporarilyHiddenDestination = currentLineBeginState;
@@ -708,9 +708,9 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
 
             // update the history tape
             StatePointer historyUpdated = makeState();
-            updateHistoryTape(z, y, x, first, historyUpdated);
+            updateHistoryTape(x, y, z, first, historyUpdated);
             // execute the CA
-            doThingForEveryVoxelInCube(z, y, x, historyUpdated, destination, CAstart, CAend);
+            doThingForEveryVoxelInCube(x, y, z, historyUpdated, destination, CAstart, CAend, {0,3});
         }
         else{
             cerr << "Instruction " << l << "is currently not supported by the compiler" << endl;
@@ -718,7 +718,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
     }
 }
 
-void TMGenerator::updateHistoryTape(int z, int y, int x, StatePointer &beginState, StatePointer &endState) {
+void TMGenerator::updateHistoryTape(int x, int y, int z, StatePointer &beginState, StatePointer &endState) {
     StatePointer start = makeState();
     StatePointer end = makeState();
     for(const auto& writtenSymbol: tapeAlphabet){
@@ -727,11 +727,12 @@ void TMGenerator::updateHistoryTape(int z, int y, int x, StatePointer &beginStat
                    TransitionImage(end, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, writtenSymbol}, {Stationary, Stationary, Stationary, Stationary})
            });
     }
-    doThingForEveryVoxelInCube(z, y, x, beginState, endState, start, end);
+    doThingForEveryVoxelInCube(x, y, z, beginState, endState, start, end, {0,3});
 }
 
-void TMGenerator::doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &beginState, StatePointer &destination,
-                                             StatePointer thingStart, StatePointer thingEnd) {
+void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &beginState, StatePointer &destination,
+                                             StatePointer thingStart, StatePointer thingEnd,
+                                             const vector<int> &tapesToMove) {
     std::string xString = IntegerAsBitString(x);
     std::string yString = IntegerAsBitString(y);
     std::string zString = IntegerAsBitString(z);
@@ -741,19 +742,19 @@ void TMGenerator::doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &
     StatePointer initX = makeState();
     StatePointer initY = makeState();
     std::string zero = IntegerAsBitString(0);
-    integerAssignment("X", zero, beginState, initX);
-    integerAssignment("Y", zero, initX, initY);
-    integerAssignment("Z", zero, initY, thingStart);
+    integerAssignment("Xcounter", zero, beginState, initX);
+    integerAssignment("Ycounter", zero, initX, initY);
+    integerAssignment("Zcounter", zero, initY, thingStart);
 
     // from thingStart to thingEnd, the actual thing gets executed
 
 
     // move forward
     StatePointer moveForward = makeState();
-    tapeMove(Front, thingEnd, moveForward);
+    moveMultipleTapes(Front, thingEnd, moveForward, tapesToMove);
     // increment X var
     StatePointer incrementX = makeState();
-    immediateAddition("X", increment, moveForward, incrementX);
+    immediateAddition("Xcounter", increment, moveForward, incrementX);
 
 
     StatePointer yCheck = makeState();
@@ -761,41 +762,41 @@ void TMGenerator::doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &
 
     // check if X == x
     StatePointer shiftY = makeState();
-    IntegerCompare("X", xString, thingStart, 0, incrementX, shiftY);
+    IntegerCompare("Xcounter", xString, thingStart, 0, incrementX, shiftY);
     //  if so, move right(increment Y) and back while decrementing X until X is zero
     StatePointer yIncrement = makeState();
     StatePointer startXReset = makeState();
-    tapeMove(Right, shiftY, yIncrement);
-    immediateAddition("Y", increment, yIncrement, startXReset);
+    moveMultipleTapes(Right, shiftY, yIncrement, tapesToMove);
+    immediateAddition("Ycounter", increment, yIncrement, startXReset);
     StatePointer xDecrement = makeState();
-    immediateAddition("X", decrement, startXReset, xDecrement);
+    immediateAddition("Xcounter", decrement, startXReset, xDecrement);
     StatePointer xMove = makeState();
-    tapeMove(Back, xDecrement, xMove);
-    IntegerCompare("X", zero, startXReset, 0, xMove, yCheck);
+    moveMultipleTapes(Back, xDecrement, xMove, tapesToMove);
+    IntegerCompare("Xcounter", zero, startXReset, 0, xMove, yCheck);
 
     // check if Y == y
     StatePointer shiftZ = makeState();
-    IntegerCompare("Y", yString, thingStart, 0, yCheck, shiftZ);
+    IntegerCompare("Ycounter", yString, thingStart, 0, yCheck, shiftZ);
     //  if so, move up(increment Z) and left while decrementing Y until Y is zero
     StatePointer zIncrement = makeState();
     StatePointer startYReset = makeState();
-    tapeMove(Up, shiftZ, zIncrement);
-    immediateAddition("Z", increment, zIncrement, startYReset);
+    moveMultipleTapes(Up, shiftZ, zIncrement, tapesToMove);
+    immediateAddition("Zcounter", increment, zIncrement, startYReset);
     StatePointer yDecrement = makeState();
-    immediateAddition("Y", decrement, startYReset, yDecrement);
+    immediateAddition("Ycounter", decrement, startYReset, yDecrement);
     StatePointer yMove = makeState();
-    tapeMove(Left, yDecrement, yMove);
-    IntegerCompare("Y", zero, startYReset, 0, yMove, zCheck);
+    moveMultipleTapes(Left, yDecrement, yMove, tapesToMove);
+    IntegerCompare("Ycounter", zero, startYReset, 0, yMove, zCheck);
     // check if Z == z
     StatePointer backDown = makeState();
-    IntegerCompare("Z", zString, thingStart, 0, zCheck, backDown);
+    IntegerCompare("Zcounter", zString, thingStart, 0, zCheck, backDown);
     //  if so, move down while decrementing Z until Z is zero AND THEN EXIT
     StatePointer startZReset = makeState();
     StatePointer zDecrement = makeState();
-    tapeMove(Down, backDown, startZReset);
-    immediateAddition("Z", decrement, startZReset, zDecrement);
+    moveMultipleTapes(Down, backDown, startZReset, tapesToMove);
+    immediateAddition("Zcounter", decrement, startZReset, zDecrement);
     StatePointer zMove = makeState();
-    IntegerCompare("Z", zero, backDown, 0, zDecrement, destination);
+    IntegerCompare("Zcounter", zero, backDown, 0, zDecrement, destination);
 }
 
 void
@@ -939,9 +940,10 @@ TMGenerator::immediateAddition(const string &variableName, string &binaryAddedVa
     std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Stationary;
 }
 
-void TMGenerator::tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination) {
+void
+TMGenerator::tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination, int tapeIndex) {
     postponedTransitionBuffer.emplace_back(beginState, destination);
-    std::next(postponedTransitionBuffer.end(), -1)->directions[0] = direction;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[tapeIndex] = direction;
 }
 
 void TMGenerator::currentIntoVariable(const string &variableName, const StatePointer &beginState,
@@ -1235,6 +1237,19 @@ void TMGenerator::alphabetExplorer(const shared_ptr<STNode> &root) {
         }
     }
 }
+
+void TMGenerator::moveMultipleTapes(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination,
+                                    const vector<int> tapeIndices) {
+    vector<TMTapeDirection> directions(4, TMTapeDirection::Stationary);
+    for (int i: tapeIndices) {
+        directions[i] = direction;
+    }
+    transitions.insert({
+                               TransitionDomain(beginState, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}),
+                               TransitionImage(destination, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}, directions)
+                       });
+}
+
 PostponedTransition::PostponedTransition(const StatePointer& start, const StatePointer& end, const set<string>& leftOutSymbols, bool onlyTheseSymbols)
 : startState(start), endState(end), startLine(0), endLine(0), leftOutSymbols(leftOutSymbols), onlyTheseSymbols(onlyTheseSymbols) {}
 

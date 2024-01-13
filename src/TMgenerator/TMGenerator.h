@@ -71,7 +71,8 @@ public:
     void currentIntoVariable(const string &variableName, const StatePointer &beginState,
                              const StatePointer &destination, int tapeIndex);
 
-    void tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination);
+    void tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination, int tapeIndex);
+    void moveMultipleTapes(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination, const vector<int> tapeIndices);
 
     void immediateAddition(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
                            StatePointer &destination);
@@ -83,10 +84,11 @@ public:
     void integerAssignment(const string &variableName, string &binaryAssignedValue, StatePointer &beginState,
                             StatePointer &destination);
 
-    void doThingForEveryVoxelInCube(int z, int y, int x, StatePointer &beginState, StatePointer &destination,
-                                    StatePointer thingStart, StatePointer thingEnd);
+    void doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &beginState, StatePointer &destination,
+                                    StatePointer thingStart, StatePointer thingEnd,
+                                    const vector<int> &tapesToMove);
 
-    void updateHistoryTape(int z, int y, int x, StatePointer &beginState, StatePointer &endState);
+    void updateHistoryTape(int x, int y, int z, StatePointer &beginState, StatePointer &endState);
 };
 
 
