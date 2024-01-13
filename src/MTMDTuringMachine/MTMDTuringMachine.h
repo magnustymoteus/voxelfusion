@@ -33,17 +33,14 @@ protected:
 
     bool hasAccepted;
 
-    // called every transition (if it's not nullptr)
-    void (*updateCallback) (const std::tuple<TMTapeType*...> &tapes,
-            const TransitionDomain &domain, const TransitionImage &image);
+    void (*updateCallback) (const std::tuple<TMTapeType*...> &, const std::vector<unsigned int>);
 public:
     bool isHalted;
     MTMDTuringMachine(const std::set<std::string> &tapeAlphabet,
                       const std::set<std::string> &inputAlphabet,
                       const std::tuple<TMTapeType*...> &tapes,
                       const FiniteControl &control,
-  void (*updateCallback) (const std::tuple<TMTapeType*...> &tapes,
-          const TransitionDomain &domain, const TransitionImage &image) = nullptr) :
+  void (*updateCallback) (const std::tuple<TMTapeType*...> &, const std::vector<unsigned int>) = nullptr) :
             tapeAlphabet(tapeAlphabet), inputAlphabet(inputAlphabet),
             tapes(tapes), tapeCount(sizeof...(TMTapeType)), control(control),
             updateCallback(updateCallback),
@@ -72,18 +69,20 @@ public:
       if(foundDomain != control.transitions.end()) {
           const TransitionImage &image = foundDomain->second;
           control.setCurrentState(image.state);
-          int i=0;
+          unsigned int i=0;
+            std::vector<unsigned int> changedTapesIndex;
             std::apply([&](auto&&... currentTape){
-              ((currentTape->replaceCurrentSymbol(image.replacementSymbols[i]),
+              (((currentTape->getCurrentSymbol() != image.replacementSymbols[i]) && changedTapesIndex.emplace_back(i),
+                      currentTape->replaceCurrentSymbol(image.replacementSymbols[i]),
                       currentTape->moveTapeHead(image.directions[i]()),
-                     i++), ...);
+                     i++
+                     ), ...);
               }, tapes);
             if(control.currentState->type != State_NonHalting) {
                 isHalted = true;
                 if(control.currentState->type == State_Accepting) hasAccepted = true;
             }
-            // callback gives updated xyz for block
-         if(updateCallback) updateCallback(tapes, domain, image);
+         if(updateCallback) updateCallback(tapes, changedTapesIndex);
      }
       else isHalted = true;
   }
