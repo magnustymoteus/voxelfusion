@@ -8,10 +8,16 @@ VisualisationManager::VisualisationManager() {
         Visualisation v(45.0f, 0.1f, 100.0f, colorMap);
         bool go = true;
         while (go){
-            bool rebuild = false;
-            updates.dequeue(rebuild);
-            if(rebuild){
-                v.rebuild(tape);
+            VisualisationCommand command;
+            if(updates.dequeue(command)){
+                switch (command) {
+                    case VisualisationCommand::Rebuild:
+                        v.rebuild(tape);
+                        break;
+                    case VisualisationCommand::ExportMesh:
+                        v.exportMesh("mesh.obj");
+                        break;
+                }
             }
             go = v.update();
         }
@@ -35,7 +41,7 @@ VisualisationManager *VisualisationManager::getInstance() {
 
 void VisualisationManager::setTape(TMTape3D * tape) {
     VisualisationManager::tape = tape;
-    updates.enqueue(true);
+    updates.enqueue(VisualisationCommand::Rebuild);
 
 }
 

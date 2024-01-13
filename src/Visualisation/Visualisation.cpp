@@ -107,6 +107,7 @@ void Visualisation::rebuild(TMTape3D *tape) {
     //https://stackoverflow.com/questions/15821969/what-is-the-proper-way-to-modify-opengl-vertex-buffer
     vertices.clear();
     indices.clear();
+    //faceColors.clear(); TODO fix adding colors to faces
 
     const int greatest3DSize = tape->getCells().size();
     const int greatest2DSize = TMTapeUtils::getGreatestSize(tape->getCells());
@@ -116,11 +117,12 @@ void Visualisation::rebuild(TMTape3D *tape) {
             for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
                 string symbol = tape->at(x).at(y).at(z).symbol;
                 if(symbol != "B"){
-                    if(colorMap.find(symbol) == colorMap.end()){
-                        createCube(vertices, indices, x, y, z, 1, colorMap.at("default"));
-                    }else{
-                        createCube(vertices, indices, x, y, z, 1,  colorMap.at(symbol));
+                    auto it = colorMap.find(symbol);
+                    if(it == colorMap.end()){
+                        it = colorMap.find("default");
                     }
+                    //faceColors.push_back(&it->first);
+                    createCube(vertices, indices, x, y, z, 1, it->second);
                 }
             }
         }
@@ -155,6 +157,29 @@ Visualisation::~Visualisation() {
     shaderProgram->Delete();
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void Visualisation::exportMesh(const string &filename) {
+    ofstream objFile;
+    objFile.open (filename);
+
+//    for(auto& color: colorMap){
+//        objFile << "newmtl " << color.first << '\n';
+//        objFile << "Ka " << color.second.r << " " << color.second.g << " " << color.second.b << '\n';
+//    }
+    for (int i = 0; i < vertices.size(); i+=7) {
+        objFile << "v " << vertices[i] << " " << vertices[i + 1] << " " << vertices[i + 2] << "\n";
+    }
+    int elementsPerCube = baseIndices.size() * 3;
+    for (int i = 0; i < indices.size(); ) {
+        //objFile << "usemtl " << *faceColors[i / elementsPerCube] << '\n';
+        for (int j = 0; j < baseIndices.size(); ++j) {
+            objFile << "f " << indices[i] + 1 << " " << indices[i + 1] + 1 << " " << indices[i + 2] + 1 << "\n";
+            i+= 3;
+        }
+    }
+    objFile.close();
+    
 }
 
 Color::Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}

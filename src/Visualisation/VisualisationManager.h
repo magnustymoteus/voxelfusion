@@ -6,10 +6,14 @@
 
 using namespace std;
 
+enum class VisualisationCommand {
+    Rebuild,
+    ExportMesh
+};
+
 class VisualisationManager {
 private:
     unique_ptr<thread> glfwWorker;
-    AtomicQueue<bool> updates;
     TMTape3D* tape;
 
     VisualisationManager();
@@ -17,6 +21,7 @@ private:
     inline static bool _instanceFlag{false};
 
 public:
+    AtomicQueue<VisualisationCommand> updates;
     ~VisualisationManager();
     static VisualisationManager* getInstance();
     void setTape(TMTape3D * tape);

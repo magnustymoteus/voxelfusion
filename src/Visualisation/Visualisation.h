@@ -41,6 +41,7 @@ class Visualisation {
     ElementBuffer* EBO{nullptr};
     vector<GLfloat> vertices;
     vector<GLuint> indices;
+    vector<const string*> faceColors;
     float FOV;
     float nearPlane;
     float farPlane;
@@ -49,5 +50,6 @@ public:
     Visualisation(float fov, float nearPlane, float farPlane, map<string, Color>& colorMap);
     bool update();
     void rebuild(TMTape3D *tape);
+    void exportMesh(const string& filename);
     ~Visualisation();
 };
