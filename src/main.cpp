@@ -2,6 +2,7 @@
 #include "Visualisation/VisualisationManager.h"
 #include <thread>
 #include <iostream>
+#include <algorithm>
 #include "utils/utils.h"
 
 using namespace std;
@@ -22,7 +23,7 @@ void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDom
     std::cout << std::endl;
 }*/
 template<class ...TMTapeType>
-void updateVisualisation(const std::tuple<TMTapeType*...> & tapes, const std::vector<unsigned int> changedTapesIndices) {
+void updateVisualisation(const std::tuple<TMTapeType*...> & tapes, const std::vector<unsigned int>& changedTapesIndices) {
     if (std::find(changedTapesIndices.begin(), changedTapesIndices.end(), 0) == changedTapesIndices.end()) return;
     VisualisationManager* v = VisualisationManager::getInstance();
     v->setTape(std::get<0>(tapes));
