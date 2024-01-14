@@ -14,9 +14,20 @@ CA for 'B' {
     goto 16;
     write 'GW';
 };
+CA for 'W' {
+    write 'W';
+};
+CA for 'GW' {
+    write 'GW';
+};
+CA for 'G' {
+    write 'G';
+};
 write 'W';
+move down;
+move down;
 C = 0;
 run CA in 3,3,3;
 C += 1;
-if C == 2 goto 23;
-goto 19;
+if C == 2 goto 34;
+goto 30;

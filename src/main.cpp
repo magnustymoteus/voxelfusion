@@ -27,9 +27,9 @@ void updateVisualisation(const std::tuple<TMTapeType*...> & tapes, const std::ve
     if (std::find(changedTapesIndices.begin(), changedTapesIndices.end(), 0) == changedTapesIndices.end()) return;
     VisualisationManager* v = VisualisationManager::getInstance();
     v->setTape(std::get<0>(tapes));
-
-    std::chrono::milliseconds timespan(1000);
-    std::this_thread::sleep_for(timespan);
+//
+//    std::chrono::milliseconds timespan(1000);
+//    std::this_thread::sleep_for(timespan);
 }
 #include "LR1Parser/LALR1Parser/LALR1Parser.h"
 #include "Lexer/Lexer.h"
@@ -111,7 +111,7 @@ int main() {
     MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);*/
     VisualisationManager* v = VisualisationManager::getInstance();
 
-    tm.doTransitions(10);
+    tm.doTransitions();
     v->waitForExit();
     delete tape3d;
     delete varTape;
