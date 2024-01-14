@@ -3,6 +3,7 @@
 #ifndef VOXELFUSION_FINITECONTROL_H
 #define VOXELFUSION_FINITECONTROL_H
 
+#include <unordered_map>
 #include <map>
 #include <set>
 #include <memory>
@@ -47,18 +48,18 @@ struct TransitionImage {
                     const std::vector<TMTapeDirection> &directionsArg);
 };
 
-
+typedef std::map<std::vector<std::string>, TransitionImage> StateTransitions;
 class FiniteControl {
 public:
     const std::set<StatePointer> states;
     const StatePointer initialState;
     StatePointer currentState;
 
-    std::map<TransitionDomain, TransitionImage> transitions;
+    std::unordered_map<StatePointer, StateTransitions> transitions;
 
     FiniteControl(const std::set<StatePointer> &states, const std::map<TransitionDomain, TransitionImage> &transitions);
+    FiniteControl(const std::set<StatePointer> &states, const std::unordered_map<StatePointer, StateTransitions> &transitions);
     void setCurrentState(const StatePointer &newCurrentState) {currentState = newCurrentState;}
 };
-
 
 #endif //VOXELFUSION_FINITECONTROL_H

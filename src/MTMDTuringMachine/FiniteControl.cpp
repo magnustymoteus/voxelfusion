@@ -11,16 +11,27 @@ StatePointer findStartingState(const std::set<StatePointer> &states) {
     return nullptr;
 }
 FiniteControl::FiniteControl(const std::set<StatePointer> &states,
-                             const std::map<TransitionDomain, TransitionImage> &transitions) :
+                             const std::unordered_map<StatePointer, StateTransitions> &transitions)
+                             :  states(states),
+                             initialState(findStartingState(states)),
+                             currentState(initialState),
+                             transitions(transitions)
+                             {}
+
+#include <iostream>
+FiniteControl::FiniteControl(const std::set<StatePointer> &states,
+                             const std::map<TransitionDomain, TransitionImage> &transitionsArg) :
         states(states),
         initialState(findStartingState(states)),
-        currentState(initialState),
-        transitions(transitions) {}
+        currentState(initialState) {
+    for(const auto & currentTransition : transitionsArg) {
+        transitions[currentTransition.first.state].insert({currentTransition.first.replacedSymbols, currentTransition.second});
+    }
+}
 
 bool TransitionDomain::operator<(const TransitionDomain &other) const {
     if(state < other.state) return true;
     if(other.state < state) return false;
-
     if(replacedSymbols < other.replacedSymbols) return true;
     return false;
 }
