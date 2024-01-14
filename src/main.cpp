@@ -70,7 +70,7 @@ int main() {
     auto *tempVarTape {new TMTape1D()};
     auto *historyTape {new TMTape3D()};
     auto tapes = std::make_tuple(tape3d, varTape, tempVarTape, historyTape);
-    std::set<std::string> tapeAlphabet = {"B", "S"};
+    std::set<std::string> tapeAlphabet = {"B", "GW", "W", "G"};
     std::set<StatePointer> states;
     map<TransitionDomain, TransitionImage> transitions;
     // Step 4.2: put tasm on the tapes
