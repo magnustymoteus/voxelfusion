@@ -41,7 +41,7 @@ int main() {
     // Step 1: read tasm code
     string code;
     string line;
-    ifstream input ("tasm/CA.tasm");
+    ifstream input ("tasm/water-physics.tasm");
     if (input.is_open())
     {
         while ( getline (input, line) )

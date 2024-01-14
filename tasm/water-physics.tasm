@@ -1,13 +1,20 @@
 CA for 'B' {
-    if Up == 'W' goto 4;
-    goto 7;
-    if Down == 'B' goto 6;
-    goto 7;
+    if Up == 'W' goto 8;
+    if Back == 'GW' goto 8;
+    if Left == 'GW' goto 8;
+    if Right == 'GW' goto 8;
+    if Front == 'GW' goto 8;
+    goto 14;
+    if Down == 'B' goto 11;
+    if Down == 'G' goto 13;
+    goto 14;
     write 'W';
+    goto 14;
+    write 'GW';
 };
-write 'W';
+write W;
 C = 0;
 run CA in 3,3,3;
 C += 1;
-if C == 2 goto 14;
-goto 10;
+if C == 2 goto 21;
+goto 17;
