@@ -1,11 +1,11 @@
 CA for 'B' {
-    if 'Up' == 'W' goto 4;
+    if Up == 'W' goto 4;
     goto 7;
-    if 'Down' == 'B' goto 6;
+    if Down == 'B' goto 6;
     goto 7;
     write 'W';
-}
-write W;
+};
+write 'W';
 C = 0;
 run CA in 3,3,3;
 C += 1;
