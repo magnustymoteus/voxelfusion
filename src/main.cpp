@@ -23,7 +23,7 @@ void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDom
     std::cout << std::endl;
 }*/
 template<class ...TMTapeType>
-void updateVisualisation(const std::tuple<TMTapeType*...> & tapes, const std::vector<unsigned int>& changedTapesIndices) {
+void updateVisualisation(const std::tuple<TMTapeType*...> & tapes, const std::vector<unsigned int> changedTapesIndices) {
     if (std::find(changedTapesIndices.begin(), changedTapesIndices.end(), 0) == changedTapesIndices.end()) return;
     VisualisationManager* v = VisualisationManager::getInstance();
     v->setTape(std::get<0>(tapes));
@@ -38,9 +38,10 @@ void updateVisualisation(const std::tuple<TMTapeType*...> & tapes, const std::ve
 #include "TMgenerator/TMGenerator.h"
 using namespace std;
 int main() {
+    // Step 1: read tasm code
     string code;
     string line;
-    ifstream input ("tasm/variables-integers.tasm");
+    ifstream input ("tasm/CA.tasm");
     if (input.is_open())
     {
         while ( getline (input, line) )
@@ -49,15 +50,21 @@ int main() {
         }
         input.close();
     }
-
+    // Step 2: get the lexicon of the code
     Lexer lexer(code);
     lexer.print();
+    // Step 3: parse the code
+    // Step 3.2: create parse table
     LALR1Parser parserTemp("src/CFG/input/Tasm.json");
     parserTemp.exportTable("parsingTable.json");
+    // Step 3.3: import parse table
     LALR1Parser parser;
     parser.importTable("parsingTable.json");
+    // Step 3.4: parse the table
     const std::shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
+    // Step 3.5 (optional) export dot visualization
     root->exportVisualization("test.dot");
+    // Step 4: Create and assemble all tapes
     auto *tape3d {new TMTape3D()};
     auto *varTape {new TMTape1D()};
     auto *tempVarTape {new TMTape1D()};
@@ -66,10 +73,11 @@ int main() {
     std::set<std::string> tapeAlphabet = {"B", "S"};
     std::set<StatePointer> states;
     map<TransitionDomain, TransitionImage> transitions;
+    // Step 4.2: put tasm on the tapes
     TMGenerator generator{tapeAlphabet, transitions, states, true};
     generator.assembleTasm(root);
     FiniteControl control(states, transitions);
-    MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D> tm(tapeAlphabet, tapeAlphabet, tapes, control, nullptr);
+    MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D> tm(tapeAlphabet, tapeAlphabet, tapes, control, updateVisualisation);
     //utils::TMtoDotfile(tm, "tm.dot");
     /*auto *tape3d {new TMTape3D()};
     auto *tape2d {new TMTape2D()};
@@ -101,10 +109,10 @@ int main() {
     // tuple needs to have pointers of tapes
     std::tuple<TMTape3D*, TMTape2D*, TMTape1D*> tapes = std::make_tuple(tape3d, tape2d, tape1d);
     MTMDTuringMachine<TMTape3D, TMTape2D, TMTape1D> tm({"0", "1"}, {"0", "1"}, tapes, control, updateVisualisation);*/
-    //VisualisationManager* v = VisualisationManager::getInstance();
+    VisualisationManager* v = VisualisationManager::getInstance();
 
     tm.doTransitions(10);
-    //v->waitForExit();
+    v->waitForExit();
     delete tape3d;
     delete varTape;
     delete tempVarTape;
