@@ -14,7 +14,7 @@ CA for 'B' {
     goto 16;
     write 'GW';
 };
-write W;
+write 'W';
 C = 0;
 run CA in 3,3,3;
 C += 1;
