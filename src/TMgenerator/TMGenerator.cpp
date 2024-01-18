@@ -212,13 +212,9 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             string variableName = root->children[3]->token->lexeme;
             string variableValue = parseSymbolLiteral(root->children[1]);
             StatePointer destination = getNextLineStartState();
-            StatePointer goRight = MoveToVariableMarker(first, variableName);
+            StatePointer writer = MoveToVariableValue(first, variableName);
             // option 1: variable name found: overwrite current value, whatever it is
-                StatePointer writer = makeState();
-                postponedTransitionBuffer.emplace_back(goRight, writer, set<string>{variableName}, true);
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-                postponedTransitionBuffer.emplace_back(writer, writer, set<string>{variableValue});
+                postponedTransitionBuffer.emplace_back(writer, writer, set<string>{variableValue, VariableTapeEnd});
                 std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
                 std::next(postponedTransitionBuffer.end(), -1)->toWrite = variableValue;
                 postponedTransitionBuffer.emplace_back(writer, destination);
@@ -227,7 +223,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             // option 2: tape end found: overwrite it and put a new tape end to the right
                 StatePointer writeName = makeState();
                 //write the name
-                postponedTransitionBuffer.emplace_back(goRight, writeName, set<string>{VariableTapeEnd}, true);
+                postponedTransitionBuffer.emplace_back(writer, writeName, set<string>{VariableTapeEnd}, true);
                 std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
                 std::next(postponedTransitionBuffer.end(), -1)->toWrite = variableName;
                 std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
@@ -306,21 +302,14 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             string assignedVariableName = root->children[3]->token->lexeme;
             string readVariableName = root->children[1]->token->lexeme;
             StatePointer destination = getNextLineStartState();
-            StatePointer goRight = MoveToVariableMarker(first, readVariableName);
-            StatePointer moveToValue = makeState();
-            postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{readVariableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-            StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, readVariableName);
+            StatePointer goRight = MoveToVariableValue(first, readVariableName);
+            StatePointer doneCopying = copyIntegerToThirdTape(goRight, readVariableName);
             // seek first variable
-            StatePointer doneMoving = MoveToVariableMarker(doneCopying, assignedVariableName);
+            StatePointer doneMoving = MoveToVariableValue(doneCopying, assignedVariableName);
 
             //move to look at the value
             // start adding
-            vector<StatePointer> writeValueStates = {makeState(), makeState()}; // first carry state cannot be reached here but makes the loop below easier
-            postponedTransitionBuffer.emplace_back(doneMoving, writeValueStates[0], set<string>{assignedVariableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            vector<StatePointer> writeValueStates = {doneMoving, makeState()}; // first carry state cannot be reached here but makes the loop below easier
             addThirdToSecond(writeValueStates, l == "<BinarySubtraction>");
             //move back to start of third tape and erase
             StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
@@ -349,19 +338,12 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
 
             // seek second variable and copy it to third tape
-            StatePointer goRight = MoveToVariableMarker(first, rightVariableName);
-            StatePointer moveToValue = makeState();
-            postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{rightVariableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            StatePointer moveToValue = MoveToVariableValue(first, rightVariableName);
 
             // if integer
             StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, rightVariableName);
-            StatePointer goRight2 = MoveToVariableMarker(doneCopying, leftVariableName);
-            vector<StatePointer> checkValueStates = {makeState()};
-            postponedTransitionBuffer.emplace_back(goRight2, checkValueStates[0], set<string>{leftVariableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            StatePointer moveToValue2 = MoveToVariableValue(doneCopying, leftVariableName);
+            vector<StatePointer> checkValueStates = {moveToValue2};
 
             StatePointer falseEraser = makeState();
 
@@ -430,11 +412,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
                                    });
             }
             //move to the value
-            StatePointer goRight3 = MoveToVariableMarker(doneCopying2, leftVariableName);
-            StatePointer checkSingleValue = makeState();
-            postponedTransitionBuffer.emplace_back(goRight3, checkSingleValue, set<string>{leftVariableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            StatePointer checkSingleValue = MoveToVariableValue(doneCopying2, leftVariableName);
 
             StatePointer symbolTrueIntermediate = makeState();
             postponedTransitionBuffer.emplace_back(symbolTrueIntermediate, conditionalDestinationLineNumber);
@@ -491,11 +469,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             }else{
                 string readVariableName = root->children[1]->token->lexeme;
                 // copy the multiplier to third tape
-                StatePointer goRight = MoveToVariableMarker(first, readVariableName);
-                StatePointer moveToValue = makeState();
-                postponedTransitionBuffer.emplace_back(goRight, moveToValue, std::set<string>{readVariableName}, true);
-                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                StatePointer moveToValue = MoveToVariableValue(first, readVariableName);
                 StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, readVariableName);
                 // copy the multiplier to sysvar
                 StatePointer moveToVTB = makeState();
@@ -547,11 +521,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             }
 
             // put multiplicand on third tape
-            StatePointer goRight2 = MoveToVariableMarker(sysVarLoaded, assignedVariableName);
-            StatePointer moveToValue2 = makeState();
-            postponedTransitionBuffer.emplace_back(goRight2, moveToValue2, std::set<string>{assignedVariableName}, true);
-            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            StatePointer moveToValue2 = MoveToVariableValue(sysVarLoaded, assignedVariableName);
             StatePointer doneCopying2 = copyIntegerToThirdTape(moveToValue2, assignedVariableName);
             // erase multiplicand from second tape to start from 0 properly
             StatePointer eraseMultiplicand = makeState();
@@ -802,19 +772,15 @@ void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &
 void
 TMGenerator::integerAssignment(const string &variableName, string &binaryAssignedValue, StatePointer &beginState,
                                StatePointer &destination) {
-    StatePointer goRight = MoveToVariableMarker(beginState, variableName);
+    StatePointer goRight = MoveToVariableValue(beginState, variableName);
 
     // option 1: variable name found: overwrite current value, whatever it is
-    StatePointer writer1 = makeState();
-    postponedTransitionBuffer.emplace_back(goRight, writer1, std::set<string>{variableName}, true);
-    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-    std::vector<StatePointer> writeValueStates1 = {writer1};
+    std::vector<StatePointer> writeValueStates1 = {goRight};
     for (char c : binaryAssignedValue) {
         writeValueStates1.emplace_back(makeState());
         auto last = std::next(writeValueStates1.end(), -1);
         auto penultimate = std::next(last, -1);
-        postponedTransitionBuffer.emplace_back(*penultimate, *last);
+        postponedTransitionBuffer.emplace_back(*penultimate, *last, std::set<string>{VariableTapeEnd});
         std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
         std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
         std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
@@ -851,13 +817,9 @@ TMGenerator::integerAssignment(const string &variableName, string &binaryAssigne
 void
 TMGenerator::IntegerCompare(const string &variableName, string &binaryComparedValue, StatePointer &standardDestination,
                             int conditionalDestinationLineNumber, StatePointer beginState, StatePointer conditionalEndState) {
-    StatePointer goRight = MoveToVariableMarker(beginState, variableName);
+    StatePointer reader1 = MoveToVariableValue(beginState, variableName);
 
     //bitwise comparison
-    StatePointer reader1 = makeState();
-    postponedTransitionBuffer.emplace_back(goRight, reader1, std::set<string>{variableName}, true);
-    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
     std::vector<StatePointer> readerStates = {reader1};
     for (char c : binaryComparedValue) {
         readerStates.emplace_back(makeState());
@@ -881,13 +843,9 @@ TMGenerator::IntegerCompare(const string &variableName, string &binaryComparedVa
 void
 TMGenerator::immediateAddition(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
                                StatePointer &destination) {
-    StatePointer goRight = MoveToVariableMarker(startingState, variableName);
+    StatePointer writer1 = MoveToVariableValue(startingState, variableName);
 
     //start adding
-    StatePointer writer1 = makeState();
-    postponedTransitionBuffer.emplace_back(goRight, writer1, std::set<string>{variableName}, true);
-    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
-    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
     std::vector<StatePointer> writeValueStates = {writer1, makeState()}; // first carry state cannot be reached here but makes the loop below easier
     for (char c : binaryAddedValue) {
         StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
@@ -949,39 +907,9 @@ TMGenerator::tapeMove(TMTapeDirection direction, StatePointer &beginState, State
 void TMGenerator::currentIntoVariable(const string &variableName, const StatePointer &beginState,
                                       const StatePointer &destination, int tapeIndex) {
     assert(tapeIndex >= 0 && tapeIndex != 1);
+    StatePointer goRight = MoveToVariableValue(beginState, variableName);
     for (const string& symbolToWrite: tapeAlphabet) {
-        //search for the tape begin marker
-        StatePointer goLeft = makeState();
-        postponedTransitionBuffer.emplace_back(beginState, goLeft, std::set<string>{symbolToWrite}, true);
-        postponedTransitionBuffer.back().tape = tapeIndex;
-        for (const string& ignoredSymbol: tapeAlphabet) {
-            if(ignoredSymbol != VariableTapeStart){
-                vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
-                *std::next(replaced.begin(), tapeIndex) = symbolToWrite;
-                transitions.insert({
-                                           TransitionDomain(goLeft, replaced),
-                                           TransitionImage(goLeft, replaced, {Stationary, Left, Stationary, Stationary})
-                                   });
-            }
-
-        }
-        //move right until variable name or tape end found
-        StatePointer goRight = makeState();
-        vector<string> replaced1 = {SYMBOL_ANY, VariableTapeStart, SYMBOL_ANY, SYMBOL_ANY};
-        *std::next(replaced1.begin(), tapeIndex) = symbolToWrite;
-        transitions.insert({
-               TransitionDomain(goLeft, replaced1),
-               TransitionImage(goRight, replaced1, {Stationary, Right, Stationary, Stationary})
-       });
-        for (const string& ignoredSymbol: tapeAlphabet) {
-            if(ignoredSymbol == variableName || ignoredSymbol == VariableTapeEnd) continue;
-            vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
-            *std::next(replaced.begin(), tapeIndex) = symbolToWrite;
-            transitions.insert({
-                                       TransitionDomain(goRight, replaced),
-                                       TransitionImage(goRight, replaced, {Stationary, Right, Stationary, Stationary})
-                               });
-        }
+        if(symbolToWrite == VariableTapeEnd) continue;
         // option 1: variable name found: overwrite current value, whatever it is
         StatePointer writer = makeState();
         vector<string> replaced2 = {SYMBOL_ANY, variableName, SYMBOL_ANY, SYMBOL_ANY};
@@ -1180,7 +1108,7 @@ StatePointer TMGenerator::copyIntegerToThirdTape(StatePointer startState, const 
     return doneCopying;
 }
 
-StatePointer TMGenerator::MoveToVariableMarker(StatePointer startState, const string &variableName) {
+StatePointer TMGenerator::MoveToVariableValue(StatePointer startState, const string &variableName) {
     //search for the tape begin marker
     StatePointer goLeft = makeState();
     postponedTransitionBuffer.emplace_back(startState, goLeft);
@@ -1195,7 +1123,13 @@ StatePointer TMGenerator::MoveToVariableMarker(StatePointer startState, const st
     postponedTransitionBuffer.emplace_back(goRight, goRight, std::set<string>{variableName, VariableTapeEnd});
     std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
     std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-    return goRight;
+    StatePointer moveToValue = makeState();
+    postponedTransitionBuffer.emplace_back(goRight, moveToValue, set<string>{variableName}, true);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+    postponedTransitionBuffer.emplace_back(goRight, moveToValue, set<string>{VariableTapeEnd}, true);
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    return moveToValue;
 }
 
 StatePointer TMGenerator::makeState(int beginStateOfThisLineNumber, bool accepting) {
