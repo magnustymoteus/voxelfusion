@@ -52,18 +52,30 @@ public:
     void doTransition() {
         PRECONDITION(!isHalted);
         const std::vector<std::string> &currentSymbols = getCurrentTapeSymbols();
-        const auto foundStateTransitions = control.transitions.find(control.currentState);
+        const auto foundStateTransitions = control.transitions.find(control.currentState->name);
         if (foundStateTransitions != control.transitions.end()) {
-            const auto &image = foundStateTransitions->second.search(currentSymbols);
-            if (image) {
-                control.setCurrentState(image->state);
+            const auto &domain = foundStateTransitions->second;
+            const auto &foundDomain = [&]() {
+                const auto foundExactMatch = domain.find(currentSymbols);
+                if (foundExactMatch != domain.end()) return foundExactMatch;
+                for (auto iter = domain.begin(); iter != domain.end(); iter++) {
+                    for (int i = 0; i < iter->first.size(); i++) {
+                        if (currentSymbols[i] != iter->first[i] && iter->first[i] != SYMBOL_ANY) break;
+                        if (i == iter->first.size() - 1) return iter;
+                    }
+                }
+                return domain.end();
+            }();
+            if (foundDomain != domain.end()) {
+                const TransitionImage &image = foundDomain->second;
+                control.setCurrentState(image.state);
                 unsigned int i = 0;
                 std::vector<unsigned int> changedTapesIndex;
                 std::apply([&](auto &&... currentTape) {
-                    (((currentTape->getCurrentSymbol() != image->replacementSymbols[i]) &&
+                    (((currentTape->getCurrentSymbol() != image.replacementSymbols[i]) &&
                       changedTapesIndex.emplace_back(i),
-                            currentTape->replaceCurrentSymbol(image->replacementSymbols[i]),
-                            currentTape->moveTapeHead(image->directions[i]()),
+                            currentTape->replaceCurrentSymbol(image.replacementSymbols[i]),
+                            currentTape->moveTapeHead(image.directions[i]()),
                             i++
                     ), ...);
                 }, tapes);
@@ -75,6 +87,7 @@ public:
             } else isHalted = true;
         }
     }
+
 
     [[nodiscard]] std::vector<std::string> getCurrentTapeSymbols() const {
         std::vector<std::string> currentSymbols;

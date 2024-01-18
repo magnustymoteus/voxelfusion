@@ -57,10 +57,10 @@ public:
     const StatePointer initialState;
     StatePointer currentState;
 
-    std::unordered_map<StatePointer, Trie<TransitionImage>> transitions;
+    std::unordered_map<std::string, std::map<std::vector<std::string>, TransitionImage>> transitions;
 
     FiniteControl(const std::set<StatePointer> &states, const std::map<TransitionDomain, TransitionImage> &transitions);
-    FiniteControl(const std::set<StatePointer> &states, const std::unordered_map<StatePointer, Trie<TransitionImage>> &transitions);
+    FiniteControl(const std::set<StatePointer> &states, const std::unordered_map<std::string, std::map<std::vector<std::string>, TransitionImage>> &transitions);
     void setCurrentState(const StatePointer &newCurrentState) {currentState = newCurrentState;}
 };
 

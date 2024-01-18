@@ -13,8 +13,10 @@ protected:
 
     inline static ::shared_ptr<LALR1Parser> parser;
     static void SetUpTestSuite() {
-        parser = ::make_shared<LALR1Parser>("src/CFG/input/Tasm.json");
-        parser->exportTable("parsingTable.json");
+        //parser = ::make_shared<LALR1Parser>("src/CFG/input/Tasm.json");
+        parser = ::make_shared<LALR1Parser>();
+        parser->importTable("parsingTable.json");
+        //parser->exportTable("parsingTable.json");
     }
     static shared_ptr<Lexer> initializeLexer(const string& path){
         string code;

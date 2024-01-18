@@ -11,7 +11,7 @@ StatePointer findStartingState(const std::set<StatePointer> &states) {
     return nullptr;
 }
 FiniteControl::FiniteControl(const std::set<StatePointer> &states,
-                             const std::unordered_map<StatePointer, Trie<TransitionImage>> & transitions)
+                             const std::unordered_map<std::string, std::map<std::vector<std::string>, TransitionImage>> & transitions)
         :  states(states),
            initialState(findStartingState(states)),
            currentState(initialState),
@@ -25,7 +25,7 @@ FiniteControl::FiniteControl(const std::set<StatePointer> &states,
         initialState(findStartingState(states)),
         currentState(initialState) {
     for(const auto & currentTransition : transitionsArg) {
-        transitions[currentTransition.first.state].insert(currentTransition.first.replacedSymbols, currentTransition.second);
+        transitions[currentTransition.first.state->name].insert({currentTransition.first.replacedSymbols, currentTransition.second});
     }
 }
 

@@ -308,10 +308,10 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
 }
 
 void utils::finiteControlToDotfile(FiniteControl &control, const std::string &path) {
-   /* std::string result = "DiGraph G {\n";
+   std::string result = "DiGraph G {\n";
     for(auto &transition: control.transitions){
         for(auto &stateTransition : transition.second) {
-            result += transition.first->name;
+            result += transition.first;
             result += "->";
             std::string replaced = std::accumulate(stateTransition.first.begin(), stateTransition.first.end(), std::string(""));
             std::string replacedBy = std::accumulate(stateTransition.second.replacementSymbols.begin(), stateTransition.second.replacementSymbols.end(), std::string(""));
@@ -328,7 +328,7 @@ void utils::finiteControlToDotfile(FiniteControl &control, const std::string &pa
     result += "}";
     std::ofstream output(path);
     output << result;
-    output.close();*/
+    output.close();
 }
 
 void utils::objToTape(const std::string& path, TMTape3D& tape, const double& voxelSize, const std::string& fillSymbol, bool edge){
