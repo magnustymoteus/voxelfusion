@@ -1,7 +1,7 @@
-CA for 'B' {
+CA for {'B'} {
     write 'A';
 };
-CA for 'A' {
+CA for {'A'} {
     write 'B';
 };
 C = 0;

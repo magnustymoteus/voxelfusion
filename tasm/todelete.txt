@@ -1,5 +1,5 @@
 # A little bit more ambitious version for water physics
-CA for 'B' {
+CA for {'B'} {
     if Up == 'W' goto #CHECKDOWN;
     if Back == 'GW' goto #CHECKDOWN;
     if Left == 'GW' goto #CHECKDOWN;
@@ -25,7 +25,7 @@ goto #RUNCA;
 #########################################
 Basic algo:
 #########################################
-CA for 'B'{
+CA for {'B'} {
     if 'Up' == 'W' and 'Down" == 'B':
      write 'W';
     else if 'Up' == 'W' and 'Down' == 'G'
