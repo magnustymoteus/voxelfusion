@@ -1112,8 +1112,13 @@ StatePointer TMGenerator::MoveToVariableValue(StatePointer startState, const str
     //search for the tape begin marker
     StatePointer goLeft = makeState();
     postponedTransitionBuffer.emplace_back(startState, goLeft);
-    postponedTransitionBuffer.emplace_back(goLeft, goLeft, std::set<string>{VariableTapeStart});
+    postponedTransitionBuffer.emplace_back(goLeft, goLeft, std::set<string>{VariableTapeStart, variableName});
     std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Left;
+    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+    // shortcut if the variable name is already found on the way
+    StatePointer moveToValue = makeState();
+    postponedTransitionBuffer.emplace_back(goLeft, moveToValue, std::set<string>{variableName}, true);
+    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
     std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
     //move right until variable name or tape end found (stopping at tape end will halt unexpectedly so is better than going past the end)
     StatePointer goRight = makeState();
@@ -1123,7 +1128,6 @@ StatePointer TMGenerator::MoveToVariableValue(StatePointer startState, const str
     postponedTransitionBuffer.emplace_back(goRight, goRight, std::set<string>{variableName, VariableTapeEnd});
     std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
     std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
-    StatePointer moveToValue = makeState();
     postponedTransitionBuffer.emplace_back(goRight, moveToValue, set<string>{variableName}, true);
     std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
     std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
