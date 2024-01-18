@@ -297,8 +297,26 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
                       std::vector<std::vector<Voxel>>(static_cast<size_t>(yi),
                                                       std::vector<Voxel>(zi)));
     for(unsigned x = 0; x != xi; x++){
-        for(unsigned y=0; y != yi; y++){
-            for(unsigned z=0; z != zi; z++){
+        for(unsigned y = 0; y != yi; y++){
+            PerlinNoise p;
+            double H = 0.4*xi - 0.02*(pow(x-xi/2.0,2)+pow(y-yi/2.0,2));
+            double P = 0.5*yi*(-0.5 + p.noise2d(scale*x,scale*y));
+            int height = std::max(0,int(H+P))+1;
+            //std::cout << height << ", H: " << H << ", P: " << P << std::endl;
+            for(auto f = 0; f != height && f != zi ; f++){
+                space[x][y][f].occupied = true;
+            }
+        }
+    }
+}
+
+void utils::generateCheese(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
+    space.resize(static_cast<size_t>(xi),
+                 std::vector<std::vector<Voxel>>(static_cast<size_t>(yi),
+                                                 std::vector<Voxel>(zi)));
+    for(unsigned x = 0; x != xi; x++){
+        for(unsigned y = 0; y != yi; y++){
+            for(unsigned z = 0; z != zi; z++){
                 PerlinNoise p;
                 double noise = p.noise3d(x*scale,y*scale,z*scale);
                 if(noise >= 0) space[x][y][z].occupied = true;

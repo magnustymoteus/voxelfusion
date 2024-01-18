@@ -74,7 +74,7 @@ protected:
     virtual void TearDown() {
     }
 };
-
+class generateVoxelsTest: public :: testing::Test{};
 TEST_F(compilationTest, DiagonalMove)
 {
     shared_ptr<MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D>> tm;
@@ -101,7 +101,7 @@ TEST_F(compilationTest, integerVariables)
     EXPECT_TRUE(testWithinScript("tasm/variables-integers.tasm"));
 }
 
-TEST_F(compilationTest, basicVoxelisation){
+TEST_F(generateVoxelsTest, basicVoxelisation){
     const StatePointer startState = std::make_shared<const State>("q0", true);
 
     std::set<StatePointer> states  = {startState};
@@ -113,9 +113,10 @@ TEST_F(compilationTest, basicVoxelisation){
     });
     auto tape {new TMTape3D()};
     EXPECT_NO_FATAL_FAILURE(utils::objToTape("objs/test0.obj", *tape, 0.1, "D", false));
+    delete tape;
 }
 
-TEST_F(compilationTest, basicTerrainGeneration){
+TEST_F(generateVoxelsTest, basicTerrainGeneration){
     const StatePointer startState = std::make_shared<const State>("q0", true);
 
     std::set<StatePointer> states  = {startState};
@@ -128,7 +129,7 @@ TEST_F(compilationTest, basicTerrainGeneration){
     Mesh mesh;
     VoxelSpace voxelSpace;
     auto tape {new TMTape3D()};
-    EXPECT_NO_FATAL_FAILURE(utils::generateTerrain(voxelSpace, 30, 30, 5, 0.5));
+    EXPECT_NO_FATAL_FAILURE(utils::generateTerrain(voxelSpace, 30, 30, 10, 0.5));
     EXPECT_NO_FATAL_FAILURE(utils::voxelSpaceToTape(voxelSpace, *tape, "D"));
 }
 

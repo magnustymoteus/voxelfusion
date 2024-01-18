@@ -24,7 +24,7 @@ void printTransition(const std::tuple<TMTapeType...> &tapes, const TransitionDom
 }*/
 template<class ...TMTapeType>
 void updateVisualisation(const std::tuple<TMTapeType*...> & tapes, const std::vector<unsigned int> changedTapesIndices) {
-    if (std::find(changedTapesIndices.begin(), changedTapesIndices.end(), 0) == changedTapesIndices.end()) return;
+    if (std::find(changedTapesIndices.begin(), changedTapesIndices.end(), 0) == changedTapesIndices.end() && VisualisationManager::getInstance()->getTape()) return;
     VisualisationManager* v = VisualisationManager::getInstance();
     v->setTape(std::get<0>(tapes));
 //

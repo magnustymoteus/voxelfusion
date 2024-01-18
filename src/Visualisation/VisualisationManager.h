@@ -25,5 +25,8 @@ public:
     ~VisualisationManager();
     static VisualisationManager* getInstance();
     void setTape(TMTape3D * tape);
+
+    TMTape3D *getTape() const;
+
     void waitForExit();
 };

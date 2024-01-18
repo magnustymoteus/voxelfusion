@@ -50,3 +50,7 @@ void VisualisationManager::setTape(TMTape3D * tape) {
 void VisualisationManager::waitForExit() {
     glfwWorker->join();
 }
+
+TMTape3D *VisualisationManager::getTape() const {
+    return tape;
+}

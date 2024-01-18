@@ -23,15 +23,34 @@ using VoxelSpace = std::vector<std::vector<std::vector<Voxel>>>;
 class utils {
     static void finiteControlToDotfile(FiniteControl& control, const std::string& path);
 public:
+    /**
+     * This function converts obj file to mesh with obj_parser.h
+     * @param path path to the obj file
+     * @param mesh the output mesh
+     */
     static void load_obj(const std::string& path, Mesh& mesh);
+    /**
+     * This function converts obj file to mesh with our own parser
+     * @param path path to the obj file
+     * @param mesh the output mesh
+     */
     static void load_obj2(const std::string& path, Mesh& mesh);
     static BoundingBox calculateBoundingBox(const Mesh& mesh);
     static void translateAndScale(Vector3D& point, const Vector3D& translatePoint, double scaler);
     static bool voxelTriangleIntersection(const int& x, const int& y, const int& z, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3);
     static void voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize=1);
-    static void voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol="X", bool edge=false); // TODO: fillSymbol more flexible?
+    static void voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol="X", bool edge=false);
     static void objToTape(const std::string& path, TMTape3D& tape, const double& voxelSize=1, const std::string& fillSymbol="X", bool edge=false);
-    static void generateTerrain(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale);
+    static void generateTerrain(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale=0.5);
+    /**
+     * Generates a terrain with 3D Perlin noise
+     * @param space output voxels
+     * @param x width of the terrain
+     * @param y length of the terrain
+     * @param z height of the terrain
+     * @param scale filling factor (from 0 to 1) for Perlin noise
+     */
+    static void generateCheese(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale=0.5);
     template<class... TMTapeType>
     static void TMtoDotfile(MTMDTuringMachine<TMTapeType...> TM, const std::string& path) {
         FiniteControl control = TM.getFiniteControl();
