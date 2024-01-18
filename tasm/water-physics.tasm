@@ -1,4 +1,4 @@
-CA for 'B' {
+CA for {'B'} {
     if Up == 'W' goto 8;
     if Back == 'GW' goto 8;
     if Left == 'GW' goto 8;
@@ -14,14 +14,8 @@ CA for 'B' {
     goto 16;
     write 'GW';
 };
-CA for 'W' {
-    write 'W';
-};
-CA for 'GW' {
-    write 'GW';
-};
-CA for 'G' {
-    write 'G';
+CA for {'W', 'GW', 'G'} {
+    goto 19;
 };
 write 'W';
 move down;
@@ -29,5 +23,5 @@ move down;
 C = 0;
 run CA in 3,3,3;
 C += 1;
-if C == 2 goto 34;
-goto 30;
+if C == 2 goto 28;
+goto 24;

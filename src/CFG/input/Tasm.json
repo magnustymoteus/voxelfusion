@@ -68,7 +68,7 @@
     {"head": "<BinarySubtraction>", "body": ["Identifier", "-=", "Identifier", ";"]},
     {"head": "<BinaryMultiplication>", "body": ["Identifier", "*=", "Identifier", ";"]},
     {"head": "<BinaryDivision>", "body": ["Identifier", "/=", "Identifier", ";"]},
-    {"head": "<CellularAutomatonDeclaration>", "body": ["CA", "for", "<SymbolLiteral>", "{", "<StatementList>", "}", ";"]},
+    {"head": "<CellularAutomatonDeclaration>", "body": ["CA", "for", "<IdentifierList>", "{", "<StatementList>", "}", ";"]},
     {"head": "<CellularAutomatonRun>", "body": ["run", "CA", "in", "Integer", ",", "Integer", ",", "Integer", ";"]},
 
     {"head": "<IdentifierList>", "body": ["{", "<IdentifierListPart>", "}"]},
