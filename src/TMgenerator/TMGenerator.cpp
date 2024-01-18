@@ -640,11 +640,11 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
         }
         else if(l == "<CellularAutomatonDeclaration>"){
-            string symbolName = parseSymbolLiteral(root->children[4]);
+            auto symbols = parseIdentifierList(root->children.at(4));
             if (!CAstart) CAstart = makeState();
             if (!CAend) CAend = makeState();
             StatePointer getDirections = makeState();
-            postponedTransitionBuffer.emplace_back(CAstart, getDirections, std::set<string>{symbolName}, true);
+            postponedTransitionBuffer.emplace_back(CAstart, getDirections, symbols, true);
             // put all the directions in variables
             StatePointer previous = getDirections;
             for (auto &direction: map<std::pair<TMTapeDirection, TMTapeDirection>, string>{{{TMTapeDirection::Left,  TMTapeDirection::Right}, "Left"},
