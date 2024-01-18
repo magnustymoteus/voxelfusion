@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "TMTape.h"
+#include "SymbolTrie/SymbolTrie.h"
 
 enum StateType {State_NonHalting, State_Accepting, State_Rejecting};
 
@@ -48,6 +49,7 @@ struct TransitionImage {
                     const std::vector<TMTapeDirection> &directionsArg);
 };
 
+
 typedef std::map<std::vector<std::string>, TransitionImage> StateTransitions;
 class FiniteControl {
 public:
@@ -55,10 +57,10 @@ public:
     const StatePointer initialState;
     StatePointer currentState;
 
-    std::unordered_map<StatePointer, StateTransitions> transitions;
+    std::unordered_map<StatePointer, Trie<TransitionImage>> transitions;
 
     FiniteControl(const std::set<StatePointer> &states, const std::map<TransitionDomain, TransitionImage> &transitions);
-    FiniteControl(const std::set<StatePointer> &states, const std::unordered_map<StatePointer, StateTransitions> &transitions);
+    FiniteControl(const std::set<StatePointer> &states, const std::unordered_map<StatePointer, Trie<TransitionImage>> &transitions);
     void setCurrentState(const StatePointer &newCurrentState) {currentState = newCurrentState;}
 };
 

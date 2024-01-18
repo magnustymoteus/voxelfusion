@@ -11,12 +11,12 @@ StatePointer findStartingState(const std::set<StatePointer> &states) {
     return nullptr;
 }
 FiniteControl::FiniteControl(const std::set<StatePointer> &states,
-                             const std::unordered_map<StatePointer, StateTransitions> &transitions)
-                             :  states(states),
-                             initialState(findStartingState(states)),
-                             currentState(initialState),
-                             transitions(transitions)
-                             {}
+                             const std::unordered_map<StatePointer, Trie<TransitionImage>> & transitions)
+        :  states(states),
+           initialState(findStartingState(states)),
+           currentState(initialState),
+           transitions(transitions)
+{}
 
 #include <iostream>
 FiniteControl::FiniteControl(const std::set<StatePointer> &states,
@@ -25,7 +25,7 @@ FiniteControl::FiniteControl(const std::set<StatePointer> &states,
         initialState(findStartingState(states)),
         currentState(initialState) {
     for(const auto & currentTransition : transitionsArg) {
-        transitions[currentTransition.first.state].insert({currentTransition.first.replacedSymbols, currentTransition.second});
+        transitions[currentTransition.first.state].insert(currentTransition.first.replacedSymbols, currentTransition.second);
     }
 }
 
@@ -41,4 +41,4 @@ TransitionImage::TransitionImage(const StatePointer &state, const std::vector<st
                                  const std::vector<TMTapeDirection> &directionsArg) :
         state(state), replacementSymbols(replacementSymbols),
         directions(directionsArg.begin(), directionsArg.end())
-        {}
+{}
