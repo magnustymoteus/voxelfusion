@@ -912,18 +912,23 @@ void TMGenerator::currentIntoVariable(const string &variableName, const StatePoi
         if(symbolToWrite == VariableTapeEnd) continue;
         // option 1: variable name found: overwrite current value, whatever it is
         StatePointer writer = makeState();
-        vector<string> replaced2 = {SYMBOL_ANY, variableName, SYMBOL_ANY, SYMBOL_ANY};
-        *std::next(replaced2.begin(), tapeIndex) = symbolToWrite;
-        transitions.insert({
-                                   TransitionDomain(goRight, replaced2),
-                                   TransitionImage(writer, replaced2, {Stationary, Right, Stationary, Stationary})
-                           });
+        for(const string& ignoredSymbol: tapeAlphabet){
+            if(ignoredSymbol == VariableTapeEnd) continue;
+            vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
+            vector<string> replacement = {SYMBOL_ANY, symbolToWrite, SYMBOL_ANY, SYMBOL_ANY};
+            *std::next(replaced.begin(), tapeIndex) = symbolToWrite;
+            *std::next(replacement.begin(), tapeIndex) = symbolToWrite;
+            transitions.insert({
+                                       TransitionDomain(goRight, replaced),
+                                       TransitionImage(writer, replacement, {Stationary, Stationary, Stationary, Stationary})
+                               });
+        }
+
         for(const string& ignoredSymbol: tapeAlphabet){
             if(ignoredSymbol == symbolToWrite) continue;
             vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
             vector<string> replacement = {SYMBOL_ANY, symbolToWrite, SYMBOL_ANY, SYMBOL_ANY};
             *std::next(replaced.begin(), tapeIndex) = symbolToWrite;
-            *std::next(replacement.begin(), tapeIndex) = symbolToWrite;
             transitions.insert({
                                        TransitionDomain(writer, replaced),
                                        TransitionImage(writer, replacement, {Stationary, Stationary, Stationary, Stationary})

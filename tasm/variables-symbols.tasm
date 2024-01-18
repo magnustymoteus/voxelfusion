@@ -4,7 +4,7 @@ if T == 'S' goto 5;
 goto 18;
 write 'K';
 P = current;
-T = 'K';
+T = current;
 if P == 'K' goto 12;
 if T == 'K' goto 12;
 if P == T goto 12;
