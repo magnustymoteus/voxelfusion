@@ -326,21 +326,23 @@ void utils::generateCheese(VoxelSpace& space, const unsigned int& xi, const unsi
 }
 
 void utils::finiteControlToDotfile(FiniteControl &control, const std::string &path) {
-    std::string result = "DiGraph G {\n";
-    for(auto transition: control.transitions){
-        result += transition.first.state->name;
-        result += "->";
-        std::string replaced = std::accumulate(transition.first.replacedSymbols.begin(), transition.first.replacedSymbols.end(), std::string(""));
-        std::string replacedBy = std::accumulate(transition.second.replacementSymbols.begin(), transition.second.replacementSymbols.end(), std::string(""));
-        std::string direction;
-        for(auto& dir: transition.second.directions){
-            // here we assume that no probability between directions is involved (every direction has 100% chance)
-            char a = static_cast<char>(dir());
-            direction.push_back(a);
-            direction += " | ";
+   std::string result = "DiGraph G {\n";
+    for(auto &transition: control.transitions){
+        for(auto &stateTransition : transition.second) {
+            result += transition.first;
+            result += "->";
+            std::string replaced = std::accumulate(stateTransition.first.begin(), stateTransition.first.end(), std::string(""));
+            std::string replacedBy = std::accumulate(stateTransition.second.replacementSymbols.begin(), stateTransition.second.replacementSymbols.end(), std::string(""));
+            std::string direction;
+            for(auto& dir: stateTransition.second.directions){
+                // here we assume that no probability between directions is involved (every direction has 100% chance)
+                char a = static_cast<char>(dir());
+                direction.push_back(a);
+                direction += " | ";
+            }
+            result += stateTransition.second.state->name + "[label=\"" + replaced + '\\' + "/" + replacedBy + ", " + direction + "\"]" + '\n';
         }
-        result += transition.second.state->name + "[label=\"" + replaced + '\\' + "/" + replacedBy + ", " + direction + "\"]" + '\n';
-    }
+        }
     result += "}";
     std::ofstream output(path);
     output << result;
