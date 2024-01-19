@@ -66,7 +66,7 @@ public:
     TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
                 set<StatePointer> &states, bool readableStateNames = false);
 
-    StatePointer copyIntegerToThirdTape(StatePointer startState, const string &variableName);
+    StatePointer copyIntegerToThirdTape(StatePointer startState);
 
     void addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract);
 
