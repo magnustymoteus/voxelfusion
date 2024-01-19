@@ -203,16 +203,16 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<ImmediateSymbolValueAssignment>"){
             StatePointer first = currentLineBeginState;
-            string variableName = root->children[3]->token->lexeme;
+            auto [variableName, variableContainingIndex] = parseVariableLocationContainer(root->children[3]);
             StatePointer destination = getNextLineStartState();
-            currentIntoVariable(variableName, first, destination, 0);
+            currentIntoVariable(variableName, first, destination, 0, variableContainingIndex);
         }
         else if(l == "<SymbolValueAssignment>"){
             StatePointer first = currentLineBeginState;
-            string variableName = root->children[3]->token->lexeme;
+            auto [variableName, variableContainingIndex] = parseVariableLocationContainer(root->children[3]);
             string variableValue = parseSymbolLiteral(root->children[1]);
             StatePointer destination = getNextLineStartState();
-            StatePointer writer = MoveToVariableValue(first, variableName);
+            StatePointer writer = MoveToVariableValue(first, variableName, variableContainingIndex);
             // option 1: variable name found: overwrite current value, whatever it is
                 postponedTransitionBuffer.emplace_back(writer, writer, set<string>{variableValue, VariableTapeEnd});
                 std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
@@ -240,7 +240,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<SymbolVariableCondition>"){
             StatePointer first = currentLineBeginState;
-            string variableName = root->children[5]->token->lexeme;
+            auto [variableName, variableContainingIndex] = parseVariableLocationContainer(root->children[5]);
             string variableValue = parseSymbolLiteral(root->children[3]);
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
             //search for the tape begin marker
@@ -272,21 +272,21 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
 
         }else if(l == "<IntegerValueAssignment>"){
             StatePointer first = currentLineBeginState;
-            string variableName = root->children[3]->token->lexeme;
+            auto [variableName, variableContainingIndex] = parseVariableLocationContainer(root->children[3]);
             int assignedValue = parseInteger(root->children[1]);
             std::string binaryAssignedValue = IntegerAsBitString(assignedValue);
             StatePointer destination = getNextLineStartState();
-            integerAssignment(variableName, binaryAssignedValue, first, destination);
+            integerAssignment(variableName, binaryAssignedValue, first, destination, variableContainingIndex);
         }
         else if(l == "<IntegerVariableCondition>"){
             StatePointer first = currentLineBeginState;
-            string variableName = root->children[5]->token->lexeme;
+            auto [variableName, variableContainingIndex] = parseVariableLocationContainer(root->children[5]);
             int comparedValue = parseInteger(root->children[3]);
             std::string binaryComparedValue = IntegerAsBitString(comparedValue);
             StatePointer standardDestination = getNextLineStartState();
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
             IntegerCompare(variableName, binaryComparedValue, standardDestination,
-                           conditionalDestinationLineNumber, first);
+                           conditionalDestinationLineNumber, first, nullptr, variableContainingIndex);
         }
         else if(l == "<ImmediateAddition>" || l == "<ImmediateSubtraction>"){
             StatePointer first = currentLineBeginState;
@@ -332,7 +332,9 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<BinaryVariableCondition>"){
             StatePointer first = currentLineBeginState;
-            string leftVariableName = root->children[5]->token->lexeme;
+
+            auto [leftVariableName, variableContainingIndex] = parseVariableLocationContainer(root->children[5]);
+            //TODO right variable to container
             string rightVariableName = root->children[3]->token->lexeme;
             StatePointer standardDestination = getNextLineStartState();
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
@@ -682,6 +684,43 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             // execute the CA
             doThingForEveryVoxelInCube(x, y, z, historyUpdated, destination, CAstart, CAend, {0,3});
         }
+        else if(l == "<ArrayDeclaration>"){
+            StatePointer first = currentLineBeginState;
+            string arrayName = root->children[6]->token->lexeme;
+            int arraySize = parseInteger(root->children[4]);
+            int defaultValue = parseInteger(root->children[2]);
+            StatePointer destination = getNextLineStartState();
+
+            // go to tape end
+            postponedTransitionBuffer.emplace_back(first, first, set<string>{VariableTapeEnd});
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            // write array name
+            StatePointer arrayNameWriter = makeState();
+            postponedTransitionBuffer.emplace_back(first, arrayNameWriter, set<string>{VariableTapeEnd}, true);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = arrayName;
+            std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+            // write default value
+            std::vector<StatePointer> writeValueStates = {arrayNameWriter};
+            std::string binaryDefaultValue = IntegerAsBitString(defaultValue);
+            for (int i = 0; i < arraySize; ++i) {
+                for (char c : binaryDefaultValue) {
+                    writeValueStates.emplace_back(makeState());
+                    auto last = std::next(writeValueStates.end(), -1);
+                    auto penultimate = std::next(last, -1);
+                    postponedTransitionBuffer.emplace_back(*penultimate, *last);
+                    std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                    std::next(postponedTransitionBuffer.end(), -1)->toWrite = c;
+                    std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                }
+            }
+            // write tape end
+            StatePointer arrayEndWriter = makeState();
+            postponedTransitionBuffer.emplace_back(writeValueStates.back(), destination);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = VariableTapeEnd;
+        }
         else{
             cerr << "Instruction " << l << "is currently not supported by the compiler" << endl;
         }
@@ -771,8 +810,8 @@ void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &
 
 void
 TMGenerator::integerAssignment(const string &variableName, string &binaryAssignedValue, StatePointer &beginState,
-                               StatePointer &destination) {
-    StatePointer goRight = MoveToVariableValue(beginState, variableName);
+                               StatePointer &destination, const string &variableContainingIndex) {
+    StatePointer goRight = MoveToVariableValue(beginState, variableName, variableContainingIndex);
 
     // option 1: variable name found: overwrite current value, whatever it is
     std::vector<StatePointer> writeValueStates1 = {goRight};
@@ -816,8 +855,9 @@ TMGenerator::integerAssignment(const string &variableName, string &binaryAssigne
 
 void
 TMGenerator::IntegerCompare(const string &variableName, string &binaryComparedValue, StatePointer &standardDestination,
-                            int conditionalDestinationLineNumber, StatePointer beginState, StatePointer conditionalEndState) {
-    StatePointer reader1 = MoveToVariableValue(beginState, variableName);
+                            int conditionalDestinationLineNumber, StatePointer beginState,
+                            StatePointer conditionalEndState, const string &indexContainingVariable) {
+    StatePointer reader1 = MoveToVariableValue(beginState, variableName, indexContainingVariable);
 
     //bitwise comparison
     std::vector<StatePointer> readerStates = {reader1};
@@ -905,9 +945,10 @@ TMGenerator::tapeMove(TMTapeDirection direction, StatePointer &beginState, State
 }
 
 void TMGenerator::currentIntoVariable(const string &variableName, const StatePointer &beginState,
-                                      const StatePointer &destination, int tapeIndex) {
+                                      const StatePointer &destination, int tapeIndex,
+                                      const string &variableContainingIndex) {
     assert(tapeIndex >= 0 && tapeIndex != 1);
-    StatePointer goRight = MoveToVariableValue(beginState, variableName);
+    StatePointer goRight = MoveToVariableValue(beginState, variableName, variableContainingIndex);
     for (const string& symbolToWrite: tapeAlphabet) {
         if(symbolToWrite == VariableTapeEnd) continue;
         // option 1: variable name found: overwrite current value, whatever it is
@@ -1113,7 +1154,8 @@ StatePointer TMGenerator::copyIntegerToThirdTape(StatePointer startState, const 
     return doneCopying;
 }
 
-StatePointer TMGenerator::MoveToVariableValue(StatePointer startState, const string &variableName) {
+StatePointer TMGenerator::MoveToVariableValue(StatePointer startState, const string &variableName,
+                                              const string &variableContainingIndex) {
     //search for the tape begin marker
     StatePointer goLeft = makeState();
     postponedTransitionBuffer.emplace_back(startState, goLeft);
@@ -1191,6 +1233,15 @@ void TMGenerator::moveMultipleTapes(TMTapeDirection direction, StatePointer &beg
                                TransitionDomain(beginState, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}),
                                TransitionImage(destination, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}, directions)
                        });
+}
+
+std::pair<string, string> TMGenerator::parseVariableLocationContainer(const shared_ptr<STNode> &root) {
+    if(!root->children[0]->hasChildren()){ // just a variable name
+        return {root->children[0]->token->lexeme, ""};
+    }else{ // an array element
+        shared_ptr<STNode> indirectPack = root->children[0];
+        return {indirectPack->children[3]->token->lexeme, indirectPack->children[1]->token->lexeme};
+    }
 }
 
 PostponedTransition::PostponedTransition(const StatePointer& start, const StatePointer& end, const set<string>& leftOutSymbols, bool onlyTheseSymbols)

@@ -48,10 +48,12 @@ class TMGenerator {
 
     void registerRegularNewline(StatePointer& state);
     StatePointer makeState(int beginStateOfThisLineNumber = 0, bool accepting=false);
-    StatePointer MoveToVariableValue(StatePointer startState, const string &variableName);
+    StatePointer MoveToVariableValue(StatePointer startState, const string &variableName,
+                                     const string &variableContainingIndex="");
 
     static TMTapeDirection parseDirection(const shared_ptr<STNode>& root);
     static int parseInteger(const shared_ptr<STNode>& root);
+    static std::pair<string, string> parseVariableLocationContainer(const shared_ptr<STNode> &root);
     static string parseSymbolLiteral(const shared_ptr<STNode>& root);
     static set<string> parseIdentifierList(const shared_ptr<STNode>& root);
     static void identifierListPartRecursiveParser(const shared_ptr<STNode> &root, set<string> &output);
@@ -69,7 +71,8 @@ public:
     void addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract);
 
     void currentIntoVariable(const string &variableName, const StatePointer &beginState,
-                             const StatePointer &destination, int tapeIndex);
+                             const StatePointer &destination, int tapeIndex,
+                             const string &variableContainingIndex="");
 
     void tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination, int tapeIndex);
     void moveMultipleTapes(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination, const vector<int> tapeIndices);
@@ -79,10 +82,11 @@ public:
 
     void
     IntegerCompare(const string &variableName, string &binaryComparedValue, StatePointer &standardDestination,
-                   int conditionalDestinationLineNumber, StatePointer beginState, StatePointer conditionalEndState = nullptr);
+                   int conditionalDestinationLineNumber, StatePointer beginState,
+                   StatePointer conditionalEndState = nullptr, const string &indexContainingVariable="");
 
     void integerAssignment(const string &variableName, string &binaryAssignedValue, StatePointer &beginState,
-                            StatePointer &destination);
+                           StatePointer &destination, const string &variableContainingIndex= "");
 
     void doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &beginState, StatePointer &destination,
                                     StatePointer thingStart, StatePointer thingEnd,

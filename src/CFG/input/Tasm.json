@@ -6,10 +6,11 @@
     "<SymbolValueAssignment>", "<IntegerValueAssignment>", "<ImmediateSymbolValueAssignment>", "<SymbolVariableCondition>"
   , "<IntegerVariableCondition>", "<ImmediateAddition>", "<ImmediateSubtraction>", "<ImmediateMultiplication>", "<ImmediateDivision>",
     "<BinaryAddition>", "<BinarySubtraction>","<BinaryMultiplication>","<BinaryDivision>", "<BinaryVariableCondition>",
-    "<CellularAutomatonDeclaration>", "<CellularAutomatonRun>"
+    "<CellularAutomatonDeclaration>", "<CellularAutomatonRun>", "<ArrayDeclaration>", "<IntegerContainer>",
+    "<ArrayIndexImmediate>", "<ArrayIndexIndirect>"
   ],
   "Terminals": ["Identifier", "Integer",
-    "{","}",
+    "{","}", "[", "]",
     "if", "else", ";", "'",
     "==", "=", "+=", "-=", "*=", "/=",
     "move",
@@ -46,6 +47,7 @@
     {"head": "<Statement>", "body": ["<BinaryVariableCondition>"]},
     {"head": "<Statement>", "body": ["<CellularAutomatonDeclaration>"]},
     {"head": "<Statement>", "body": ["<CellularAutomatonRun>"]},
+    {"head": "<Statement>", "body": ["<ArrayDeclaration>"]},
 
     {"head": "<TapeMove>", "body": ["move", "<Direction>", ";"]},
     {"head": "<TapeWrite>", "body": ["write", "<SymbolLiteral>", ";"]},
@@ -54,12 +56,13 @@
     {"head": "<Accept>", "body": ["accept", ";"]},
     {"head": "<Error>", "body": ["error", ";"]},
     {"head": "<ConditionalMove>", "body": ["move", "<Direction>", "until", "<IdentifierList>", ";"]},
-    {"head": "<SymbolValueAssignment>", "body": ["Identifier", "=", "<SymbolLiteral>", ";"]},
-    {"head": "<IntegerValueAssignment>", "body": ["Identifier", "=", "Integer", ";"]},
-    {"head": "<ImmediateSymbolValueAssignment>", "body": ["Identifier", "=", "current", ";"]},
-    {"head": "<SymbolVariableCondition>", "body": ["if","Identifier", "==", "<SymbolLiteral>","goto","Integer", ";"]},
-    {"head": "<IntegerVariableCondition>", "body": ["if","Identifier", "==", "Integer","goto","Integer", ";"]},
-    {"head": "<BinaryVariableCondition>", "body": ["if","Identifier", "==", "Identifier","goto","Integer", ";"]},
+    {"head": "<SymbolValueAssignment>", "body": ["<IntegerContainer>", "=", "<SymbolLiteral>", ";"]},
+    {"head": "<ImmediateSymbolValueAssignment>", "body": ["<IntegerContainer>", "=", "current", ";"]},
+    {"head": "<IntegerValueAssignment>", "body": ["<IntegerContainer>", "=", "Integer", ";"]},
+    {"head": "<ArrayDeclaration>", "body": ["Identifier", "{", "Integer", ",", "Integer", "}", ";"]},
+    {"head": "<SymbolVariableCondition>", "body": ["if","<IntegerContainer>", "==", "<SymbolLiteral>","goto","Integer", ";"]},
+    {"head": "<IntegerVariableCondition>", "body": ["if","<IntegerContainer>", "==", "Integer","goto","Integer", ";"]},
+    {"head": "<BinaryVariableCondition>", "body": ["if","<IntegerContainer>", "==", "Identifier","goto","Integer", ";"]},
     {"head": "<ImmediateAddition>", "body": ["Identifier", "+=", "Integer", ";"]},
     {"head": "<ImmediateSubtraction>", "body": ["Identifier", "-=", "Integer", ";"]},
     {"head": "<ImmediateMultiplication>", "body": ["Identifier", "*=", "Integer", ";"]},
@@ -76,6 +79,10 @@
     {"head": "<IdentifierListPart>", "body": ["<SymbolLiteral>"]},
 
     {"head": "<SymbolLiteral>", "body": ["'", "Identifier", "'"]},
+
+    {"head": "<ArrayIndexIndirect>", "body": ["Identifier", "[" , "Identifier", "]"]},
+    {"head": "<IntegerContainer>", "body": ["<ArrayIndexIndirect>"]},
+    {"head": "<IntegerContainer>", "body": ["Identifier"]},
 
 
     {"head": "<Direction>", "body": ["left"]},
