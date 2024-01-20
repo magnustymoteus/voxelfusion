@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <list>
+#include <map>
 
 using std::shared_ptr, std::set, std::string, std::map, std::list, std::vector;
 #include <iostream>

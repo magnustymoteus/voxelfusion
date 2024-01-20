@@ -3,11 +3,13 @@
 #ifndef VOXELFUSION_FINITECONTROL_H
 #define VOXELFUSION_FINITECONTROL_H
 
+#include <unordered_map>
 #include <map>
 #include <set>
 #include <memory>
 
 #include "TMTape.h"
+#include "SymbolTrie/SymbolTrie.h"
 
 enum StateType {State_NonHalting, State_Accepting, State_Rejecting};
 
@@ -48,17 +50,18 @@ struct TransitionImage {
 };
 
 
+typedef std::map<std::vector<std::string>, TransitionImage> StateTransitions;
 class FiniteControl {
 public:
     const std::set<StatePointer> states;
     const StatePointer initialState;
     StatePointer currentState;
 
-    std::map<TransitionDomain, TransitionImage> transitions;
+    std::unordered_map<std::string, std::map<std::vector<std::string>, TransitionImage>> transitions;
 
     FiniteControl(const std::set<StatePointer> &states, const std::map<TransitionDomain, TransitionImage> &transitions);
+    FiniteControl(const std::set<StatePointer> &states, const std::unordered_map<std::string, std::map<std::vector<std::string>, TransitionImage>> &transitions);
     void setCurrentState(const StatePointer &newCurrentState) {currentState = newCurrentState;}
 };
-
 
 #endif //VOXELFUSION_FINITECONTROL_H
