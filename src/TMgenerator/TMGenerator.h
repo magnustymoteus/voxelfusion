@@ -66,7 +66,7 @@ public:
     TMGenerator(set<string> &tapeAlphabet, map<TransitionDomain, TransitionImage> &transitions,
                 set<StatePointer> &states, bool readableStateNames = false);
 
-    StatePointer copyIntegerToThirdTape(StatePointer startState);
+    StatePointer copyIntegerToThirdTape(StatePointer startState, bool backToStart);
 
     void addThirdToSecond(vector<StatePointer> &writeValueStates, bool subtract);
 
@@ -78,7 +78,7 @@ public:
     void moveMultipleTapes(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination, const vector<int> tapeIndices);
 
     void immediateAddition(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
-                           StatePointer &destination);
+                           StatePointer &destination, const string &variableContainingIndex="");
 
     void
     IntegerCompare(const string &variableName, string &binaryComparedValue, StatePointer &standardDestination,

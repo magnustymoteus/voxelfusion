@@ -290,26 +290,54 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<ImmediateAddition>" || l == "<ImmediateSubtraction>"){
             StatePointer first = currentLineBeginState;
-            string variableName = root->children[3]->token->lexeme;
+            auto [variableName, variableContainingIndex] = parseVariableLocationContainer(root->children[3]);
             int addedValue = parseInteger(root->children[1]);
             std::string binaryAddedValue = IntegerAsBitString(addedValue, l == "<ImmediateSubtraction>");
             StatePointer destination = getNextLineStartState();
-            immediateAddition(variableName, binaryAddedValue, first, destination);
+            immediateAddition(variableName, binaryAddedValue, first, destination, variableContainingIndex);
         }
         else if(l == "<BinaryAddition>" || l == "<BinarySubtraction>"){
             StatePointer first = currentLineBeginState;
             //seek second variable and copy to third tape
-            string assignedVariableName = root->children[3]->token->lexeme;
-            string readVariableName = root->children[1]->token->lexeme;
+            auto [assignedVariableName, assignedVariableContainingIndex] = parseVariableLocationContainer(root->children[3]);
+            auto [readVariableName, readVariableContainingIndex] = parseVariableLocationContainer(root->children[1]);
             StatePointer destination = getNextLineStartState();
-            StatePointer goRight = MoveToVariableValue(first, readVariableName);
-            StatePointer doneCopying = copyIntegerToThirdTape(goRight);
-            // seek first variable
-            StatePointer doneMoving = MoveToVariableValue(doneCopying, assignedVariableName);
+            StatePointer goRight = MoveToVariableValue(first, readVariableName, readVariableContainingIndex);
+            StatePointer firstWriterState;
+            if(assignedVariableContainingIndex == ""){
+                StatePointer doneCopying = copyIntegerToThirdTape(goRight, true);
+                // seek first variable
+                StatePointer doneMoving = MoveToVariableValue(doneCopying, assignedVariableName, assignedVariableContainingIndex);
+                firstWriterState = doneMoving;
+            } else{
+                StatePointer doneCopying = copyIntegerToThirdTape(goRight, false);
+                StatePointer thirdTapeSeparator = makeState();
+                postponedTransitionBuffer.emplace_back(doneCopying, thirdTapeSeparator);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Right;
+                // seek first variable
+                StatePointer doneMoving = MoveToVariableValue(thirdTapeSeparator, assignedVariableName, assignedVariableContainingIndex);
+                StatePointer returnToBackOfBackOfSecondTerm = makeState();
+                postponedTransitionBuffer.emplace_back(doneMoving, returnToBackOfBackOfSecondTerm);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+                StatePointer returnToBackOfSecondTerm = makeState();
+                postponedTransitionBuffer.emplace_back(returnToBackOfBackOfSecondTerm, returnToBackOfSecondTerm);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+                postponedTransitionBuffer.emplace_back(returnToBackOfSecondTerm, returnToBackOfSecondTerm, set<string>{"0", "1"}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+                StatePointer backAtStartOfSecondTerm = makeState();
+                postponedTransitionBuffer.emplace_back(returnToBackOfSecondTerm, backAtStartOfSecondTerm, std::set<string>{"B"}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Right;
+                firstWriterState = backAtStartOfSecondTerm;
+            }
 
             //move to look at the value
             // start adding
-            vector<StatePointer> writeValueStates = {doneMoving, makeState()}; // first carry state cannot be reached here but makes the loop below easier
+            vector<StatePointer> writeValueStates = {firstWriterState, makeState()}; // first carry state cannot be reached here but makes the loop below easier
             addThirdToSecond(writeValueStates, l == "<BinarySubtraction>");
             //move back to start of third tape and erase
             StatePointer oldNormalState = *std::next(writeValueStates.end(), -2);
@@ -333,18 +361,17 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         else if(l == "<BinaryVariableCondition>"){
             StatePointer first = currentLineBeginState;
 
-            auto [leftVariableName, variableContainingIndex] = parseVariableLocationContainer(root->children[5]);
-            //TODO right variable to container
-            string rightVariableName = root->children[3]->token->lexeme;
+            auto [leftVariableName, leftVariableContainingIndex] = parseVariableLocationContainer(root->children[5]);
+            auto [rightVariableName, rightVariableContainingIndex] = parseVariableLocationContainer(root->children[3]);
             StatePointer standardDestination = getNextLineStartState();
             int conditionalDestinationLineNumber = parseInteger(root->children[1]);
 
             // seek second variable and copy it to third tape
-            StatePointer moveToValue = MoveToVariableValue(first, rightVariableName);
+            StatePointer moveToValue = MoveToVariableValue(first, rightVariableName, rightVariableContainingIndex);
 
             // if integer
-            StatePointer doneCopying = copyIntegerToThirdTape(moveToValue);
-            StatePointer moveToValue2 = MoveToVariableValue(doneCopying, leftVariableName);
+            StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, true);
+            StatePointer moveToValue2 = MoveToVariableValue(doneCopying, leftVariableName, leftVariableContainingIndex);
             vector<StatePointer> checkValueStates = {moveToValue2};
 
             StatePointer falseEraser = makeState();
@@ -438,7 +465,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<BinaryMultiplication>" || l == "<ImmediateMultiplication>"){
             StatePointer first = currentLineBeginState;
-            string assignedVariableName = root->children[3]->token->lexeme;
+            auto [assignedVariableName, assignedVariableContainingIndex] = parseVariableLocationContainer(root->children[3]);
             StatePointer destination = getNextLineStartState();
             StatePointer sysVarLoaded;
             if(l == "<ImmediateMultiplication>"){
@@ -469,10 +496,10 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
                 }
                 sysVarLoaded = *std::next(writeValueStates1.end(), -1);
             }else{
-                string readVariableName = root->children[1]->token->lexeme;
+                auto [readVariableName, readVariableContainingIndex] = parseVariableLocationContainer(root->children[1]);
                 // copy the multiplier to third tape
-                StatePointer moveToValue = MoveToVariableValue(first, readVariableName);
-                StatePointer doneCopying = copyIntegerToThirdTape(moveToValue);
+                StatePointer moveToValue = MoveToVariableValue(first, readVariableName, readVariableContainingIndex);
+                StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, true);
                 // copy the multiplier to sysvar
                 StatePointer moveToVTB = makeState();
                 postponedTransitionBuffer.emplace_back(doneCopying, moveToVTB, std::set<string>{VariableTapeStart});
@@ -523,8 +550,8 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             }
 
             // put multiplicand on third tape
-            StatePointer moveToValue2 = MoveToVariableValue(sysVarLoaded, assignedVariableName);
-            StatePointer doneCopying2 = copyIntegerToThirdTape(moveToValue2);
+            StatePointer moveToValue2 = MoveToVariableValue(sysVarLoaded, assignedVariableName, assignedVariableContainingIndex);
+            StatePointer doneCopying2 = copyIntegerToThirdTape(moveToValue2, true);
             // erase multiplicand from second tape to start from 0 properly
             StatePointer eraseMultiplicand = makeState();
             postponedTransitionBuffer.emplace_back(doneCopying2, eraseMultiplicand, std::set<string>{"0", "1"}, true);
@@ -882,8 +909,8 @@ TMGenerator::IntegerCompare(const string &variableName, string &binaryComparedVa
 
 void
 TMGenerator::immediateAddition(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
-                               StatePointer &destination) {
-    StatePointer writer1 = MoveToVariableValue(startingState, variableName);
+                               StatePointer &destination, const string &variableContainingIndex) {
+    StatePointer writer1 = MoveToVariableValue(startingState, variableName, variableContainingIndex);
 
     //start adding
     std::vector<StatePointer> writeValueStates = {writer1, makeState()}; // first carry state cannot be reached here but makes the loop below easier
@@ -1105,7 +1132,7 @@ void TMGenerator::addThirdToSecond(vector<StatePointer> &writeValueStates, bool 
 }
 
 // Assumes the tape head is already moved to the variable value
-StatePointer TMGenerator::copyIntegerToThirdTape(StatePointer startState) {
+StatePointer TMGenerator::copyIntegerToThirdTape(StatePointer startState, bool backToStart) {
     //copy to third tape and return to start
     std::vector<StatePointer> copyStates = {startState};
 
@@ -1122,35 +1149,42 @@ StatePointer TMGenerator::copyIntegerToThirdTape(StatePointer startState) {
                                    TransitionImage(copyStates[i+1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Right, Right, Stationary})
                            });
         //prepare return
-        if(i == 0){
-            transitions.insert({
-                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
-                                       TransitionImage(doneCopying, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
-                               });
-            transitions.insert({
-                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
-                                       TransitionImage(doneCopying, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
-                               });
-        }else{
-            transitions.insert({
-                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
-                                       TransitionImage(copyStates[i], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
-                               });
-            transitions.insert({
-                                       TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
-                                       TransitionImage(copyStates[i], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
-                               });
+        if(backToStart){
+            if(i == 0){
+                transitions.insert({
+                                           TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                           TransitionImage(doneCopying, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                           TransitionImage(doneCopying, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
+                                   });
+            }else{
+                transitions.insert({
+                                           TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}),
+                                           TransitionImage(copyStates[i], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
+                                   });
+                transitions.insert({
+                                           TransitionDomain(copyStates[i+1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}),
+                                           TransitionImage(copyStates[i], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Left, Left, Stationary})
+                                   });
+            }
         }
     }
     //the last one is special
+    TMTapeDirection lastDirection = backToStart ? Stationary : Right;
+    StatePointer lastState = backToStart ? copyStates[BINARY_VALUE_WIDTH-1] : makeState();
     transitions.insert({
                                TransitionDomain(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "0", "B", SYMBOL_ANY}),
-                               TransitionImage(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Stationary, Stationary, Stationary})
+                               TransitionImage(lastState, {SYMBOL_ANY, "0", "0", SYMBOL_ANY}, {Stationary, Stationary, lastDirection, Stationary})
                        });
     transitions.insert({
                                TransitionDomain(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "1", "B", SYMBOL_ANY}),
-                               TransitionImage(copyStates[BINARY_VALUE_WIDTH - 1], {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Stationary, Stationary, Stationary})
+                               TransitionImage(lastState, {SYMBOL_ANY, "1", "1", SYMBOL_ANY}, {Stationary, Stationary, lastDirection, Stationary})
                        });
+    if(!backToStart){
+        return lastState;
+    }
     return doneCopying;
 }
 
@@ -1159,9 +1193,9 @@ StatePointer TMGenerator::MoveToVariableValue(StatePointer startState, const str
     StatePointer seekMainVariable;
     if(variableContainingIndex.empty()){
         seekMainVariable = startState;
-    }else{
+    }else{ // for arrays
         StatePointer moved = MoveToVariableValue(startState, variableContainingIndex);
-        StatePointer copied = copyIntegerToThirdTape(moved);
+        StatePointer copied = copyIntegerToThirdTape(moved, true);
         seekMainVariable = copied;
     }
     //search for the tape begin marker
@@ -1191,7 +1225,7 @@ StatePointer TMGenerator::MoveToVariableValue(StatePointer startState, const str
     if(variableContainingIndex.empty()){
         return moveToValue;
     }
-
+    // for arrays
     StatePointer returnToFront = makeState();
     StatePointer startErasing = makeState();
     StatePointer counterDecrement = makeState();
