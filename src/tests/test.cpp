@@ -102,6 +102,10 @@ TEST_F(compilationTest, integerVariables)
 {
     EXPECT_TRUE(testWithinScript("tasm/variables-integers.tasm"));
 }
+TEST_F(compilationTest, arrays)
+{
+    EXPECT_TRUE(testWithinScript("tasm/arrays.tasm"));
+}
 
 TEST_F(generateVoxelsTest, basicVoxelisation){
     const StatePointer startState = std::make_shared<const State>("q0", true);
