@@ -713,7 +713,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
         }
         else if(l == "<ArrayDeclaration>"){
             StatePointer first = currentLineBeginState;
-            string arrayName = root->children[6]->token->lexeme;
+            string arrayName = root->children[8]->token->lexeme;
             int arraySize = parseInteger(root->children[4]);
             int defaultValue = parseInteger(root->children[2]);
             StatePointer destination = getNextLineStartState();
@@ -747,6 +747,63 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             postponedTransitionBuffer.emplace_back(writeValueStates.back(), destination);
             std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
             std::next(postponedTransitionBuffer.end(), -1)->toWrite = VariableTapeEnd;
+        }
+        else if(l == "<RandomInteger>"){
+            StatePointer first = currentLineBeginState;
+            auto [variableName, variableContainingIndex] = parseVariableLocationContainer(root->children[6]);
+            int width = parseInteger(root->children[2]);
+            if(width >= BINARY_VALUE_WIDTH)
+                throw runtime_error("random integer demanded of size larger than what fits in a single variable");
+            StatePointer destination = getNextLineStartState();
+
+            StatePointer moveToValue = MoveToVariableValue(first, variableName, variableContainingIndex);
+            StatePointer writeTemplate0 = makeState();
+            StatePointer writeTemplate1 = makeState();
+            postponedTransitionBuffer.emplace_back(moveToValue, writeTemplate0);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "0";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Right;
+            postponedTransitionBuffer.emplace_back(writeTemplate0, writeTemplate1);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "1";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+
+
+            std::vector<StatePointer> writeValueStates = {writeTemplate1};
+            for (int i = 0; i < width; ++i) {
+                auto previous = std::next(writeValueStates.end(), -1);
+
+                StatePointer choose = makeState();
+                TMTapeProbabilisticDirection stay{{Stationary}, {1}};
+                transitions.insert({
+                                           TransitionDomain(*previous, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}),
+                                           TransitionImage(choose, {SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY, SYMBOL_ANY}, {stay, stay, {{Stationary, Right}, {0.5, 0.5}}, stay})
+                                   });
+                StatePointer write = makeState();
+                for (const string& pick: {"0", "1"}) {
+                    transitions.insert({
+                                               TransitionDomain(choose, {SYMBOL_ANY, SYMBOL_ANY, pick, SYMBOL_ANY}),
+                                               TransitionImage(write, {SYMBOL_ANY, pick, SYMBOL_ANY, SYMBOL_ANY}, {Stationary, Stationary, pick == "1" ? Left : Stationary, Stationary})
+                                       });
+                }
+                StatePointer shift = makeState();
+                postponedTransitionBuffer.emplace_back(write, shift);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 1;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[1] = Right;
+                writeValueStates.push_back(shift);
+            }
+            auto last = *std::next(writeValueStates.end(), -1);
+            StatePointer removeTemplate0 = makeState();
+            StatePointer removeTemplate1 = makeState();
+            postponedTransitionBuffer.emplace_back(last, removeTemplate0);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "B";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Right;
+            postponedTransitionBuffer.emplace_back(removeTemplate0, removeTemplate1);
+            std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+            std::next(postponedTransitionBuffer.end(), -1)->toWrite = "B";
+            std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+            postponedTransitionBuffer.emplace_back(removeTemplate1, destination);
         }
         else{
             cerr << "Instruction " << l << "is currently not supported by the compiler" << endl;

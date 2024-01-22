@@ -35,8 +35,8 @@ namespace TokenMapping {
                          "until",
                          "current",
                          "left", "right", "up", "down", "forwards", "backwards",
-                         "CA", "for", "run", "in"}},
-        {Token_Operator,{"==", "=", "+=", "-=", "*=", "/="}},
+                         "CA", "for", "run", "in", "array", "random"}},
+        {Token_Operator,{"==", "=", "+=", "-=", "*=", "/=", ":="}},
         {Token_Punctuator, {"{","}",";", ",", "'", "[", "]"}}
     };
     const std::pair<std::string, std::string> identifer {"^[A-z][A-z0-9]*$", "Identifier"};

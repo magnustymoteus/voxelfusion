@@ -106,6 +106,11 @@ TEST_F(compilationTest, arrays)
 {
     EXPECT_TRUE(testWithinScript("tasm/arrays.tasm"));
 }
+TEST_F(compilationTest, random)
+{
+    const int confidence = 10;
+    for(int i = 0; i < confidence; i++) EXPECT_TRUE(testWithinScript("tasm/random.tasm"));
+}
 
 TEST_F(generateVoxelsTest, basicVoxelisation){
     const StatePointer startState = std::make_shared<const State>("q0", true);

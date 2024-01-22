@@ -1,4 +1,4 @@
-A {3,1000};
+A := array{3,1000};
 One = 1;
 Two = 2;
 if A[One] == 1000 goto 6;

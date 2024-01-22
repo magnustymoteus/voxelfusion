@@ -85,7 +85,7 @@ public:
                 }
                 if (updateCallback) updateCallback(tapes, changedTapesIndex);
             } else isHalted = true;
-        }
+        } else isHalted = true;
     }
 
 

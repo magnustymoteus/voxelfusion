@@ -1,0 +1,13 @@
+A := array{3, 0};
+index = 2;
+A[index] = random{3};
+if A[index] == 0 goto 13;
+if A[index] == 1 goto 13;
+if A[index] == 2 goto 13;
+if A[index] == 3 goto 13;
+if A[index] == 4 goto 13;
+if A[index] == 5 goto 13;
+if A[index] == 6 goto 13;
+if A[index] == 7 goto 13;
+goto 14;
+accept;
