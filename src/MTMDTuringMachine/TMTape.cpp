@@ -76,7 +76,7 @@ bool TMTape1D::moveTapeHead(const TMTapeDirection &direction) {
 }
 bool TMTape2D::moveTapeHead(const TMTapeDirection &direction) {
     PRECONDITION(cells.size() % 2 == 1);
-    int add = (direction == Down) ? 1 : (direction == Up) ? -1 : 0;
+    int add = (direction == Down) ? -1 : (direction == Up) ? 1 : 0;
     const int subIndex = at(currentIndex).currentIndex;
 
     currentIndex += add;
@@ -91,7 +91,7 @@ bool TMTape2D::moveTapeHead(const TMTapeDirection &direction) {
 }
 bool TMTape3D::moveTapeHead(const TMTapeDirection &direction) {
     PRECONDITION(cells.size() % 2 == 1);
-    int add = (direction == Back) ? 1 : (direction == Front) ? -1 : 0;
+    int add = (direction == Back) ? -1 : (direction == Front) ? 1 : 0;
     const int subIndex = at(currentIndex).currentIndex;
     const int subSubIndex = at(currentIndex).at(subIndex).currentIndex;
 
