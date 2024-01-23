@@ -135,7 +135,9 @@ void Visualisation::rebuild(TMTape3D *tape) {
     for (int x= -greatest3DSize / 2; x <= greatest3DSize / 2; x++) {
         for(int y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
             for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
+                TMTapeUtils::expansionMutex.lock();
                 string symbol = tape->at(x).at(y).at(z).symbol;
+                TMTapeUtils::expansionMutex.unlock();
                 if(symbol != "B"){
                     auto it = colorMap.find(symbol);
                     if(it == colorMap.end()){

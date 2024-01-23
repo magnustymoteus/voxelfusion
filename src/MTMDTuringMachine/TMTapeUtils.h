@@ -8,16 +8,22 @@
 #include <algorithm>
 #include <iostream>
 #include "invariants.h"
+#include <mutex>
 
 namespace TMTapeUtils {
+    // Avoids data races where one thread accesses the tape while it's in the process of expanding
+    inline std::mutex expansionMutex;
+
     int translateIndex(const int &size, const int &index);
     template<class TMTapeElement>
     void expandTape(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int addedSize) {
         PRECONDITION(cells.size() % 2 == 1);
+        expansionMutex.lock();
         for(unsigned int i=0;i<addedSize;i++) {
             cells.insert(cells.begin(), std::make_shared<TMTapeElement>());
             cells.push_back(std::make_shared<TMTapeElement>());
         }
+        expansionMutex.unlock();
         POSTCONDITION(cells.size() % 2 == 1); // the size must always be odd
     }
 
