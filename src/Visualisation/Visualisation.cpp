@@ -129,9 +129,11 @@ void Visualisation::rebuild(TMTape3D *tape) {
     indices.clear();
     //faceColors.clear(); TODO fix adding colors to faces
 
+    TMTapeUtils::expansionMutex.lock();
     const int greatest3DSize = tape->getCells().size();
     const int greatest2DSize = TMTapeUtils::getGreatestSize(tape->getCells());
     const long greatestSize = TMTapeUtils::getGreatestSize(tape->at(0).cells);
+    TMTapeUtils::expansionMutex.unlock();
     for (int x= -greatest3DSize / 2; x <= greatest3DSize / 2; x++) {
         for(int y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
             for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
