@@ -18,6 +18,7 @@ enum TMTapeDirection {Left='L',Right='R',Up='U',Down='D',Front='F',Back='B',Stat
  */
 class TMTapeProbabilisticDirection {
 public:
+
     const std::vector<TMTapeDirection> directions;
     const std::vector<float> probabilities;
 
@@ -31,7 +32,9 @@ public:
 
 
 class TMTape {
+protected:
 public:
+
     virtual ~TMTape() = default;
     virtual std::string getCurrentSymbol() const = 0;
     virtual bool moveTapeHead(const TMTapeDirection &direction) = 0;
@@ -39,8 +42,9 @@ public:
     virtual unsigned int getElementSize() const = 0;
 
     int currentIndex;
+    int zeroAnchor;
 
-    TMTape() : currentIndex(0) {}
+    TMTape() : currentIndex(0), zeroAnchor(0) {}
 };
 class TMTape1D final : public TMTape {
 public:
@@ -57,6 +61,7 @@ public:
 
     TMTapeCell& operator[](const signed int &index);
     TMTapeCell at(const signed int &index) const;
+
 };
 class TMTape2D final : public TMTape {
 public:
@@ -74,6 +79,7 @@ public:
 
     TMTape1D& operator[](const signed int &index);
     TMTape1D at(const signed int &index) const;
+
 };
 class TMTape3D final : public TMTape {
     std::vector<std::shared_ptr<TMTape2D>> cells;
@@ -91,7 +97,8 @@ public:
 
     TMTape2D& operator[](const signed int &index);
     TMTape2D at(const signed int &index) const;
-    const std::vector<std::shared_ptr<TMTape2D>>& getCells(){return cells;};
+    const std::vector<std::shared_ptr<TMTape2D>>& getCells();
+
 };
 typedef std::vector<TMTape*> TMTapes;
 #endif //MTMDTURINGMACHINE_TMTAPE_H

@@ -12,47 +12,42 @@
 
 namespace TMTapeUtils {
     inline std::mutex expansionMutex;
-    int translateIndex(const int &size, const int &index);
-    template<class TMTapeElement>
-    void expandTape(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int addedSize) {
-        std::lock_guard<std::mutex> L{expansionMutex};
-        PRECONDITION(cells.size() % 2 == 1);
-        for(unsigned int i=0;i<addedSize;i++) {
-            cells.insert(cells.begin(), std::make_shared<TMTapeElement>());
-            cells.push_back(std::make_shared<TMTapeElement>());
-        }
-        POSTCONDITION(cells.size() % 2 == 1); // the size must always be odd
-    }
 
     template<class TMTapeElement>
-    TMTapeElement getTapeElementNoExpand(const std::vector<std::shared_ptr<TMTapeElement>> &cells, const int index) {
-        PRECONDITION(cells.size() % 2 == 1);
-        const int size = cells.size();
-        if(-size/2 > index || size/2 < index)
+    TMTapeElement getTapeElementNoExpand(const std::vector<std::shared_ptr<TMTapeElement>> &cells, const int &index, const int &zeroAnchor) {
+        const int upperBound = cells.size()-zeroAnchor-1;
+        if((index >= 0 && upperBound < index) || (-zeroAnchor > index)) {
             return TMTapeElement();
-        POSTCONDITION(cells.size() % 2 == 1);
-        return *cells[translateIndex(cells.size(), index)];
+        }
+        return *cells[index+zeroAnchor];
     }
 
     template<class TMTapeElement>
-    TMTapeElement& getTapeElement(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int index) {
-        PRECONDITION(cells.size() % 2 == 1);
-        const int size = (cells.size());
-        if(-size/2 > index || size/2 < index) {
-            const int amountToInsert = std::abs(index) - (size / 2);
-            expandTape(cells, amountToInsert);
+    TMTapeElement& getTapeElement(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int &index, int &zeroAnchor) {
+        const int upperBound = cells.size()-zeroAnchor-1;
+        if(index >= 0 && upperBound < index) {
+            expansionMutex.lock();
+            for(unsigned int i=0;i<index-upperBound;i++) {
+                cells.insert(cells.end(), std::make_shared<TMTapeElement>());
+            }
+            expansionMutex.unlock();
         }
-        POSTCONDITION(cells.size() % 2 == 1);
-        return *cells[translateIndex(cells.size(), index)];
+        else if(-zeroAnchor > index) {
+            expansionMutex.lock();
+            for(unsigned int i=0;i<(-zeroAnchor-index);i++) {
+                cells.insert(cells.begin(), std::make_shared<TMTapeElement>());
+            }
+            zeroAnchor = -index;
+            expansionMutex.unlock();
+        }
+        return *cells[index+zeroAnchor];
     }
     template<class TMTapeElement>
     int getGreatestSize(const std::vector<std::shared_ptr<TMTapeElement>> &cells) {
-        PRECONDITION(cells.size() % 2 == 1);
         const int greatestSize = static_cast<int>((*std::max_element(cells.begin(), cells.end(),
                                                                      [](const auto &a, const auto &b) {
                                                                          return a->cells.size() < b->cells.size();
                                                                      }))->cells.size());
-        POSTCONDITION(cells.size() % 2 == 1);
         return greatestSize;
     }
     template<class TMTapeElement>

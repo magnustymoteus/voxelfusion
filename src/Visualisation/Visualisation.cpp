@@ -134,9 +134,9 @@ void Visualisation::rebuild(TMTape3D *tape) {
     const int greatest2DSize = TMTapeUtils::getGreatestSize(tape->getCells());
     const long greatestSize = TMTapeUtils::getGreatestSize(tape->at(0).cells);
     TMTapeUtils::expansionMutex.unlock();
-    for (int x= -greatest3DSize / 2; x <= greatest3DSize / 2; x++) {
-        for(int y= -greatest2DSize / 2; y <= greatest2DSize / 2; y++) {
-            for(int z= -greatestSize / 2; z <= greatestSize / 2; z++) {
+    for (int x= -tape->zeroAnchor; x < greatest3DSize; x++) {
+        for(int y= -tape->at(x).zeroAnchor; y < greatest2DSize; y++) {
+            for(int z= -tape->at(x).at(y).zeroAnchor; z < greatestSize; z++) {
                 TMTapeUtils::expansionMutex.lock();
                 string symbol = tape->at(x).at(y).at(z).symbol;
                 TMTapeUtils::expansionMutex.unlock();
