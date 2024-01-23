@@ -140,7 +140,7 @@ void Visualisation::rebuild(TMTape3D *tape) {
                 TMTapeUtils::expansionMutex.lock();
                 string symbol = tape->at(x).at(y).at(z).symbol;
                 TMTapeUtils::expansionMutex.unlock();
-                if(symbol != "B"){
+                if(symbol != "B" && symbol != "BB"){
                     auto it = colorMap.find(symbol);
                     if(it == colorMap.end()){
                         it = colorMap.find("default");
