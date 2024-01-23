@@ -5,35 +5,51 @@
 #define SCREEN_HEIGHT 800
 
 vector<GLfloat> baseVertices = {
-        1, 0, 0,
-        0, 1, 0,
-        1, 1, 1,
-        0, 0, 1,
-        1, 1, 0,
-        0, 0, 0,
-        1, 0, 1,
-        0, 1, 1,
+        0, 0, 0,    0, -1, 0, //face 0
+        1, 0, 0,    0, -1, 0,
+        1, 0, 1,    0, -1, 0,
+        0, 0, 1,    0, -1, 0,
+        0, 1, 0,    -1, 0, 0, //face 1
+        0, 0, 0,    -1, 0, 0,
+        0, 0, 1,    -1, 0, 0,
+        0, 1, 1,    -1, 0, 0,
+        0, 1, 1,    0, 0, 1, //face 2
+        0, 0, 1,    0, 0, 1,
+        1, 0, 1,    0, 0, 1,
+        1, 1, 1,    0, 0, 1,
+        1, 0, 0,    1, 0, 0, //face 3
+        1, 1, 0,    1, 0, 0,
+        1, 1, 1,    1, 0, 0,
+        1, 0, 1,    1, 0, 0,
+        1, 1, 0,    0, 1, 0, //face 4
+        0, 1, 0,    0, 1, 0,
+        0, 1, 1,    0, 1, 0,
+        1, 1, 1,    0, 1, 0,
+        1, 0, 0,    0, 0, -1, //face 5
+        0, 0, 0,    0, 0, -1,
+        0, 1, 0,    0, 0, -1,
+        1, 1, 0,    0, 0, -1
 };
 
 vector<GLuint> baseIndices = {
-        0, 4, 2,
-        0, 2, 6,
-        4, 1, 7,
-        4, 7, 2,
-        1, 5, 3,
-        1, 3, 7,
-        5, 0, 6,
-        5, 6, 3,
-        6, 2, 7,
-        6, 7, 3,
-        0, 5, 1,
-        0, 1, 4
+        0, 1, 2,
+        0, 2, 3,
+        4, 5, 6,
+        4, 6, 7,
+        8, 9, 10,
+        8, 10, 11,
+        12, 13, 14,
+        12, 14, 15,
+        16, 17, 18,
+        16, 18, 19,
+        20, 21, 22,
+        20, 22, 23
 };
 
 void
 createCube(vector<GLfloat> &vertices, vector<GLuint> &indices, int x, int y, int z, float scale, const Color &color) {
-    int startingIndex = vertices.size()/7;
-    for(unsigned int i = 0; i < baseVertices.size(); i += 3)
+    int startingIndex = vertices.size()/10;
+    for(unsigned int i = 0; i < baseVertices.size(); i += 6)
     {
         vertices.push_back(baseVertices[i] * scale + x);
         vertices.push_back(baseVertices[i+1] * scale + y);
@@ -42,6 +58,9 @@ createCube(vector<GLfloat> &vertices, vector<GLuint> &indices, int x, int y, int
         vertices.push_back(color.g);
         vertices.push_back(color.b);
         vertices.push_back(color.a);
+        vertices.push_back(baseVertices[i+3]); // normals
+        vertices.push_back(baseVertices[i+4]);
+        vertices.push_back(baseVertices[i+5]);
     }
     for (unsigned int i = 0; i < baseIndices.size(); i++)
     {
@@ -79,8 +98,9 @@ FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
     glEnable(GL_DEPTH_TEST);
 
     camera = new Camera(SCREEN_WIDTH, SCREEN_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
-
     shaderProgram->Activate();
+    glUniform4f(glGetUniformLocation(shaderProgram->ID, "sunColor"), sunColor.r, sunColor.g, sunColor.b, sunColor.a);
+    glUniform3f(glGetUniformLocation(shaderProgram->ID, "sunPosition"), sunPosition.x, sunPosition.y, sunPosition.z);
 }
 bool Visualisation::update() {
     if (glfwWindowShouldClose(window)) return false;
@@ -136,8 +156,9 @@ void Visualisation::rebuild(TMTape3D *tape) {
         EBO = new ElementBuffer(&indices[0], indices.size() * sizeof(GLfloat));
 
         EBO->Bind();
-        VAO->LinkVertexBufferAttribute(*VBO, 0, 3, GL_FLOAT, 7 * sizeof(GLfloat), (void *) 0);
-        VAO->LinkVertexBufferAttribute(*VBO, 1, 4, GL_FLOAT, 7 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
+        VAO->LinkVertexBufferAttribute(*VBO, 0, 3, GL_FLOAT, 10 * sizeof(GLfloat), (void *) 0);
+        VAO->LinkVertexBufferAttribute(*VBO, 1, 4, GL_FLOAT, 10 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
+        VAO->LinkVertexBufferAttribute(*VBO, 2, 3, GL_FLOAT, 10 * sizeof(GLfloat), (void *) (7 * sizeof(GLfloat)));
 
     }else{
         VAO->Bind();
@@ -167,7 +188,7 @@ void Visualisation::exportMesh(const string &filename) {
 //        objFile << "newmtl " << color.first << '\n';
 //        objFile << "Ka " << color.second.r << " " << color.second.g << " " << color.second.b << '\n';
 //    }
-    for (int i = 0; i < vertices.size(); i+=7) {
+    for (int i = 0; i < vertices.size(); i+=10) {
         objFile << "v " << vertices[i] << " " << vertices[i + 1] << " " << vertices[i + 2] << "\n";
     }
     int elementsPerCube = baseIndices.size() * 3;

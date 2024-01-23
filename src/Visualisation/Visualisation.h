@@ -46,6 +46,9 @@ class Visualisation {
     float nearPlane;
     float farPlane;
     const map<string, Color>& colorMap;
+    glm::vec4 sunColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    glm::vec3 sunPosition = glm::vec3(1.0f, 1.0f, 1.0f);
+
 public:
     Visualisation(float fov, float nearPlane, float farPlane, map<string, Color>& colorMap);
     bool update();
