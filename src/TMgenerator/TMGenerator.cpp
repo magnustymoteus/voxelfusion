@@ -831,8 +831,6 @@ void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &
     std::string yString = IntegerAsBitString(y);
     std::string zString = IntegerAsBitString(z);
 
-    std::string increment = IntegerAsBitString(1);
-    std::string decrement = IntegerAsBitString(1, true);
     StatePointer initX = makeState();
     StatePointer initY = makeState();
     std::string zero = IntegerAsBitString(0);
@@ -848,7 +846,7 @@ void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &
     moveMultipleTapes(Front, thingEnd, moveForward, tapesToMove);
     // increment X var
     StatePointer incrementX = makeState();
-    immediateAddition("Xcounter", increment, moveForward, incrementX);
+    optimizedIncrement("Xcounter", moveForward, incrementX, false);
 
 
     StatePointer yCheck = makeState();
@@ -861,9 +859,9 @@ void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &
     StatePointer yIncrement = makeState();
     StatePointer startXReset = makeState();
     moveMultipleTapes(Right, shiftY, yIncrement, tapesToMove);
-    immediateAddition("Ycounter", increment, yIncrement, startXReset);
+    optimizedIncrement("Ycounter", yIncrement, startXReset, false);
     StatePointer xDecrement = makeState();
-    immediateAddition("Xcounter", decrement, startXReset, xDecrement);
+    optimizedIncrement("Xcounter", startXReset, xDecrement, true);
     StatePointer xMove = makeState();
     moveMultipleTapes(Back, xDecrement, xMove, tapesToMove);
     IntegerCompare("Xcounter", zero, startXReset, 0, xMove, yCheck);
@@ -875,9 +873,9 @@ void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &
     StatePointer zIncrement = makeState();
     StatePointer startYReset = makeState();
     moveMultipleTapes(Up, shiftZ, zIncrement, tapesToMove);
-    immediateAddition("Zcounter", increment, zIncrement, startYReset);
+    optimizedIncrement("Zcounter", zIncrement, startYReset, false);
     StatePointer yDecrement = makeState();
-    immediateAddition("Ycounter", decrement, startYReset, yDecrement);
+    optimizedIncrement("Ycounter", startYReset, yDecrement, true);
     StatePointer yMove = makeState();
     moveMultipleTapes(Left, yDecrement, yMove, tapesToMove);
     IntegerCompare("Ycounter", zero, startYReset, 0, yMove, zCheck);
@@ -888,7 +886,7 @@ void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &
     StatePointer startZReset = makeState();
     StatePointer zDecrement = makeState();
     moveMultipleTapes(Down, backDown, startZReset, tapesToMove);
-    immediateAddition("Zcounter", decrement, startZReset, zDecrement);
+    optimizedIncrement("Zcounter", startZReset, zDecrement, true);
     StatePointer zMove = makeState();
     IntegerCompare("Zcounter", zero, backDown, 0, zDecrement, destination);
 }
@@ -1021,6 +1019,50 @@ TMGenerator::immediateAddition(const string &variableName, string &binaryAddedVa
     postponedTransitionBuffer.emplace_back(oldCarryState, destination);
     postponedTransitionBuffer.back().tape = 1;
     postponedTransitionBuffer.back().directions[1] = Stationary;
+}
+// only works for single variables that definitely exist, not arrays
+//also, overflows are not handled so will break everything
+void TMGenerator::optimizedIncrement(const string &variableName, StatePointer &startingState,
+                               StatePointer &destination, bool decrement){
+    StatePointer moved = MoveToVariableValue(startingState, variableName);
+
+    if(decrement){
+        StatePointer borrowing = makeState();
+        postponedTransitionBuffer.emplace_back(moved, destination, std::set<string>{"1"}, true);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().directions[1] = Right;
+        postponedTransitionBuffer.back().toWrite = "0";
+        postponedTransitionBuffer.emplace_back(moved, borrowing, std::set<string>{"0"}, true);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().directions[1] = Right;
+        postponedTransitionBuffer.back().toWrite = "1";
+        postponedTransitionBuffer.emplace_back(borrowing, borrowing, std::set<string>{"0"}, true);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().directions[1] = Right;
+        postponedTransitionBuffer.back().toWrite = "1";
+        postponedTransitionBuffer.emplace_back(borrowing, destination, std::set<string>{"1"}, true);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().directions[1] = Right;
+        postponedTransitionBuffer.back().toWrite = "0";
+    }else{
+        StatePointer carrying = makeState();
+        postponedTransitionBuffer.emplace_back(moved, destination, std::set<string>{"0"}, true);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().directions[1] = Right;
+        postponedTransitionBuffer.back().toWrite = "1";
+        postponedTransitionBuffer.emplace_back(moved, carrying, std::set<string>{"1"}, true);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().directions[1] = Right;
+        postponedTransitionBuffer.back().toWrite = "0";
+        postponedTransitionBuffer.emplace_back(carrying, carrying, std::set<string>{"1"}, true);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().directions[1] = Right;
+        postponedTransitionBuffer.back().toWrite = "0";
+        postponedTransitionBuffer.emplace_back(carrying, destination, std::set<string>{"0"}, true);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().directions[1] = Right;
+        postponedTransitionBuffer.back().toWrite = "1";
+    }
 }
 
 void

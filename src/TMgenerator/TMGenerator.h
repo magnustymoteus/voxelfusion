@@ -94,6 +94,7 @@ public:
                                     const vector<int> &tapesToMove);
 
     void updateHistoryTape(int x, int y, int z, StatePointer &beginState, StatePointer &endState);
+    void optimizedIncrement(const string &variableName, StatePointer &startingState, StatePointer &destination, bool decrement);
 };
 
 
