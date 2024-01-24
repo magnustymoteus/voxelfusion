@@ -64,7 +64,7 @@ protected:
         compile(codePath, tm);
 
         int counter = 0;
-        while(!tm->isHalted && counter < 79119){ //prevent non-halting tests
+        while(!tm->isHalted && counter < 264332){ //prevent non-halting tests
             tm->doTransition();
             counter++;
         }
