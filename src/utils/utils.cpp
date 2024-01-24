@@ -300,7 +300,7 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
     for(unsigned x = 0; x != xi; x++){
         for(unsigned y = 0; y != yi; y++){
             PerlinNoise p;
-            double P = 0.5*yi*(-0.5 + p.noise2d(scale*x,scale*y));
+            double P = yi*(p.noise2d(scale*x,scale*y));
             int height = std::abs(P) + 1;
             //std::cout << height << ", H: " << H << ", P: " << P << std::endl;
             for(auto f = 0; f != height && f != yi ; f++){
@@ -428,7 +428,7 @@ std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSt
         getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
         // Step 3: Replace the macros
         code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceX - (CASizeX/2)))));
-        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 3 + 1))));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 3 + 2))));
         code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceZ - (CASizeZ/2)))));
     }else{
         // Step 3: Replace the macros
@@ -441,7 +441,7 @@ std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSt
     code = std::regex_replace(code, std::regex("#CA_Z_SIZE"), std::to_string(CASizeZ));
     code = std::regex_replace(code, std::regex("#NUMBER_OF_STEPS"), std::to_string(numberOfSteps));
     // Step 4: place the water source
-    tape[waterSourceX][waterSourceY+3][waterSourceZ].symbol = "W";
+    tape[waterSourceX][waterSourceY+4][waterSourceZ].symbol = "W";
     std::cout << code << std::endl;
     // Step 5: return the code
     return code;
