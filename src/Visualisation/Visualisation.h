@@ -48,7 +48,18 @@ class Visualisation {
     ImVec4 backgroundColor{0.07f, 0.13f, 0.17f, 1.0f};
     unique_ptr<TMTape3D> tape;
     unique_ptr<thread> TMworker;
+    unique_ptr<thread> objLoader;
+    const string tasmBasePath = "tasm/";
+    const string objBasePath = "objs/";
+    vector<string> tasmPaths;
+    vector<string> objPaths;
+    vector<bool> tasmPathsSelected;
+    vector<bool> objPathsSelected;
+    string selectedTasmPath;
+    string selectedObjPath;
 
+    inline static std::atomic<bool> tmRunning = false;
+    inline static std::atomic<bool> objLoaderRunning = false;
 public:
     inline static std::atomic<bool> updateFlag = false;
     Visualisation(float fov, float nearPlane, float farPlane, map<string, Color>& colorMap);
@@ -58,4 +69,10 @@ public:
     ~Visualisation();
     void imguiBeginFrame() const;
     void imguiDrawAndHandleFrame();
+    void killAndWaitForTMworker();
+    void killAndWaitForOBJloader();
+
+    void runTM();
+
+    void resetTape();
 };

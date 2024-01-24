@@ -9,6 +9,7 @@
 #include "string"
 #include "TMgenerator/TMGenerator.h"
 #include "MTMDTuringMachine/MTMDTuringMachine.h"
+#include "utils.h"
 
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 800
@@ -58,53 +59,66 @@ FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
 
     rebuild(nullptr);
 
-    TMworker = make_unique<thread>([this]{
-        // Step 1: read tasm code
-        string code;
-        string line;
-        ifstream input ("tasm/water-physics.tasm");
-        if (input.is_open())
-        {
-            while ( getline (input, line) )
-            {
-                code += line;
-            }
-            input.close();
-        }
-        // Step 2: get the lexicon of the code
-        Lexer lexer(code);
-        lexer.print();
-        // Step 3: parse the code
-        // Step 3.3: import parse table
-        LALR1Parser parser;
-        parser.importTable("parsingTable.json");
-        // Step 3.4: parse the table
-        const std::shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
-        // Step 3.5 (optional) export dot visualization
-        root->exportVisualization("test.dot");
-        // Step 4: Create and assemble all tapes
-        tape = make_unique<TMTape3D>();
-        auto *varTape {new TMTape1D()};
-        auto *tempVarTape {new TMTape1D()};
-        auto *historyTape {new TMTape3D()};
-        auto tapes = std::make_tuple(tape.get(), varTape, tempVarTape, historyTape);
-        std::set<std::string> tapeAlphabet = {"B", "GW", "W", "G"};
-        std::set<StatePointer> states;
-        map<TransitionDomain, TransitionImage> transitions;
-        // Step 4.2: put tasm on the tapes
-        TMGenerator generator{tapeAlphabet, transitions, states, true};
-        generator.assembleTasm(root);
-        FiniteControl control(states, transitions);
-        MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D> tm(tapeAlphabet, tapeAlphabet, tapes, control, updateVisualisation);
 
-
-        tm.doTransitions();
-        delete varTape;
-        delete tempVarTape;
-        delete historyTape;
-    });
-
+    for (const auto & entry : std::filesystem::directory_iterator(tasmBasePath)){
+        tasmPaths.push_back(entry.path());
+        tasmPathsSelected.push_back(false);
+    }
+    tasmPathsSelected.reserve(tasmPaths.size());
+    for (const auto & entry : std::filesystem::directory_iterator(objBasePath)){
+        objPaths.push_back(entry.path());
+        objPathsSelected.push_back(false);
+    }
 }
+
+void Visualisation::runTM() {
+    assert(tmRunning == false && tape != nullptr);
+    tmRunning = true;
+    // Step 1: read tasm code
+    string code;
+    string line;
+    ifstream input (selectedTasmPath);
+    if (input.is_open())
+    {
+        while ( getline (input, line) )
+        {
+            code += line;
+        }
+        input.close();
+    }
+    // Step 2: get the lexicon of the code
+    Lexer lexer(code);
+    lexer.print();
+    // Step 3: parse the code
+// Step 3.3: import parse table
+    LALR1Parser parser;
+    parser.importTable("parsingTable.json");
+    // Step 3.4: parse the table
+    const shared_ptr<STNode>& root = parser.parse(lexer.getTokenizedInput());
+    // Step 4: Create and assemble all tapes
+    auto *varTape {new TMTape1D()};
+    auto *tempVarTape {new TMTape1D()};
+    auto *historyTape {new TMTape3D()};
+    auto tapes = make_tuple(tape.get(), varTape, tempVarTape, historyTape);
+    set<string> tapeAlphabet = {"B", "GW", "W", "G"};
+    set<StatePointer> states;
+    map<TransitionDomain, TransitionImage> transitions;
+    // Step 4.2: put tasm on the tapes
+    TMGenerator generator{tapeAlphabet, transitions, states, true};
+    generator.assembleTasm(root);
+    FiniteControl control(states, transitions);
+    MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D> tm(tapeAlphabet, tapeAlphabet, tapes, control, updateVisualisation);
+
+
+    while(!tm.isHalted && tmRunning){
+        tm.doTransition();
+    }
+    delete varTape;
+    delete tempVarTape;
+    delete historyTape;
+    tmRunning = false;
+}
+
 bool Visualisation::update() {
     if (glfwWindowShouldClose(window)) return false;
     glfwPollEvents();
@@ -145,19 +159,49 @@ bool Visualisation::update() {
 void Visualisation::imguiDrawAndHandleFrame() {
     ImGui::Begin("VoxelFusion Control Panel");
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    if(objLoaderRunning){
+        ImGui::Text("Loading OBJ...");
+    }
+    if(tmRunning){
+        ImGui::Text("Running TASM...");
+    }
     if (ImGui::TreeNode("Import model"))
     {
-        ImGui::BeginChild("Scrolling");
-        for (int n = 0; n < 50; n++)
-            ImGui::Text("%04d: Some text", n);
+        ImGui::BeginChild("Pick a model");
+        for (int i = 0; i < objPaths.size(); i++){
+            if (ImGui::Selectable(objPaths[i].c_str(), objPathsSelected[i], ImGuiSelectableFlags_AllowDoubleClick))
+                if (ImGui::IsMouseDoubleClicked(0)) {
+                    selectedObjPath = objPaths[i];
+                    killAndWaitForTMworker();
+                    killAndWaitForOBJloader();
+                    if(tape == nullptr) tape = make_unique<TMTape3D>();
+                    objLoader = make_unique<thread>([this]{
+                        assert(objLoaderRunning == false && tape != nullptr && !selectedObjPath.empty());
+                        objLoaderRunning = true;
+                        utils::objToTape(selectedObjPath, *tape, 0.1, "A");
+                        updateFlag = true;
+                        objLoaderRunning = false;
+                    });
+                    cout << "Double clicked" << endl;
+                }
+        }
         ImGui::EndChild();
         ImGui::TreePop();
     }
     if (ImGui::TreeNode("Run TASM"))
     {
-        ImGui::BeginChild("Scrolling");
-        for (int n = 0; n < 50; n++)
-            ImGui::Text("%04d: Some text", n);
+        ImGui::BeginChild("Pick a script");
+        for (int i = 0; i < tasmPaths.size(); i++){
+            if (ImGui::Selectable(tasmPaths[i].c_str(), tasmPathsSelected[i], ImGuiSelectableFlags_AllowDoubleClick))
+                if (ImGui::IsMouseDoubleClicked(0)){
+                    selectedTasmPath = tasmPaths[i];
+                    if (tape == nullptr) tape = make_unique<TMTape3D>();
+                    TMworker = make_unique<thread>([this]{
+                        runTM();
+                    });
+                    cout << "Double clicked" << endl;
+                }
+        }
         ImGui::EndChild();
         ImGui::TreePop();
     }
@@ -165,12 +209,12 @@ void Visualisation::imguiDrawAndHandleFrame() {
     {
         if (ImGui::Button("Reset tape")){
             cout << "Button pressed" << endl;
-            tape = nullptr;
+            resetTape();
             rebuild(nullptr);
         }
         ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Light"))
+    if (ImGui::TreeNode("Light & background"))
     {
         ImGui::DragFloat3("Sun location", sunLocation, 1);
         ImGui::ColorEdit3("Sun light color", (float*)&sunColor);
@@ -183,6 +227,12 @@ void Visualisation::imguiDrawAndHandleFrame() {
     ImGui::Render();
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Visualisation::resetTape() {
+    killAndWaitForTMworker();
+    killAndWaitForOBJloader();
+    tape = nullptr;
 }
 
 void Visualisation::imguiBeginFrame() const {
@@ -247,7 +297,8 @@ void Visualisation::rebuild(TMTape3D *tape) {
 
 Visualisation::~Visualisation() {
 
-    TMworker->join();
+    killAndWaitForTMworker();
+    killAndWaitForOBJloader();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -263,6 +314,18 @@ Visualisation::~Visualisation() {
 
 void Visualisation::run() {
     while(update());
+}
+
+void Visualisation::killAndWaitForTMworker() {
+    tmRunning = false;
+    if(TMworker) TMworker->join();
+    TMworker = nullptr;
+}
+
+void Visualisation::killAndWaitForOBJloader() {
+    objLoaderRunning = false;
+    if (objLoader) objLoader->join();
+    objLoader = nullptr;
 }
 
 Color::Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}
