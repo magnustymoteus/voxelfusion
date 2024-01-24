@@ -1037,7 +1037,6 @@ void TMGenerator::currentIntoVariable(const string &variableName, const StatePoi
     for (const string& symbolToWrite: tapeAlphabet) {
         if(symbolToWrite == VariableTapeEnd) continue;
         // option 1: variable name found: overwrite current value, whatever it is
-        StatePointer writer = makeState();
         for(const string& ignoredSymbol: tapeAlphabet){
             if(ignoredSymbol == VariableTapeEnd) continue;
             vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
@@ -1046,26 +1045,9 @@ void TMGenerator::currentIntoVariable(const string &variableName, const StatePoi
             *std::next(replacement.begin(), tapeIndex) = symbolToWrite;
             transitions.insert({
                                        TransitionDomain(goRight, replaced),
-                                       TransitionImage(writer, replacement, {Stationary, Stationary, Stationary, Stationary})
+                                       TransitionImage(destination, replacement, {Stationary, Right, Stationary, Stationary}) // move right for a chance that the next variable sought is there
                                });
         }
-
-        for(const string& ignoredSymbol: tapeAlphabet){
-            if(ignoredSymbol == symbolToWrite) continue;
-            vector<string> replaced = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
-            vector<string> replacement = {SYMBOL_ANY, symbolToWrite, SYMBOL_ANY, SYMBOL_ANY};
-            *std::next(replaced.begin(), tapeIndex) = symbolToWrite;
-            transitions.insert({
-                                       TransitionDomain(writer, replaced),
-                                       TransitionImage(writer, replacement, {Stationary, Stationary, Stationary, Stationary})
-                               });
-        }
-        vector<string> replaced3 = {SYMBOL_ANY, symbolToWrite, SYMBOL_ANY, SYMBOL_ANY};
-        *std::next(replaced3.begin(), tapeIndex) = symbolToWrite;
-        transitions.insert({
-                                   TransitionDomain(writer, replaced3),
-                                   TransitionImage(destination, replaced3, {Stationary, Right, Stationary, Stationary})
-                           });
         // option 2: tape end found: overwrite it and put a new tape end to the right
         StatePointer writeName = makeState();
         //write the name
@@ -1087,23 +1069,10 @@ void TMGenerator::currentIntoVariable(const string &variableName, const StatePoi
                                    TransitionDomain(writeName, replaced6),
                                    TransitionImage(writeValue, replaced7, {Stationary, Right, Stationary, Stationary})
                            });
-        for(const string& ignoredSymbol: tapeAlphabet){
-            if(ignoredSymbol == VariableTapeEnd) continue;
-            vector<string> replaced8 = {SYMBOL_ANY, ignoredSymbol, SYMBOL_ANY, SYMBOL_ANY};
-            vector<string> replaced9 = {SYMBOL_ANY, VariableTapeEnd, SYMBOL_ANY, SYMBOL_ANY};
-            *std::next(replaced8.begin(), tapeIndex) = symbolToWrite;
-            *std::next(replaced9.begin(), tapeIndex) = symbolToWrite;
-            transitions.insert({
-                                       TransitionDomain(writeValue, replaced8),
-                                       TransitionImage(writeValue, replaced9, {Stationary, Stationary, Stationary, Stationary})
-                               });
-        }
-        vector<string> replaced10 = {SYMBOL_ANY, VariableTapeEnd, SYMBOL_ANY, SYMBOL_ANY};
-        *std::next(replaced10.begin(), tapeIndex) = symbolToWrite;
-        transitions.insert({
-                                   TransitionDomain(writeValue, replaced10),
-                                   TransitionImage(destination, replaced10, {Stationary, Stationary, Stationary, Stationary})
-                           });
+        postponedTransitionBuffer.emplace_back(writeValue, destination);
+        postponedTransitionBuffer.back().tape = 1;
+        postponedTransitionBuffer.back().toWrite = VariableTapeEnd;
+        postponedTransitionBuffer.back().directions[1] = Left; // the variable tape end is never going to be sought after directly
     }
 }
 
