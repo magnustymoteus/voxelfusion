@@ -79,6 +79,7 @@ void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
     tapeAlphabet.insert(VariableTapeEnd);
     tapeAlphabet.insert("0");
     tapeAlphabet.insert("1");
+    tapeAlphabet.insert("BB");
     tapeAlphabet.insert("Left");
     tapeAlphabet.insert("Right");
     tapeAlphabet.insert("Up");

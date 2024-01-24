@@ -57,6 +57,8 @@ class Visualisation {
     vector<bool> objPathsSelected;
     string selectedTasmPath;
     string selectedObjPath;
+    int transitionsMadeLast = 0;
+    bool cachedTMRunning = false;
 
     inline static std::atomic<bool> tmRunning = false;
     inline static std::atomic<bool> objLoaderRunning = false;

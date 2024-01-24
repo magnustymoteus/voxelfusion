@@ -74,6 +74,7 @@ FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
 void Visualisation::runTM() {
     assert(tmRunning == false && tape != nullptr);
     tmRunning = true;
+    cachedTMRunning = true;
     // Step 1: read tasm code
     string code;
     string line;
@@ -109,14 +110,21 @@ void Visualisation::runTM() {
     FiniteControl control(states, transitions);
     MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D> tm(tapeAlphabet, tapeAlphabet, tapes, control, updateVisualisation);
 
-
-    while(!tm.isHalted && tmRunning){
+    transitionsMadeLast = 0;
+    int currentTransitionsMade = 0;
+    while(!tm.isHalted){
         tm.doTransition();
+        currentTransitionsMade++;
+        if(currentTransitionsMade % 50 == 0){
+            if(!tmRunning) break;
+        }
     }
+    transitionsMadeLast = currentTransitionsMade;
     delete varTape;
     delete tempVarTape;
     delete historyTape;
     tmRunning = false;
+    cachedTMRunning = false;
 }
 
 bool Visualisation::update() {
@@ -162,8 +170,12 @@ void Visualisation::imguiDrawAndHandleFrame() {
     if(objLoaderRunning){
         ImGui::Text("Loading OBJ...");
     }
-    if(tmRunning){
+
+    if(cachedTMRunning){
         ImGui::Text("Running TASM...");
+    }
+    if(transitionsMadeLast > 0){
+        ImGui::Text("Transitions made in last TM run: %d", transitionsMadeLast);
     }
     if (ImGui::TreeNode("Import model"))
     {
@@ -196,6 +208,8 @@ void Visualisation::imguiDrawAndHandleFrame() {
                 if (ImGui::IsMouseDoubleClicked(0)){
                     selectedTasmPath = tasmPaths[i];
                     if (tape == nullptr) tape = make_unique<TMTape3D>();
+                    killAndWaitForOBJloader();
+                    killAndWaitForTMworker();
                     TMworker = make_unique<thread>([this]{
                         runTM();
                     });
