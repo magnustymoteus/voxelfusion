@@ -16,7 +16,7 @@ file(GLOB_RECURSE TM_GENERATION src/TMgenerator/*.cpp)
 file(GLOB_RECURSE OBJ_PARSER src/OBJParser/*.cpp src/OBJParser/*.h)
 list(APPEND VISUALISATION src/lib/glad/src/glad.c)
 
-include_directories(src src/lib src/lib/glad/include src/utils)
+include_directories(src src/lib src/lib/glad/include src/utils src/lib/imgui)
 
 if (WIN32)
     list(APPEND CMAKE_PREFIX_PATH "src/lib/GLFW/lib/cmake")
