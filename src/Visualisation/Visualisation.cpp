@@ -115,9 +115,11 @@ void Visualisation::runTM() {
     while(!tm.isHalted){
         tm.doTransition();
         currentTransitionsMade++;
+#ifdef ALLOW_TM_PREEMPTION // this slows down very large TASM scripts because of mutex locking and unlocking
         if(currentTransitionsMade % 50 == 0){
             if(!tmRunning) break;
         }
+#endif
     }
     transitionsMadeLast = currentTransitionsMade;
     delete varTape;
