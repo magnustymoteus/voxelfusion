@@ -48,9 +48,9 @@ class Visualisation {
     ImVec4 backgroundColor{0.07f, 0.13f, 0.17f, 1.0f};
     unique_ptr<TMTape3D> tape;
     unique_ptr<thread> TMworker;
-    std::atomic<bool> updateFlag = false;
 
 public:
+    inline static std::atomic<bool> updateFlag = false;
     Visualisation(float fov, float nearPlane, float farPlane, map<string, Color>& colorMap);
     bool update();
     void rebuild(TMTape3D *tape);

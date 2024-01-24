@@ -15,7 +15,6 @@ file(GLOB_RECURSE UTILS src/utils/*.cpp src/utils/*.cc)
 file(GLOB_RECURSE TM_GENERATION src/TMgenerator/*.cpp)
 file(GLOB_RECURSE OBJ_PARSER src/OBJParser/*.cpp src/OBJParser/*.h)
 list(APPEND VISUALISATION src/lib/glad/src/glad.c)
-file(GLOB_RECURSE IMGUI src/lib/imgui/*.cpp)
 
 include_directories(src src/lib src/lib/glad/include src/utils src/lib/imgui)
 

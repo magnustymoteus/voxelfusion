@@ -13,9 +13,9 @@
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 800
 
-void updateVisualisation(const std::tuple<TMTape3D*, TMTape1D*, TMTape1D*, TMTape3D*> & tapes, const std::vector<unsigned int> changedTapesIndices, std::atomic<bool>& updateFlag) {
+void updateVisualisation(const std::tuple<TMTape3D*, TMTape1D*, TMTape1D*, TMTape3D*> & tapes, const std::vector<unsigned int> changedTapesIndices) {
     if (std::find(changedTapesIndices.begin(), changedTapesIndices.end(), 0) == changedTapesIndices.end()) return;
-    updateFlag = true;
+    Visualisation::updateFlag = true;
 }
 
 Visualisation::Visualisation(float fov, float nearPlane, float farPlane, map<string, Color>& colorMap) :
@@ -95,7 +95,7 @@ FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
         TMGenerator generator{tapeAlphabet, transitions, states, true};
         generator.assembleTasm(root);
         FiniteControl control(states, transitions);
-        MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D> tm(tapeAlphabet, tapeAlphabet, tapes, control, updateFlag, updateVisualisation);
+        MTMDTuringMachine<TMTape3D, TMTape1D, TMTape1D, TMTape3D> tm(tapeAlphabet, tapeAlphabet, tapes, control, updateVisualisation);
 
 
         tm.doTransitions();

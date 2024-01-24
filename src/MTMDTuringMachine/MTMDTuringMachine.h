@@ -33,19 +33,16 @@ protected:
 
     bool hasAccepted;
 
-    std::atomic<bool>& updateFlag;
-
-    void (*updateCallback) (const std::tuple<TMTapeType*...> &, const std::vector<unsigned int>, std::atomic<bool>&);
+    void (*updateCallback) (const std::tuple<TMTapeType*...> &, const std::vector<unsigned int>);
 public:
     bool isHalted;
     MTMDTuringMachine(const std::set<std::string> &tapeAlphabet,
                       const std::set<std::string> &inputAlphabet,
                       const std::tuple<TMTapeType*...> &tapes,
                       const FiniteControl &control,
-                      std::atomic<bool>& updateFlag,
-                      void (*updateCallback) (const std::tuple<TMTapeType*...> &, const std::vector<unsigned int>, std::atomic<bool>&) = nullptr) :
+                      void (*updateCallback) (const std::tuple<TMTapeType*...> &, const std::vector<unsigned int>) = nullptr) :
             tapeAlphabet(tapeAlphabet), inputAlphabet(inputAlphabet),
-            tapes(tapes), tapeCount(sizeof...(TMTapeType)), control(control), updateFlag(updateFlag),
+            tapes(tapes), tapeCount(sizeof...(TMTapeType)), control(control),
             updateCallback(updateCallback),
             isHalted(false), hasAccepted(false){
         static_assert(std::conjunction<std::is_base_of<TMTape,TMTapeType>...>(), "TM must only be given tapes!");
@@ -86,7 +83,7 @@ public:
                     isHalted = true;
                     if (control.currentState->type == State_Accepting) hasAccepted = true;
                 }
-                if (updateCallback) updateCallback(tapes, changedTapesIndex, updateFlag);
+                if (updateCallback) updateCallback(tapes, changedTapesIndex);
             } else isHalted = true;
         } else isHalted = true;
     }
