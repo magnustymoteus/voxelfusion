@@ -371,9 +371,36 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             StatePointer moveToValue = MoveToVariableValue(first, rightVariableName, rightVariableContainingIndex);
 
             // if integer
-            StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, true);
-            StatePointer moveToValue2 = MoveToVariableValue(doneCopying, leftVariableName, leftVariableContainingIndex);
-            vector<StatePointer> checkValueStates = {moveToValue2};
+            StatePointer firstCheckerState;
+            if(leftVariableContainingIndex == ""){
+                StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, true);
+                firstCheckerState = MoveToVariableValue(doneCopying, leftVariableName, leftVariableContainingIndex);
+            }else{
+                StatePointer doneCopying = copyIntegerToThirdTape(moveToValue, false);
+                StatePointer thirdTapeSeparator = makeState();
+                postponedTransitionBuffer.emplace_back(doneCopying, thirdTapeSeparator);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Right;
+                // seek first variable
+                StatePointer doneMoving = MoveToVariableValue(thirdTapeSeparator, leftVariableName, leftVariableContainingIndex);
+                StatePointer returnToBackOfBackOfSecondTerm = makeState();
+                postponedTransitionBuffer.emplace_back(doneMoving, returnToBackOfBackOfSecondTerm);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+                StatePointer returnToBackOfSecondTerm = makeState();
+                postponedTransitionBuffer.emplace_back(returnToBackOfBackOfSecondTerm, returnToBackOfSecondTerm);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+                postponedTransitionBuffer.emplace_back(returnToBackOfSecondTerm, returnToBackOfSecondTerm, set<string>{"0", "1"}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Left;
+                StatePointer backAtStartOfSecondTerm = makeState();
+                postponedTransitionBuffer.emplace_back(returnToBackOfSecondTerm, backAtStartOfSecondTerm, std::set<string>{"B"}, true);
+                std::next(postponedTransitionBuffer.end(), -1)->tape = 2;
+                std::next(postponedTransitionBuffer.end(), -1)->directions[2] = Right;
+                firstCheckerState = backAtStartOfSecondTerm;
+            }
+            vector<StatePointer> checkValueStates = {firstCheckerState};
 
             StatePointer falseEraser = makeState();
 
