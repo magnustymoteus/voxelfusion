@@ -1,5 +1,5 @@
-A = 9;
-A &= 3;
-if A == 1 goto 5;
+K = 9;
+K &= 3;
+if K == 1 goto 5;
 goto 6;
 write 'A';

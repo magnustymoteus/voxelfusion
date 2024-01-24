@@ -42,9 +42,21 @@ int main() {
 //    VoxelSpace s;
 //    utils::generateCheese(s, 25, 25, 25);
 //    utils::voxelSpaceToTape(s, *tape3d, "G", true);
-    utils::objToTape("objs/teapot.obj", *tape3d, 0.25, "G", true);
-    // Step 1: read tasm code
-    string code = utils::getWaterScriptForTape(*tape3d);
+
+//    utils::objToTape("objs/teapot.obj", *tape3d, 0.25, "G", false);
+//    // Step 1: read tasm code
+//    string code = utils::getWaterScriptForTape(*tape3d);
+    std::string code;
+    std::string line;
+    std::ifstream input ("tasm/to-delete.tasm");
+    if (input.is_open())
+    {
+        while (getline (input, line))
+        {
+            code += line;
+        }
+        input.close();
+    }
     // Step 2: get the lexicon of the code
     Lexer lexer(code);
     lexer.print();
