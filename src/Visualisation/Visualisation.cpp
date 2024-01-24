@@ -61,12 +61,12 @@ FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
 
 
     for (const auto & entry : std::filesystem::directory_iterator(tasmBasePath)){
-        tasmPaths.push_back(entry.path());
+        tasmPaths.push_back(entry.path().string());
         tasmPathsSelected.push_back(false);
     }
     tasmPathsSelected.reserve(tasmPaths.size());
     for (const auto & entry : std::filesystem::directory_iterator(objBasePath)){
-        objPaths.push_back(entry.path());
+        objPaths.push_back(entry.path().string());
         objPathsSelected.push_back(false);
     }
 }
