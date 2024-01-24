@@ -194,7 +194,7 @@ void Visualisation::imguiDrawAndHandleFrame() {
                         updateFlag = true;
                         objLoaderRunning = false;
                     });
-                    cout << "Double clicked" << endl;
+                    cout << "Picked a model to import" << endl;
                 }
         }
         ImGui::EndChild();
@@ -213,7 +213,7 @@ void Visualisation::imguiDrawAndHandleFrame() {
                     TMworker = make_unique<thread>([this]{
                         runTM();
                     });
-                    cout << "Double clicked" << endl;
+                    cout << "Picked a script to run" << endl;
                 }
         }
         ImGui::EndChild();
@@ -222,7 +222,7 @@ void Visualisation::imguiDrawAndHandleFrame() {
     if (ImGui::TreeNode("Tape"))
     {
         if (ImGui::Button("Reset tape")){
-            cout << "Button pressed" << endl;
+            cout << "Reset Tape Button pressed" << endl;
             resetTape();
             rebuild(nullptr);
         }
@@ -233,6 +233,14 @@ void Visualisation::imguiDrawAndHandleFrame() {
         ImGui::DragFloat3("Sun location", sunLocation, 1);
         ImGui::ColorEdit3("Sun light color", (float*)&sunColor);
         ImGui::ColorEdit3("Background color", (float*)&backgroundColor);
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Export to OBJ"))
+    {
+        if (ImGui::Button("Do it")){
+            cout << "Export Button pressed" << endl;
+            VisualisationHelper::exportMesh(vertices, indices, "export.obj");
+        }
         ImGui::TreePop();
     }
 
