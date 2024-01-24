@@ -860,12 +860,19 @@ void TMGenerator::doThingForEveryVoxelInCube(int x, int y, int z, StatePointer &
     StatePointer startXReset = makeState();
     moveMultipleTapes(Right, shiftY, yIncrement, tapesToMove);
     optimizedIncrement("Ycounter", yIncrement, startXReset, false);
-    StatePointer xDecrement = makeState();
-    optimizedIncrement("Xcounter", startXReset, xDecrement, true);
-    StatePointer xMove = makeState();
-    moveMultipleTapes(Back, xDecrement, xMove, tapesToMove);
-    IntegerCompare("Xcounter", zero, startXReset, 0, xMove, yCheck);
-
+    // uncomment this if you want to use the old, slow version which would allow for a variable x
+//    StatePointer xDecrement = makeState();
+//    optimizedIncrement("Xcounter", startXReset, xDecrement, true);
+//    StatePointer xMove = makeState();
+//    moveMultipleTapes(Back, xDecrement, xMove, tapesToMove);
+//    IntegerCompare("Xcounter", zero, startXReset, 0, xMove, yCheck);
+    vector<StatePointer> staticXaxisReturnStates = {startXReset};
+    for (int i = 0; i < x; ++i) {
+        StatePointer xMove = makeState();
+        moveMultipleTapes(Back, staticXaxisReturnStates.back(), xMove, tapesToMove);
+        staticXaxisReturnStates.push_back(xMove);
+    }
+    integerAssignment("Xcounter", zero, staticXaxisReturnStates.back(), yCheck);
     // check if Y == y
     StatePointer shiftZ = makeState();
     IntegerCompare("Ycounter", yString, thingStart, 0, yCheck, shiftZ);
