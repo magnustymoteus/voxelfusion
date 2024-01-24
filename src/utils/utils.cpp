@@ -294,9 +294,26 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
 }
 
 void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
+    space.resize(static_cast<size_t>(xi),
+                 std::vector<std::vector<Voxel>>(static_cast<size_t>(zi),
+                                                 std::vector<Voxel>(yi)));
+    for(unsigned x = 0; x != xi; x++){
+        for(unsigned y = 0; y != yi; y++){
+            PerlinNoise p;
+            double P = 0.5*yi*(-0.5 + p.noise2d(scale*x,scale*y));
+            int height = std::abs(P) + 1;
+            //std::cout << height << ", H: " << H << ", P: " << P << std::endl;
+            for(auto f = 0; f != height && f != yi ; f++){
+                space[x][f][y].occupied = true;
+            }
+        }
+    }
+}
+
+void utils::generateTerrain2(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
         space.resize(static_cast<size_t>(xi),
-                      std::vector<std::vector<Voxel>>(static_cast<size_t>(yi),
-                                                      std::vector<Voxel>(zi)));
+                      std::vector<std::vector<Voxel>>(static_cast<size_t>(zi),
+                                                      std::vector<Voxel>(yi)));
     for(unsigned x = 0; x != xi; x++){
         for(unsigned y = 0; y != yi; y++){
             PerlinNoise p;
@@ -304,8 +321,8 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
             double P = 0.5*yi*(-0.5 + p.noise2d(scale*x,scale*y));
             int height = std::max(0,int(H+P))+1;
             //std::cout << height << ", H: " << H << ", P: " << P << std::endl;
-            for(auto f = 0; f != height && f != zi ; f++){
-                space[x][y][f].occupied = true;
+            for(auto f = 0; f != height && f != yi ; f++){
+                space[x][f][y].occupied = true;
             }
         }
     }
@@ -320,7 +337,7 @@ void utils::generateCheese(VoxelSpace& space, const unsigned int& xi, const unsi
             for(unsigned z = 0; z != zi; z++){
                 PerlinNoise p;
                 double noise = p.noise3d(x*scale,y*scale,z*scale);
-                if(noise >= 0) space[x][y][z].occupied = true;
+                if(noise < 0) space[x][y][z].occupied = true;
             }
         }
     }

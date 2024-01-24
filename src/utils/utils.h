@@ -44,16 +44,17 @@ public:
     static void getMaximum(TMTape3D tape, int& x, int& y, int& z);
     static void getCentralTop(const TMTape3D& tape, int& x, int& y, int& z);
     static std::string getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSteps = 10, unsigned int CASizeX = 5, unsigned int CASizeY = 5, unsigned int CASizeZ = 5, int waterSourceX = -1, int waterSourceY = -1, int waterSourceZ = -1);
-    static void generateTerrain(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale=0.5);
+    static void generateTerrain(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale=0.1);
+    static void generateTerrain2(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale=0.1);
     /**
      * Generates a terrain with 3D Perlin noise
      * @param space output voxels
      * @param x width of the terrain
      * @param y length of the terrain
      * @param z height of the terrain
-     * @param scale filling factor (from 0 to 1) for Perlin noise
+     * @param scale filling factor (from 0 to 1) for Perlin noise.
      */
-    static void generateCheese(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale=0.5);
+    static void generateCheese(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale=0.1);
     /**
     * Generates a dot visualisation for a Turing machine
     * @tparam TMTapeType types of the tapes (aka their dimensions)
