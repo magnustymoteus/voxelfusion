@@ -11,6 +11,7 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
+#include <regex>
 #include <thread>
 #include <string>
 #include "MTMDTuringMachine/TMTape.h"
@@ -377,4 +378,44 @@ void utils::voxeliseFace(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelS
             }
         }
     }
+}
+
+void utils::getMaximum(const TMTape3D &tape, int &x, int &y, int &z) {
+    x  = tape.getElementSize();
+    y = tape.at(x-1).getElementSize();
+    z = tape.at(x-1).at(y-1).getElementSize();
+}
+
+void utils::getCentralTop(const TMTape3D &tape, int &x, int &y, int &z) {
+    getMaximum(tape, x, y, z);
+    x /= 2;
+    z /= 2;
+}
+
+std::string utils::getWaterScriptForTape(const TMTape3D& tape, unsigned int CASizeX, unsigned int CASizeY, unsigned int CASizeZ, int waterSourceX, int waterSourceY, int waterSourceZ){
+    // Step 1: read tasm template code
+    std::string code;
+    std::string line;
+    std::ifstream input ("tasm/water-physics-template.tasm");
+    if (input.is_open())
+    {
+        while (getline (input, line))
+        {
+            code += line;
+        }
+        input.close();
+    }
+    // Step 2: get a good position for water source (if the position is not given)
+    if(waterSourceX < 0 || waterSourceY < 0 || waterSourceZ < 0){
+        getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
+    }
+    // Step 3: Replace the macros
+    code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(waterSourceX));
+    code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(waterSourceY));
+    code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(waterSourceZ));
+    code = std::regex_replace(code, std::regex("#CA_X_SIZE"), std::to_string(CASizeX));
+    code = std::regex_replace(code, std::regex("#CA_Y_SIZE"), std::to_string(CASizeY));
+    code = std::regex_replace(code, std::regex("#CA_Z_SIZE"), std::to_string(CASizeZ));
+    // Step 4: return the code
+    return code;
 }
