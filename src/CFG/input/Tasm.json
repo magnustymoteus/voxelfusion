@@ -5,6 +5,7 @@
     "<TapeMove>", "<TapeWrite>", "<Jump>", "<ReadCondition>", "<Accept>", "<Error>", "<ConditionalMove>",
     "<SymbolValueAssignment>", "<IntegerValueAssignment>", "<ImmediateSymbolValueAssignment>", "<SymbolVariableCondition>"
   , "<IntegerVariableCondition>", "<ImmediateAddition>", "<ImmediateSubtraction>", "<ImmediateMultiplication>", "<ImmediateDivision>",
+    "<ImmediateAnd>",
     "<BinaryAddition>", "<BinarySubtraction>","<BinaryMultiplication>","<BinaryDivision>", "<BinaryVariableCondition>",
     "<CellularAutomatonDeclaration>", "<CellularAutomatonRun>", "<ArrayDeclaration>", "<GeneralVariableLocation>",
     "<ArrayIndexImmediate>", "<ArrayIndexIndirect>", "<RandomInteger>"
@@ -12,7 +13,7 @@
   "Terminals": ["Identifier", "Integer",
     "{","}", "[", "]",
     "if", "else", ";", "'",
-    "==", "=", "+=", "-=", "*=", "/=",":=",
+    "==", "=", "+=", "-=", "*=", "/=",":=", "&=",
     "move",
     "left", "right", "up", "down", "forwards", "backwards",
     "write", "goto", "reading", "accept", "error", "until", ",",
@@ -40,6 +41,7 @@
     {"head": "<Statement>", "body": ["<ImmediateSubtraction>"]},
     {"head": "<Statement>", "body": ["<ImmediateMultiplication>"]},
     {"head": "<Statement>", "body": ["<ImmediateDivision>"]},
+    {"head": "<Statement>", "body": ["<ImmediateAnd>"]},
     {"head": "<Statement>", "body": ["<BinaryAddition>"]},
     {"head": "<Statement>", "body": ["<BinarySubtraction>"]},
     {"head": "<Statement>", "body": ["<BinaryMultiplication>"]},
@@ -68,6 +70,7 @@
     {"head": "<ImmediateSubtraction>", "body": ["<GeneralVariableLocation>", "-=", "Integer", ";"]},
     {"head": "<ImmediateMultiplication>", "body": ["<GeneralVariableLocation>", "*=", "Integer", ";"]},
     {"head": "<ImmediateDivision>", "body": ["<GeneralVariableLocation>", "/=", "Integer", ";"]},
+    {"head": "<ImmediateAnd>", "body": ["<GeneralVariableLocation>", "&=", "Integer", ";"]},
     {"head": "<BinaryAddition>", "body": ["<GeneralVariableLocation>", "+=", "<GeneralVariableLocation>", ";"]},
     {"head": "<BinarySubtraction>", "body": ["<GeneralVariableLocation>", "-=", "<GeneralVariableLocation>", ";"]},
     {"head": "<BinaryMultiplication>", "body": ["<GeneralVariableLocation>", "*=", "<GeneralVariableLocation>", ";"]},

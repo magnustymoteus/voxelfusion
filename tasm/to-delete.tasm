@@ -1,3 +1,5 @@
-A = 2;
-A *= 7;
-if A == 1 goto 2;
+A = 9;
+A &= 3;
+if A == 1 goto 5;
+goto 6;
+write 'A';

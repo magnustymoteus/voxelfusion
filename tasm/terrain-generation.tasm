@@ -1,0 +1,7 @@
+A := array{512,0};
+index = 0;
+if index == 512 goto 7;
+A[index] = random{8};
+index += 1;
+goto 3;
+accept;
