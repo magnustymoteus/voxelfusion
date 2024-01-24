@@ -3,7 +3,7 @@
 ### JSON
 Get [the JSON library](https://github.com/nlohmann/json) and place `json.hpp` at `src/lib/json.hpp` 
 ### GLM
-Get [GLM](https://github.com/g-truc/glm) and copy the `glm` folder such that `src/lib/glm/glm.hpp` exists
+Get [GLM v0.9.9.8](https://github.com/g-truc/glm/releases/tag/0.9.9.8) and copy the `glm` folder such that `src/lib/glm/glm.hpp` exists
 ### ImGui
 Get [ImGui](https://github.com/ocornut/imgui) and copy all the .cpp and .h files from the root folder into `src/lib/imgui`, and copy everything from the `backends` folder with `opengl3` or `glfw` in its name to `src/lib/imgui` as well.
 ### GLFW
