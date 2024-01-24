@@ -41,9 +41,9 @@ public:
     static void voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize=1);
     static void voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol="X", bool edge=false);
     static void objToTape(const std::string& path, TMTape3D& tape, const double& voxelSize=1, const std::string& fillSymbol="X", bool edge=false);
-    static void getMaximum(const TMTape3D& tape, int& x, int& y, int& z);
+    static void getMaximum(TMTape3D tape, int& x, int& y, int& z);
     static void getCentralTop(const TMTape3D& tape, int& x, int& y, int& z);
-    static std::string getWaterScriptForTape(const TMTape3D& tape, unsigned int CASizeX = 5, unsigned int CASizeY = 5, unsigned int CASizeZ = 5, int waterSourceX = -1, int waterSourceY = -1, int waterSourceZ = -1);
+    static std::string getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSteps = 10, unsigned int CASizeX = 5, unsigned int CASizeY = 5, unsigned int CASizeZ = 5, int waterSourceX = -1, int waterSourceY = -1, int waterSourceZ = -1);
     static void generateTerrain(VoxelSpace& space, const unsigned int& x, const unsigned int& y, const unsigned int& z, const double& scale=0.5);
     /**
      * Generates a terrain with 3D Perlin noise

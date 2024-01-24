@@ -80,6 +80,8 @@ public:
     TMTape1D& operator[](const signed int &index);
     TMTape1D at(const signed int &index) const;
 
+    const std::vector<std::shared_ptr<TMTape1D>> &getCells() const;
+
 };
 class TMTape3D final : public TMTape {
     std::vector<std::shared_ptr<TMTape2D>> cells;

@@ -136,6 +136,10 @@ void TMTape2D::print() const {
     std::cout << std::endl;
 }
 
+const std::vector<std::shared_ptr<TMTape1D>> &TMTape2D::getCells() const {
+    return cells;
+}
+
 void TMTape3D::print() const {
     int x = -zeroAnchor;
     for (const auto &currentCell2D: cells) {

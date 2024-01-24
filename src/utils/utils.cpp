@@ -380,19 +380,20 @@ void utils::voxeliseFace(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelS
     }
 }
 
-void utils::getMaximum(const TMTape3D &tape, int &x, int &y, int &z) {
-    x  = tape.getElementSize();
-    y = tape.at(x-1).getElementSize();
-    z = tape.at(x-1).at(y-1).getElementSize();
+void utils::getMaximum(TMTape3D tape, int &x, int &y, int &z){
+    x = std::floor(tape.getCells().size()/2.0);
+    y = std::floor(tape.getElementSize()/2.0);
+    z = std::floor(tape.at(x).getElementSize()/2.0);
 }
 
 void utils::getCentralTop(const TMTape3D &tape, int &x, int &y, int &z) {
     getMaximum(tape, x, y, z);
     x /= 2;
+    y = std::ceil(tape.at(x).getCells().size()/2.0);
     z /= 2;
 }
 
-std::string utils::getWaterScriptForTape(const TMTape3D& tape, unsigned int CASizeX, unsigned int CASizeY, unsigned int CASizeZ, int waterSourceX, int waterSourceY, int waterSourceZ){
+std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSteps, unsigned int CASizeX, unsigned int CASizeY, unsigned int CASizeZ, int waterSourceX, int waterSourceY, int waterSourceZ){
     // Step 1: read tasm template code
     std::string code;
     std::string line;
@@ -408,14 +409,23 @@ std::string utils::getWaterScriptForTape(const TMTape3D& tape, unsigned int CASi
     // Step 2: get a good position for water source (if the position is not given)
     if(waterSourceX < 0 || waterSourceY < 0 || waterSourceZ < 0){
         getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
+        // Step 3: Replace the macros
+        code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceX - (CASizeX/2)))));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 3 + 1))));
+        code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceZ - (CASizeZ/2)))));
+    }else{
+        // Step 3: Replace the macros
+        code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(waterSourceX));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(waterSourceY));
+        code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(waterSourceZ));
     }
-    // Step 3: Replace the macros
-    code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(waterSourceX));
-    code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(waterSourceY));
-    code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(waterSourceZ));
     code = std::regex_replace(code, std::regex("#CA_X_SIZE"), std::to_string(CASizeX));
     code = std::regex_replace(code, std::regex("#CA_Y_SIZE"), std::to_string(CASizeY));
     code = std::regex_replace(code, std::regex("#CA_Z_SIZE"), std::to_string(CASizeZ));
-    // Step 4: return the code
+    code = std::regex_replace(code, std::regex("#NUMBER_OF_STEPS"), std::to_string(numberOfSteps));
+    // Step 4: place the water source
+    tape[waterSourceX][waterSourceY+3][waterSourceZ].symbol = "W";
+    std::cout << code << std::endl;
+    // Step 5: return the code
     return code;
 }

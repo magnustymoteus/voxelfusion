@@ -38,25 +38,20 @@ void updateVisualisation(const std::tuple<TMTapeType*...> & tapes, const std::ve
 #include "TMgenerator/TMGenerator.h"
 using namespace std;
 int main() {
+    auto tape3d = new TMTape3D;
+//    VoxelSpace s;
+//    utils::generateCheese(s, 25, 25, 25);
+//    utils::voxelSpaceToTape(s, *tape3d, "G", true);
+    utils::objToTape("objs/teapot.obj", *tape3d, 0.25, "G", true);
     // Step 1: read tasm code
-    string code;
-    string line;
-    ifstream input ("tasm/water-physics.tasm");
-    if (input.is_open())
-    {
-        while ( getline (input, line) )
-        {
-            code += line;
-        }
-        input.close();
-    }
+    string code = utils::getWaterScriptForTape(*tape3d);
     // Step 2: get the lexicon of the code
     Lexer lexer(code);
     lexer.print();
     // Step 3: parse the code
-    // Step 3.2: create parse table
-    LALR1Parser parserTemp("src/CFG/input/Tasm.json");
-    parserTemp.exportTable("parsingTable.json");
+//    // Step 3.2: create parse table
+//    LALR1Parser parserTemp("src/CFG/input/Tasm.json");
+//    parserTemp.exportTable("parsingTable.json");
     // Step 3.3: import parse table
     LALR1Parser parser;
     parser.importTable("parsingTable.json");
@@ -65,7 +60,7 @@ int main() {
     // Step 3.5 (optional) export dot visualization
     root->exportVisualization("test.dot");
     // Step 4: Create and assemble all tapes
-    auto *tape3d {new TMTape3D()};
+    //auto *tape3d {new TMTape3D()};
     auto *varTape {new TMTape1D()};
     auto *tempVarTape {new TMTape1D()};
     auto *historyTape {new TMTape3D()};
