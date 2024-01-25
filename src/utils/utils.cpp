@@ -443,10 +443,10 @@ std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSt
         getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
         // Step 3: Replace the macros
         code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceX - (CASizeX/2)))));
-        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 4 + 1))));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 1))));
         code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceZ - (CASizeZ/2)))));
         // Step 4: place the water source
-        tape[waterSourceX][waterSourceY+4][waterSourceZ].symbol = "W";
+        tape[waterSourceX][waterSourceY][waterSourceZ].symbol = "W";
     }else{
         // Step 3: Replace the macros
         code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(waterSourceX));

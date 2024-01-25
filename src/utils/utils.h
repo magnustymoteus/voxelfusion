@@ -49,9 +49,9 @@ public:
      * @param fillSymbol symbol of the not empty tape cells
      * @param edge if true, generates invisible bounding box (filled with "BB" symbol) around the tape
      */
-    static void voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol="X", bool edge=false);
+    static void voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const std::string& fillSymbol="G", bool edge=false);
     static void completedVoxelSpaceToTape(const CompletedVoxelSpace& voxelSpace, TMTape3D& tape);
-    static void objToTape(const std::string& path, TMTape3D& tape, const double& voxelSize=1, const std::string& fillSymbol="X", bool edge=false);
+    static void objToTape(const std::string& path, TMTape3D& tape, const double& voxelSize=1, const std::string& fillSymbol="G", bool edge=false);
     static void tapeToCompletedVoxelSpace(const TMTape3D& tape, CompletedVoxelSpace& voxelSpace);
     static void save3DTapeToJson(const TMTape3D& tape, std::string outputPath="savedTape.json");
     static void load3DTapeFromJson(TMTape3D& tape, std::string inputPath="savedTape.json");
