@@ -9,8 +9,7 @@
 #include <utility>
 
 struct PerlinNoise {
-    // TODO: random P generation
-    PerlinNoise(){};
+    PerlinNoise(bool randomGradient=false);
     double noise2d(const double& x, const double& y);
     double positiveNoise2d(const double& x, const double& y);
     double noise3d(const double& x, const double& y, const double& z);
@@ -18,7 +17,7 @@ struct PerlinNoise {
     std::pair<double,double> getPositiveConstantVector(int v);
     double static lerp(double t, double a, double b);
     double fade(double t);
-    static constexpr unsigned char P[512] = {
+    unsigned char P[512] = {
             151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142,
             8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203,
             117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74,

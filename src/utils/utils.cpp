@@ -316,7 +316,7 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
         for(unsigned y = 0; y != yi; y++){
             PerlinNoise p;
             double P = yi*(p.positiveNoise2d(scale*x,scale*y));
-            int height = std::abs(P) + 1;
+            int height = P + 1;
             std::cout << "Height: " << height << ", P: " << P << std::endl;
             for(auto f = 0; f != height && f != yi ; f++){
                 space[x][f][y].occupied = true;

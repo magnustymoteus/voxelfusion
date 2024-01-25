@@ -4,6 +4,27 @@
 
 #include "PerlinNoise.h"
 #include <cmath>
+#include <algorithm>
+#include <random>
+
+PerlinNoise::PerlinNoise(bool random){
+    if(random){
+        std::random_device dev;
+        std::mt19937 rng(dev());
+        std::vector<int> temporary(256);
+        for(size_t i = 0; i != 256; i++){
+            temporary[i] = i;
+        }
+        std::shuffle(temporary.begin(), temporary.end(), rng);
+        temporary.resize(512);
+        for(size_t i = 0; i != 256; i++){
+            temporary[i+256] = temporary[i];
+        }
+        for(size_t i = 0; i != 512; i++){
+            P[i] = temporary[i];
+        }
+    }
+}
 
 double PerlinNoise::noise3d(const double& x, const double& y, const double& z){
     double AB = noise2d(x,y);
