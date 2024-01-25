@@ -42,7 +42,7 @@ string TMGenerator::parseSymbolLiteral(const shared_ptr<STNode> &root) {
     return root->children[1]->token->lexeme;
 }
 
-template<std::size_t N> // https://stackoverflow.com/questions/48556547/how-to-reverse-bits-in-a-bitset
+template<std::size_t N>
 void reverse(std::bitset<N> &b) {
     for(std::size_t i = 0; i < N/2; ++i) {
         bool t = b[i];
@@ -74,7 +74,6 @@ void TMGenerator::assembleTasm(const shared_ptr<STNode> root) {
     lineStartStates[1] = currentLineBeginState;
 
     alphabetExplorer(root);
-    //TODO variabeletape leegmaken voor te beginnen
     tapeAlphabet.insert(VariableTapeStart);
     tapeAlphabet.insert(VariableTapeEnd);
     tapeAlphabet.insert("0");

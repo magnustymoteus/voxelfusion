@@ -101,7 +101,7 @@ void Visualisation::runTM() {
     auto *tempVarTape {new TMTape1D()};
     auto *historyTape {new TMTape3D()};
     auto tapes = make_tuple(tape.get(), varTape, tempVarTape, historyTape);
-    set<string> tapeAlphabet = {"B", "GW", "W", "G"};
+    set<string> tapeAlphabet = {"B"};
     set<StatePointer> states;
     map<TransitionDomain, TransitionImage> transitions;
     // Step 4.2: put tasm on the tapes
@@ -269,7 +269,6 @@ void Visualisation::rebuild(TMTape3D *tape) {
     //https://stackoverflow.com/questions/15821969/what-is-the-proper-way-to-modify-opengl-vertex-buffer
     vertices.clear();
     indices.clear();
-    //faceColors.clear(); TODO fix adding colors to faces
 
     if(tape){
         TMTapeUtils::expansionMutex.lock();
@@ -288,7 +287,6 @@ void Visualisation::rebuild(TMTape3D *tape) {
                         if(it == colorMap.end()){
                             it = colorMap.find("default");
                         }
-                        //faceColors.push_back(&it->first);
                         VisualisationHelper::createCube(vertices, indices, x, y, z, 1, it->second);
                     }
                 }
@@ -332,6 +330,10 @@ Visualisation::~Visualisation() {
     VBO->Delete();
     EBO->Delete();
     shaderProgram->Delete();
+    delete shaderProgram;
+    delete VAO;
+    delete VBO;
+    delete EBO;
     glfwDestroyWindow(window);
     glfwTerminate();
 }

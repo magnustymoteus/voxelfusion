@@ -38,7 +38,6 @@ class Visualisation {
     ElementBuffer* EBO{nullptr};
     vector<GLfloat> vertices;
     vector<GLuint> indices;
-    vector<const string*> faceColors;
     float FOV;
     float nearPlane;
     float farPlane;
