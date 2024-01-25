@@ -40,15 +40,15 @@ using namespace std;
 int main() {
     auto tape3d = new TMTape3D;
 //    VoxelSpace s;
-//    utils::generateCheese(s, 25, 25, 25);
-//    utils::voxelSpaceToTape(s, *tape3d, "G", true);
-
-//    utils::objToTape("objs/teapot.obj", *tape3d, 0.25, "G", false);
-//    // Step 1: read tasm code
-//    string code = utils::getWaterScriptForTape(*tape3d);
+//    double fac = 0.1;
+//    //std::cin >> fac;
+//    if(fac > 0){
+//        utils::generateTerrain(s, 25, 25, 25, fac);
+//        utils::voxelSpaceToTape(s, *tape3d, "G", true);
+//    }
     std::string code;
     std::string line;
-    std::ifstream input ("tasm/to-delete.tasm");
+    std::ifstream input ("tasm/terrain-generation.tasm");
     if (input.is_open())
     {
         while (getline (input, line))
@@ -57,6 +57,21 @@ int main() {
         }
         input.close();
     }
+//    utils::objToTape("objs/teapot.obj", *tape3d, 0.25, "G", true);
+    // Step 1: read tasm code
+    //string code = "accept;";
+//    string code = utils::getWaterScriptForTape(*tape3d);
+//    std::string code;
+//    std::string line;
+//    std::ifstream input ("tasm/to-delete.tasm");
+//    if (input.is_open())
+//    {
+//        while (getline (input, line))
+//        {
+//            code += line;
+//        }
+//        input.close();
+//    }
     // Step 2: get the lexicon of the code
     Lexer lexer(code);
     lexer.print();
