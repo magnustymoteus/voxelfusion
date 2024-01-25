@@ -10,15 +10,7 @@
 #include "invariants.h"
 
 
-/* Invariants:
-* inputAlphabet is subset of tapeAlphabet
-* tapeAlphabet always contains the blank symbol
-* There is exactly one initial state in states set
-* 'B' is reserved for the blank symbol
- * Amount of replacement and replaced symbols in every transition is equal to the amount of tapes
- * ...
-* */
-// TODO: invariants (pre- and post- conditions), halting states, testing for multi tape scenarios
+// 'B' reserved for blank symbol
 template<class ...TMTapeType>
 class MTMDTuringMachine {
 protected:
