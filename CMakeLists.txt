@@ -3,7 +3,7 @@ project(voxelfusion)
 cmake_policy(SET CMP0072 NEW)
 
 set(CMAKE_CXX_STANDARD 20)
-#set(CMAKE_CXX_FLAGS "-Werror -Wall") TODO circumvent errors in glm/json.hpp?
+set(CMAKE_CXX_FLAGS "-O2")
 
 file(GLOB_RECURSE LIB src/lib/*.cpp)
 file(GLOB_RECURSE CFG src/CFG/*.cpp)

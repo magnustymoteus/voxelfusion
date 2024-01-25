@@ -50,6 +50,8 @@ FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
     camera = make_unique<Camera>(SCREEN_WIDTH, SCREEN_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
     shaderProgram->Activate();
 
+    glfwSwapInterval(1);
+
     // Setup ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
