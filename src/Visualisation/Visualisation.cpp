@@ -256,6 +256,50 @@ void Visualisation::imguiDrawAndHandleFrame() {
             resetTape();
             rebuild(nullptr);
         }
+
+        static int generationBox[3]{ 1,1,1 };
+        static bool randomGeneration = false;
+        ImGui::DragInt3("box to generate in", generationBox, 1);
+        ImGui::Checkbox("random generation", &randomGeneration);
+        if (ImGui::Button("Generate terrain")){
+            resetTape();
+            tape = make_unique<TMTape3D>();
+            VoxelSpace space;
+            utils::generateTerrain(space, generationBox[0], generationBox[1], generationBox[2], randomGeneration, 0.1);
+            utils::voxelSpaceToTape(space, *tape);
+            rebuild(tape.get());
+        }
+        if (ImGui::Button("Generate terrain2")){
+            resetTape();
+            tape = make_unique<TMTape3D>();
+            VoxelSpace space;
+            utils::generateTerrain2(space, generationBox[0], generationBox[1], generationBox[2], randomGeneration, 0.1);
+            utils::voxelSpaceToTape(space, *tape);
+            rebuild(tape.get());
+        }
+        if (ImGui::Button("Generate Cheese")){
+            resetTape();
+            tape = make_unique<TMTape3D>();
+            VoxelSpace space;
+            utils::generateCheese(space, generationBox[0], generationBox[1], generationBox[2], randomGeneration, 0.1);
+            utils::voxelSpaceToTape(space, *tape);
+            rebuild(tape.get());
+        }
+        if (ImGui::Button("save tape to JSON")){
+            killAndWaitForTMworker();
+            killAndWaitForOBJloader();
+            utils::save3DTapeToJson(*tape, "tape.json");
+        }
+        if (ImGui::Button("load tape from JSON")){
+            resetTape();
+            tape = make_unique<TMTape3D>();
+            utils::load3DTapeFromJson(*tape, "tape.json");
+            rebuild(tape.get());
+        }
+        if (ImGui::Button("Export to OBJ")){
+            cout << "Export Button pressed" << endl;
+            VisualisationHelper::exportMesh(vertices, indices, "export.obj");
+        }
         ImGui::TreePop();
     }
     if (ImGui::TreeNode("Light & background"))
@@ -263,14 +307,6 @@ void Visualisation::imguiDrawAndHandleFrame() {
         ImGui::DragFloat3("Sun location", sunLocation, 1);
         ImGui::ColorEdit3("Sun light color", (float*)&sunColor);
         ImGui::ColorEdit3("Background color", (float*)&backgroundColor);
-        ImGui::TreePop();
-    }
-    if (ImGui::TreeNode("Export to OBJ"))
-    {
-        if (ImGui::Button("Do it")){
-            cout << "Export Button pressed" << endl;
-            VisualisationHelper::exportMesh(vertices, indices, "export.obj");
-        }
         ImGui::TreePop();
     }
 

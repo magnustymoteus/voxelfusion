@@ -41,7 +41,7 @@ class Visualisation {
     float nearPlane;
     float farPlane;
     const map<string, Color>& colorMap;
-    float sunLocation[3]{ 1,1,1 };
+    float sunLocation[3]{ 50,50,50 };
     ImVec4 sunColor{1.0f, 1.0f, 1.0f, 1.0f};
     ImVec4 backgroundColor{0.07f, 0.13f, 0.17f, 1.0f};
     unique_ptr<TMTape3D> tape;
