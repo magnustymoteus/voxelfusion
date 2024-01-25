@@ -21,6 +21,10 @@ namespace TMTapeUtils {
         }
         return *cells[index+zeroAnchor];
     }
+    template<class TMTapeElement>
+    int getMaximumIndex(const std::vector<std::shared_ptr<TMTapeElement>> &cells, const int &zeroAnchor) {
+        return cells.size()-zeroAnchor-1;
+    }
 
     template<class TMTapeElement>
     TMTapeElement& getTapeElement(std::vector<std::shared_ptr<TMTapeElement>> &cells, const int &index, int &zeroAnchor) {

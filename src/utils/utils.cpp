@@ -11,10 +11,14 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
+#include <regex>
 #include <thread>
 #include <string>
 #include "MTMDTuringMachine/TMTape.h"
 #include "PerlinNoise.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 void utils::load_obj(const std::string& path, Mesh& mesh){
     // Get the object
@@ -291,20 +295,49 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
     }
     std::cout << "Filled blocks in voxelSpaceToTape: " << counter << std::endl;
 }
-
+void utils::completedVoxelSpaceToTape(const CompletedVoxelSpace &voxelSpace, TMTape3D &tape){
+    for (unsigned int x = 0; x < voxelSpace.size(); x++) {
+        TMTape2D TMPlane;
+        for (unsigned int y = 0; y < voxelSpace[x].size(); y++) {
+            TMTape1D TMLine;
+            for (unsigned int z = 0; z < voxelSpace[x][y].size(); z++) {
+                TMLine[z] = TMTapeCell(voxelSpace[x][y][z]);
+            }
+            TMPlane[y] = TMLine;
+        }
+        tape[x] = TMPlane;
+    }
+}
 void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
-        space.resize(static_cast<size_t>(xi),
-                      std::vector<std::vector<Voxel>>(static_cast<size_t>(yi),
-                                                      std::vector<Voxel>(zi)));
+    space.resize(static_cast<size_t>(xi),
+                 std::vector<std::vector<Voxel>>(static_cast<size_t>(zi),
+                                                 std::vector<Voxel>(yi)));
+    PerlinNoise p;
     for(unsigned x = 0; x != xi; x++){
         for(unsigned y = 0; y != yi; y++){
-            PerlinNoise p;
+            double P = yi*(p.positiveNoise2d(scale*x,scale*y));
+            int height = P + 1;
+            //std::cout << "Height: " << height << ", P: " << P << std::endl;
+            for(auto f = 0; f != height && f != yi ; f++){
+                space[x][f][y].occupied = true;
+            }
+        }
+    }
+}
+
+void utils::generateTerrain2(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
+        space.resize(static_cast<size_t>(xi),
+                      std::vector<std::vector<Voxel>>(static_cast<size_t>(zi),
+                                                      std::vector<Voxel>(yi)));
+    PerlinNoise p;
+    for(unsigned x = 0; x != xi; x++){
+        for(unsigned y = 0; y != yi; y++){
             double H = 0.4*xi - 0.02*(pow(x-xi/2.0,2)+pow(y-yi/2.0,2));
             double P = 0.5*yi*(-0.5 + p.noise2d(scale*x,scale*y));
             int height = std::max(0,int(H+P))+1;
             //std::cout << height << ", H: " << H << ", P: " << P << std::endl;
-            for(auto f = 0; f != height && f != zi ; f++){
-                space[x][y][f].occupied = true;
+            for(auto f = 0; f != height && f != yi ; f++){
+                space[x][f][y].occupied = true;
             }
         }
     }
@@ -314,12 +347,12 @@ void utils::generateCheese(VoxelSpace& space, const unsigned int& xi, const unsi
     space.resize(static_cast<size_t>(xi),
                  std::vector<std::vector<Voxel>>(static_cast<size_t>(yi),
                                                  std::vector<Voxel>(zi)));
+    PerlinNoise p;
     for(unsigned x = 0; x != xi; x++){
         for(unsigned y = 0; y != yi; y++){
             for(unsigned z = 0; z != zi; z++){
-                PerlinNoise p;
                 double noise = p.noise3d(x*scale,y*scale,z*scale);
-                if(noise >= 0) space[x][y][z].occupied = true;
+                if(noise < 0) space[x][y][z].occupied = true;
             }
         }
     }
@@ -377,4 +410,94 @@ void utils::voxeliseFace(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelS
             }
         }
     }
+}
+
+void utils::getMaximum(TMTape3D tape, int &x, int &y, int &z){
+    x = std::floor(tape.getCells().size()/2.0);
+    y = std::floor(tape.getElementSize()/2.0);
+    z = std::floor(tape.at(x).getElementSize()/2.0);
+}
+
+void utils::getCentralTop(const TMTape3D &tape, int &x, int &y, int &z) {
+    getMaximum(tape, x, y, z);
+    x /= 2;
+    y = std::ceil(tape.at(x).getCells().size()/2.0);
+    z = std::floor(tape.at(x).at(y).getCells().size()/2.0);
+}
+
+std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSteps, unsigned int CASizeX, unsigned int CASizeY, unsigned int CASizeZ, int waterSourceX, int waterSourceY, int waterSourceZ){
+    // Step 1: read tasm template code
+    std::string code;
+    std::string line;
+    std::ifstream input ("tasm/water-physics-template.tasm");
+    if (input.is_open())
+    {
+        while (getline (input, line))
+        {
+            code += line;
+        }
+        input.close();
+    }
+    // Step 2: get a good position for water source (if the position is not given)
+    if(waterSourceX < 0 || waterSourceY < 0 || waterSourceZ < 0){
+        getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
+        // Step 3: Replace the macros
+        code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceX - (CASizeX/2)))));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 4 + 1))));
+        code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceZ - (CASizeZ/2)))));
+        // Step 4: place the water source
+        tape[waterSourceX][waterSourceY+4][waterSourceZ].symbol = "W";
+    }else{
+        // Step 3: Replace the macros
+        code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(waterSourceX));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(waterSourceY));
+        code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(waterSourceZ));
+        // Step 4: place the water source
+        tape[waterSourceX][waterSourceY][waterSourceZ].symbol = "W";
+    }
+    // Step 5: replace other macros
+    code = std::regex_replace(code, std::regex("#CA_X_SIZE"), std::to_string(CASizeX));
+    code = std::regex_replace(code, std::regex("#CA_Y_SIZE"), std::to_string(CASizeY));
+    code = std::regex_replace(code, std::regex("#CA_Z_SIZE"), std::to_string(CASizeZ));
+    code = std::regex_replace(code, std::regex("#NUMBER_OF_STEPS"), std::to_string(numberOfSteps));
+
+    // Step 6: return the code
+    return code;
+}
+void utils::tapeToCompletedVoxelSpace(TMTape3D& tape, CompletedVoxelSpace& voxelSpace){
+    CompletedVoxelSpace toReturn;
+    for(auto& plane:tape.getCells()){
+        std::vector<std::vector<std::string>> planeStrings;
+        for(auto& row:plane->getCells()){
+            // Make a vector
+            std::vector<std::string> rowStrings;
+            for(auto& cell: row->getCells()){
+                rowStrings.push_back(cell->symbol);
+            }
+            planeStrings.push_back(rowStrings);
+        }
+        toReturn.push_back(planeStrings);
+    }
+    voxelSpace = toReturn;
+}
+void utils::save3DTapeToJson(TMTape3D& tape, std::string outputPath){
+    // Transform tape to CompletedVoxelSpace
+    CompletedVoxelSpace space;
+    tapeToCompletedVoxelSpace(tape, space);
+    json jsonRepresentation = space;
+    // Save the json to a file
+    std::ofstream outputFile(outputPath);
+    outputFile << std::setw(4) << jsonRepresentation << std::endl;
+    outputFile.close();
+}
+void utils::load3DTapeFromJson(TMTape3D& tape, std::string inputPath){
+    // Read the json back into a 3D vector
+    std::ifstream inputFile(inputPath);
+    json loadedJson;
+    inputFile >> loadedJson;
+
+    // Convert the json back to the original voxel space
+    CompletedVoxelSpace space = loadedJson;
+    // Transform to tape
+    completedVoxelSpaceToTape(space, tape);
 }

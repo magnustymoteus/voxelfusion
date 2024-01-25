@@ -120,6 +120,11 @@ void TMTape1D::print() const {
     }
     std::cout << std::endl << std::endl;
 }
+
+const std::vector<std::shared_ptr<TMTapeCell>> &TMTape1D::getCells() const {
+    return cells;
+}
+
 void TMTape2D::print() const {
     const int greatestSize = TMTapeUtils::getGreatestSize(cells);
     int j = -zeroAnchor;
@@ -134,6 +139,10 @@ void TMTape2D::print() const {
         std::cout << std::endl;
     }
     std::cout << std::endl;
+}
+
+const std::vector<std::shared_ptr<TMTape1D>> &TMTape2D::getCells() const {
+    return cells;
 }
 
 void TMTape3D::print() const {

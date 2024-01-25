@@ -524,7 +524,8 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
                     postponedTransitionBuffer.back().directions[1] = Right;
                 }
                 sysVarLoaded = *std::next(writeValueStates1.end(), -1);
-            }else{
+            }
+            else{
                 auto [readVariableName, readVariableContainingIndex] = parseVariableLocationContainer(root->children[1]);
                 // copy the multiplier to third tape
                 StatePointer moveToValue = MoveToVariableValue(first, readVariableName, readVariableContainingIndex);
@@ -763,6 +764,14 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             postponedTransitionBuffer.back().tape = 2;
             postponedTransitionBuffer.back().directions[2] = Left;
         }
+        else if(l == "<ImmediateAnd>"){
+            StatePointer first = currentLineBeginState;
+            auto [variableName, variableContainingIndex] = parseVariableLocationContainer(root->children[3]);
+            int addedValue = parseInteger(root->children[1]);
+            std::string binaryAndedValue = IntegerAsBitString(addedValue);
+            StatePointer destination = getNextLineStartState();
+            bitwiseAnd(variableName, binaryAndedValue, first, destination, variableContainingIndex);
+        }
         else if(l == "<CellularAutomatonDeclaration>"){
             auto symbols = parseIdentifierList(root->children.at(4));
             if (!CAstart) CAstart = makeState();
@@ -901,7 +910,7 @@ void TMGenerator::explorer(const shared_ptr<STNode> &root) {
             postponedTransitionBuffer.emplace_back(removeTemplate1, destination);
         }
         else{
-            cerr << "Instruction " << l << "is currently not supported by the compiler" << endl;
+            cerr << "Instruction " << l << " is currently not supported by the compiler" << endl;
         }
     }
 }
@@ -1165,7 +1174,39 @@ void TMGenerator::optimizedIncrement(const string &variableName, StatePointer &s
         postponedTransitionBuffer.back().toWrite = "1";
     }
 }
+void TMGenerator::bitwiseAnd(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
+           StatePointer &destination, const string &variableContainingIndex){
+    StatePointer writer1 = MoveToVariableValue(startingState, variableName, variableContainingIndex);
 
+    //start comparison
+    std::vector<StatePointer> writeValueStates = {writer1};
+    for (char c : binaryAddedValue) {
+        StatePointer oldNormalState = *std::next(writeValueStates.end(), -1);
+        StatePointer newNormalState = makeState();
+        writeValueStates.push_back(newNormalState);
+        if(c == '0'){
+            postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, std::set<string>{"0"}, true);
+            postponedTransitionBuffer.back().tape = 1;
+            postponedTransitionBuffer.back().directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, std::set<string>{"1"}, true);
+            postponedTransitionBuffer.back().tape = 1;
+            postponedTransitionBuffer.back().directions[1] = Right;
+            postponedTransitionBuffer.back().toWrite = "0";
+        }else if(c == '1'){
+            postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, std::set<string>{"0"}, true);
+            postponedTransitionBuffer.back().tape = 1;
+            postponedTransitionBuffer.back().toWrite = "0";
+            postponedTransitionBuffer.back().directions[1] = Right;
+            postponedTransitionBuffer.emplace_back(oldNormalState, newNormalState, std::set<string>{"1"}, true);
+            postponedTransitionBuffer.back().tape = 1;
+            postponedTransitionBuffer.back().directions[1] = Right;
+        }
+    }
+    StatePointer oldNormalState = *std::next(writeValueStates.end(), -1);
+    postponedTransitionBuffer.emplace_back(oldNormalState, destination);
+    postponedTransitionBuffer.back().tape = 1;
+    postponedTransitionBuffer.back().directions[1] = Stationary;
+}
 void
 TMGenerator::tapeMove(TMTapeDirection direction, StatePointer &beginState, StatePointer &destination, int tapeIndex) {
     postponedTransitionBuffer.emplace_back(beginState, destination);

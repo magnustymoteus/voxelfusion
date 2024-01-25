@@ -80,6 +80,8 @@ public:
 
     void immediateAddition(const string &variableName, string &binaryAddedValue, StatePointer &startingState,
                            StatePointer &destination, const string &variableContainingIndex="");
+    void bitwiseAnd(const string &variableName, string &timesShifted, StatePointer &startingState,
+               StatePointer &destination, const string &variableContainingIndex="");
 
     void
     IntegerCompare(const string &variableName, string &binaryComparedValue, StatePointer &standardDestination,
