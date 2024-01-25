@@ -12,8 +12,10 @@ struct PerlinNoise {
     // TODO: random P generation
     PerlinNoise(){};
     double noise2d(const double& x, const double& y);
+    double positiveNoise2d(const double& x, const double& y);
     double noise3d(const double& x, const double& y, const double& z);
-    std::pair<double,double> GetConstantVector(int v);
+    std::pair<double,double> getConstantVector(int v);
+    std::pair<double,double> getPositiveConstantVector(int v);
     double static lerp(double t, double a, double b);
     double fade(double t);
     static constexpr unsigned char P[512] = {
