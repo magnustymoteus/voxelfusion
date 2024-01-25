@@ -1035,7 +1035,7 @@ void TMGenerator::bitwiseAnd(const string &variableName, string &binaryAddedValu
     StatePointer writer1 = MoveToVariableValue(startingState, variableName, variableContainingIndex);
 
     //start comparison
-    std::vector<StatePointer> writeValueStates = {writer1, makeState()};
+    std::vector<StatePointer> writeValueStates = {writer1};
     for (char c : binaryAddedValue) {
         StatePointer oldNormalState = *std::next(writeValueStates.end(), -1);
         StatePointer newNormalState = makeState();
