@@ -318,7 +318,7 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
             double P = yi*(p.positiveNoise2d(scale*x,scale*y));
             int height = P + 1;
             //std::cout << "Height: " << height << ", P: " << P << std::endl;
-            for(auto f = 0; f != height && f != yi ; f++){
+            for(auto f = 0; f != height && f != zi ; f++){
                 space[x][f][y].occupied = true;
             }
         }
@@ -336,7 +336,7 @@ void utils::generateTerrain2(VoxelSpace& space, const unsigned int& xi, const un
             double P = 0.5*yi*(-0.5 + p.noise2d(scale*x,scale*y));
             int height = std::max(0,int(H+P))+1;
             //std::cout << height << ", H: " << H << ", P: " << P << std::endl;
-            for(auto f = 0; f != height && f != yi ; f++){
+            for(auto f = 0; f != height && f != zi ; f++){
                 space[x][f][y].occupied = true;
             }
         }
