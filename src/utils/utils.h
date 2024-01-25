@@ -40,6 +40,7 @@ public:
     static BoundingBox calculateBoundingBox(const Mesh& mesh);
     static void translateAndScale(Vector3D& point, const Vector3D& translatePoint, double scaler);
     static bool voxelTriangleIntersection(const int& x, const int& y, const int& z, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3);
+    static void bmpToTasm(const std::string& pathToImage, const std::string& pathToTasm);
     static void voxelise(const Mesh& mesh, VoxelSpace& voxelSpace, double voxelSize=1);
     /**
      * Put the given voxel space on the tape

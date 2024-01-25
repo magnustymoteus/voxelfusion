@@ -490,6 +490,86 @@ void utils::save3DTapeToJson(const TMTape3D& tape, std::string outputPath){
     outputFile << std::setw(4) << jsonRepresentation << std::endl;
     outputFile.close();
 }
+
+// Function to get the bit depth of a BMP image
+int getBMPBitDepth(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary);
+
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return -1; // Return -1 to indicate an error
+    }
+
+    // Skip to the 15th byte in the header (bit depth information)
+    file.seekg(14 + 1); // BMP header is 14 bytes, and the bit depth is at the 15th byte
+
+    // Read the bit depth (a 16-bit integer)
+    short bitDepth;
+    file.read(reinterpret_cast<char*>(&bitDepth), sizeof(bitDepth));
+
+    file.close();
+
+    return bitDepth;
+}
+// Function to read a bitmap image
+bool readBitmap(std::string filename, unsigned char*& imageData, int& width, int& height) {
+    std::ifstream file(filename, std::ios::binary);
+
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return false;
+    }
+
+    // Read bitmap file header
+    char header[54];
+    file.read(header, sizeof(header));
+
+    // Extract width and height from the header
+    width = *(int*)&header[18];
+    height = *(int*)&header[22];
+
+    // Calculate the size of the image data
+    int dataSize = width * height * 3; // Assuming 24 bits per pixel (3 bytes)
+
+    // Allocate memory for image data
+    imageData = new unsigned char[dataSize];
+
+    // Read image data
+    file.read(reinterpret_cast<char*>(imageData), dataSize);
+
+    file.close();
+
+    return true;
+}
+
+void utils::bmpToTasm(const std::string& fileName, const std::string& pathToTasm){
+    unsigned char* imageData;
+    int width, height;
+
+    if (!readBitmap(fileName, imageData, width, height)) {
+        throw std::runtime_error("File not found");
+    }
+
+    int depth = getBMPBitDepth(fileName)/8;
+    // Iterate over pixels
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            // Calculate the index for the current pixel
+            int index = (y * width + x) * depth;
+
+            // Access RGB values for the current pixel
+            int red = imageData[index];
+            int green = imageData[index + 1];
+            int blue = imageData[index + 2];
+
+            // Process or manipulate pixel values as needed
+            // For example, print pixel values
+            std::cout << "Pixel at (" << x << ", " << y << "): R=" << (int)red << " G=" << (int)green << " B=" << (int)blue << std::endl;
+        }
+    }
+    delete[] imageData;
+}
+
 void utils::load3DTapeFromJson(TMTape3D& tape, std::string inputPath){
     // Read the json back into a 3D vector
     std::ifstream inputFile(inputPath);

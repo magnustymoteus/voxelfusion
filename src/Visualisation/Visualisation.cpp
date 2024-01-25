@@ -222,6 +222,33 @@ void Visualisation::imguiDrawAndHandleFrame() {
         ImGui::EndChild();
         ImGui::TreePop();
     }
+    if (ImGui::TreeNode("TASM templates"))
+    {
+        if (ImGui::Button("H20")){
+            if (tape == nullptr) tape = make_unique<TMTape3D>();
+            cout << "H20 Button pressed" << endl;
+            killAndWaitForOBJloader();
+            killAndWaitForTMworker();
+            std::string resultedTasm = utils::getWaterScriptForTape(*tape);
+            std::string savedTasm = "tasm-for-water.tasm";
+            // Save tasm
+            std::ofstream outputFile(savedTasm);
+            if (outputFile.is_open()) {
+                // Write a string to the file
+                outputFile << resultedTasm << std::endl;
+                // Close the file
+                outputFile.close();
+                std::cout << "Water string written to file successfully." << std::endl;
+            } else {
+                std::cerr << "Unable to open water file " << savedTasm << std::endl;
+            }
+            selectedTasmPath = savedTasm;
+            TMworker = make_unique<thread>([this]{
+                runTM();
+            });
+        }
+        ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Tape"))
     {
         if (ImGui::Button("Reset tape")){
