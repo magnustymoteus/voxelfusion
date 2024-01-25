@@ -62,6 +62,8 @@ public:
     TMTapeCell& operator[](const signed int &index);
     TMTapeCell at(const signed int &index) const;
 
+    const std::vector<std::shared_ptr<TMTapeCell>> &getCells() const;
+
 };
 class TMTape2D final : public TMTape {
 public:

@@ -102,9 +102,9 @@ public:
         const bool definite = (steps >= 0);
         while((!definite && !isHalted) || (definite && i<steps)) {
             doTransition();
-            std::cout << "---------------" << std::endl;
-             std::get<1>(tapes)->print();
-             std::cout << getFiniteControl().currentState->name << std::endl;
+//            std::cout << "---------------" << std::endl;
+//             std::get<1>(tapes)->print();
+//             std::cout << getFiniteControl().currentState->name << std::endl;
             i++;
         }
     }

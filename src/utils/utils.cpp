@@ -407,7 +407,7 @@ void utils::getCentralTop(const TMTape3D &tape, int &x, int &y, int &z) {
     getMaximum(tape, x, y, z);
     x /= 2;
     y = std::ceil(tape.at(x).getCells().size()/2.0);
-    z /= 2;
+    z = std::floor(tape.at(x).at(y).getCells().size()/2.0);
 }
 
 std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSteps, unsigned int CASizeX, unsigned int CASizeY, unsigned int CASizeZ, int waterSourceX, int waterSourceY, int waterSourceZ){
@@ -428,21 +428,24 @@ std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSt
         getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
         // Step 3: Replace the macros
         code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceX - (CASizeX/2)))));
-        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 3 + 2))));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 4 + 1))));
         code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceZ - (CASizeZ/2)))));
+        // Step 4: place the water source
+        tape[waterSourceX][waterSourceY+4][waterSourceZ].symbol = "W";
     }else{
         // Step 3: Replace the macros
         code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(waterSourceX));
         code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(waterSourceY));
         code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(waterSourceZ));
+        // Step 4: place the water source
+        tape[waterSourceX][waterSourceY][waterSourceZ].symbol = "W";
     }
+    // Step 5: replace other macros
     code = std::regex_replace(code, std::regex("#CA_X_SIZE"), std::to_string(CASizeX));
     code = std::regex_replace(code, std::regex("#CA_Y_SIZE"), std::to_string(CASizeY));
     code = std::regex_replace(code, std::regex("#CA_Z_SIZE"), std::to_string(CASizeZ));
     code = std::regex_replace(code, std::regex("#NUMBER_OF_STEPS"), std::to_string(numberOfSteps));
-    // Step 4: place the water source
-    tape[waterSourceX][waterSourceY+4][waterSourceZ].symbol = "W";
-    std::cout << code << std::endl;
-    // Step 5: return the code
+
+    // Step 6: return the code
     return code;
 }
