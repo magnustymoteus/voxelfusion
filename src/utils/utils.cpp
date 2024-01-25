@@ -16,6 +16,9 @@
 #include <string>
 #include "MTMDTuringMachine/TMTape.h"
 #include "PerlinNoise.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 void utils::load_obj(const std::string& path, Mesh& mesh){
     // Get the object
@@ -292,7 +295,19 @@ void utils::voxelSpaceToTape(const VoxelSpace& voxelSpace, TMTape3D& tape, const
     }
     std::cout << "Filled blocks in voxelSpaceToTape: " << counter << std::endl;
 }
-
+void utils::completedVoxelSpaceToTape(const CompletedVoxelSpace &voxelSpace, TMTape3D &tape){
+    for (unsigned int x = 0; x < voxelSpace.size(); x++) {
+        TMTape2D TMPlane;
+        for (unsigned int y = 0; y < voxelSpace[x].size(); y++) {
+            TMTape1D TMLine;
+            for (unsigned int z = 0; z < voxelSpace[x][y].size(); z++) {
+                TMLine[z] = TMTapeCell(voxelSpace[x][y][z]);
+            }
+            TMPlane[y] = TMLine;
+        }
+        tape[x] = TMPlane;
+    }
+}
 void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
     space.resize(static_cast<size_t>(xi),
                  std::vector<std::vector<Voxel>>(static_cast<size_t>(zi),
@@ -448,4 +463,41 @@ std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSt
 
     // Step 6: return the code
     return code;
+}
+void utils::tapeToCompletedVoxelSpace(TMTape3D& tape, CompletedVoxelSpace& voxelSpace){
+    CompletedVoxelSpace toReturn;
+    for(auto& plane:tape.getCells()){
+        std::vector<std::vector<std::string>> planeStrings;
+        for(auto& row:plane->getCells()){
+            // Make a vector
+            std::vector<std::string> rowStrings;
+            for(auto& cell: row->getCells()){
+                rowStrings.push_back(cell->symbol);
+            }
+            planeStrings.push_back(rowStrings);
+        }
+        toReturn.push_back(planeStrings);
+    }
+    voxelSpace = toReturn;
+}
+void utils::save3DTapeToJson(TMTape3D& tape, std::string outputPath){
+    // Transform tape to CompletedVoxelSpace
+    CompletedVoxelSpace space;
+    tapeToCompletedVoxelSpace(tape, space);
+    json jsonRepresentation = space;
+    // Save the json to a file
+    std::ofstream outputFile(outputPath);
+    outputFile << std::setw(4) << jsonRepresentation << std::endl;
+    outputFile.close();
+}
+void utils::load3DTapeFromJson(TMTape3D& tape, std::string inputPath){
+    // Read the json back into a 3D vector
+    std::ifstream inputFile(inputPath);
+    json loadedJson;
+    inputFile >> loadedJson;
+
+    // Convert the json back to the original voxel space
+    CompletedVoxelSpace space = loadedJson;
+    // Transform to tape
+    completedVoxelSpaceToTape(space, tape);
 }
