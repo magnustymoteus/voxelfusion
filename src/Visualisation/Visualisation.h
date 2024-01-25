@@ -32,7 +32,6 @@ using namespace std;
 class Visualisation {
     GLFWwindow* window;
     Shader* shaderProgram;
-    Camera* camera;
     VertexArray* VAO{nullptr};
     VertexBuffer* VBO{nullptr};
     ElementBuffer* EBO{nullptr};
@@ -62,6 +61,7 @@ class Visualisation {
     inline static std::atomic<bool> tmRunning = false;
     inline static std::atomic<bool> objLoaderRunning = false;
 public:
+    inline static unique_ptr<Camera> camera;
     inline static std::atomic<bool> updateFlag = false;
     Visualisation(float fov, float nearPlane, float farPlane, map<string, Color>& colorMap);
     bool update();
@@ -76,4 +76,5 @@ public:
     void runTM();
 
     void resetTape();
+    static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 };

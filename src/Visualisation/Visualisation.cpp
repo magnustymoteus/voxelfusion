@@ -35,6 +35,7 @@ FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
         exit(-1);
     }
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // let glad configure OpenGL
     gladLoadGL();
@@ -46,7 +47,7 @@ FOV(fov), nearPlane(nearPlane), farPlane(farPlane), colorMap(colorMap) {
 
     glEnable(GL_DEPTH_TEST);
 
-    camera = new Camera(SCREEN_WIDTH, SCREEN_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
+    camera = make_unique<Camera>(SCREEN_WIDTH, SCREEN_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
     shaderProgram->Activate();
 
     // Setup ImGui
@@ -325,7 +326,6 @@ Visualisation::~Visualisation() {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    delete camera;
     VAO->Delete();
     VBO->Delete();
     EBO->Delete();
@@ -352,6 +352,14 @@ void Visualisation::killAndWaitForOBJloader() {
     objLoaderRunning = false;
     if (objLoader) objLoader->join();
     objLoader = nullptr;
+}
+
+void Visualisation::framebuffer_size_callback(GLFWwindow *window, int width, int height){
+    glViewport(0, 0, width, height);
+    if(camera){
+        camera->width = width;
+        camera->height = height;
+    }
 }
 
 Color::Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}
