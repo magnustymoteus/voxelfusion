@@ -30,7 +30,7 @@ TMTape2D TMTape3D::at(const int &index) const {
     return TMTapeUtils::getTapeElementNoExpand(cells, index, zeroAnchor);
 }
 
-const std::vector<std::shared_ptr<TMTape2D>> &TMTape3D::getCells() {
+const std::vector<std::shared_ptr<TMTape2D>> &TMTape3D::getCells() const{
     return cells;
 }
 

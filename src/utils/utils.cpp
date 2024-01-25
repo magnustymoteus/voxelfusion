@@ -308,11 +308,11 @@ void utils::completedVoxelSpaceToTape(const CompletedVoxelSpace &voxelSpace, TMT
         tape[x] = TMPlane;
     }
 }
-void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
+void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, bool random, const double& scale){
     space.resize(static_cast<size_t>(xi),
                  std::vector<std::vector<Voxel>>(static_cast<size_t>(zi),
                                                  std::vector<Voxel>(yi)));
-    PerlinNoise p;
+    PerlinNoise p(random);
     for(unsigned x = 0; x != xi; x++){
         for(unsigned y = 0; y != yi; y++){
             double P = yi*(p.positiveNoise2d(scale*x,scale*y));
@@ -325,11 +325,11 @@ void utils::generateTerrain(VoxelSpace& space, const unsigned int& xi, const uns
     }
 }
 
-void utils::generateTerrain2(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
+void utils::generateTerrain2(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, bool random, const double& scale){
         space.resize(static_cast<size_t>(xi),
                       std::vector<std::vector<Voxel>>(static_cast<size_t>(zi),
                                                       std::vector<Voxel>(yi)));
-    PerlinNoise p;
+    PerlinNoise p(random);
     for(unsigned x = 0; x != xi; x++){
         for(unsigned y = 0; y != yi; y++){
             double H = 0.4*xi - 0.02*(pow(x-xi/2.0,2)+pow(y-yi/2.0,2));
@@ -343,11 +343,11 @@ void utils::generateTerrain2(VoxelSpace& space, const unsigned int& xi, const un
     }
 }
 
-void utils::generateCheese(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, const double& scale){
+void utils::generateCheese(VoxelSpace& space, const unsigned int& xi, const unsigned int& yi, const unsigned int& zi, bool random, const double& scale){
     space.resize(static_cast<size_t>(xi),
                  std::vector<std::vector<Voxel>>(static_cast<size_t>(yi),
                                                  std::vector<Voxel>(zi)));
-    PerlinNoise p;
+    PerlinNoise p(random);
     for(unsigned x = 0; x != xi; x++){
         for(unsigned y = 0; y != yi; y++){
             for(unsigned z = 0; z != zi; z++){
@@ -464,7 +464,7 @@ std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSt
     // Step 6: return the code
     return code;
 }
-void utils::tapeToCompletedVoxelSpace(TMTape3D& tape, CompletedVoxelSpace& voxelSpace){
+void utils::tapeToCompletedVoxelSpace(const TMTape3D& tape, CompletedVoxelSpace& voxelSpace){
     CompletedVoxelSpace toReturn;
     for(auto& plane:tape.getCells()){
         std::vector<std::vector<std::string>> planeStrings;
@@ -480,7 +480,7 @@ void utils::tapeToCompletedVoxelSpace(TMTape3D& tape, CompletedVoxelSpace& voxel
     }
     voxelSpace = toReturn;
 }
-void utils::save3DTapeToJson(TMTape3D& tape, std::string outputPath){
+void utils::save3DTapeToJson(const TMTape3D& tape, std::string outputPath){
     // Transform tape to CompletedVoxelSpace
     CompletedVoxelSpace space;
     tapeToCompletedVoxelSpace(tape, space);

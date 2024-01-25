@@ -101,7 +101,7 @@ public:
 
     TMTape2D& operator[](const signed int &index);
     TMTape2D at(const signed int &index) const;
-    const std::vector<std::shared_ptr<TMTape2D>>& getCells();
+    const std::vector<std::shared_ptr<TMTape2D>>& getCells() const;
 
 };
 typedef std::vector<TMTape*> TMTapes;
