@@ -15,27 +15,33 @@ CA for {'B', 'BB'} {
     goto 17;
     write 'GW';
 };
-CA for {'W', 'GW', 'G', 'A', 'green', 'X'} {
-    goto 20;
+CA for {'W'} {
+    if Down == 'G' goto 16;
+    if Down == 'A' goto 16;
+    goto 23;
+    write 'GW';
+};
+CA for {'GW', 'G', 'A', 'green', 'X'} {
+    goto 26;
 };
 CAX = #CA_Z_POSITION;
 CAY = #CA_Y_POSITION;
 CAZ = #CA_X_POSITION;
-if CAX == 0 goto 28;
+if CAX == 0 goto 34;
 move right;
 CAX -= 1;
-goto 24;
-if CAY == 0 goto 32;
+goto 30;
+if CAY == 0 goto 38;
 move up;
 CAY -= 1;
-goto 28;
-if CAZ == 0 goto 36;
+goto 34;
+if CAZ == 0 goto 42;
 move forwards;
 CAZ -= 1;
-goto 32;
+goto 38;
 write 'green';
 C = 0;
 run CA in #CA_X_SIZE,#CA_Y_SIZE,#CA_Z_SIZE;
 C += 1;
-if C == #NUMBER_OF_STEPS goto 42;
-goto 38;
+if C == #NUMBER_OF_STEPS goto 48;
+goto 44;

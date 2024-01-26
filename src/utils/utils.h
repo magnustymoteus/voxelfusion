@@ -69,7 +69,7 @@ public:
      * @param waterSourceZ z-coordinate of the water
      * @return tasm script for water simulation
      */
-    static std::string getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSteps = 10, unsigned int CASizeX = 5, unsigned int CASizeY = 5, unsigned int CASizeZ = 5, int waterSourceX = -1, int waterSourceY = -1, int waterSourceZ = -1);
+    static std::string getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSteps = 10, unsigned int CASizeX = 7, unsigned int CASizeY = 7, unsigned int CASizeZ = 7, int waterSourceX = -1, int waterSourceY = -1, int waterSourceZ = -1);
     /**
      * Generates a terrain with 2D positive Perlin noise (without cylinder equation)
      * @param space output voxels

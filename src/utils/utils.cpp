@@ -420,9 +420,11 @@ void utils::getMaximum(TMTape3D tape, int &x, int &y, int &z){
 
 void utils::getCentralTop(const TMTape3D &tape, int &x, int &y, int &z) {
     getMaximum(tape, x, y, z);
-    x /= 2;
-    y = std::ceil(tape.at(x).getCells().size()/2.0);
-    z = std::floor(tape.at(x).at(y).getCells().size()/2.0);
+    if(tape.zeroAnchor != 0) x /= 2;
+    if(tape.zeroAnchor != 0) y = std::ceil(tape.at(x).getCells().size()/4.0);
+    else y = std::ceil(tape.at(x).getCells().size());
+    if(tape.zeroAnchor != 0) z = std::floor(tape.at(x).at(y-1).getCells().size()/4.0)-1;
+    else z = std::floor(tape.at(x).at(y-1).getCells().size()/2.0)-1;
 }
 
 std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSteps, unsigned int CASizeX, unsigned int CASizeY, unsigned int CASizeZ, int waterSourceX, int waterSourceY, int waterSourceZ){
@@ -443,7 +445,7 @@ std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSt
         getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
         // Step 3: Replace the macros
         code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceX - (CASizeX/2)))));
-        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 1))));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 2))));
         code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceZ - (CASizeZ/2)))));
         // Step 4: place the water source
         tape[waterSourceX][waterSourceY][waterSourceZ].symbol = "W";
