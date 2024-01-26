@@ -249,6 +249,29 @@ void Visualisation::imguiDrawAndHandleFrame() {
                 runTM();
             });
         }
+        if (ImGui::Button("Boom")){
+            if (tape == nullptr) tape = make_unique<TMTape3D>();
+            cout << "Boom Button pressed" << endl;
+            killAndWaitForOBJloader();
+            killAndWaitForTMworker();
+            std::string resultedTasm = utils::getBoomScriptForTape(*tape);
+            std::string savedTasm = "tasm-for-boom.tasm";
+            // Save tasm
+            std::ofstream outputFile(savedTasm);
+            if (outputFile.is_open()) {
+                // Write a string to the file
+                outputFile << resultedTasm << std::endl;
+                // Close the file
+                outputFile.close();
+                std::cout << "Boom string written to file successfully." << std::endl;
+            } else {
+                std::cerr << "Unable to open boom file " << savedTasm << std::endl;
+            }
+            selectedTasmPath = savedTasm;
+            TMworker = make_unique<thread>([this]{
+                runTM();
+            });
+        }
         ImGui::TreePop();
     }
     if (ImGui::TreeNode("Tape"))

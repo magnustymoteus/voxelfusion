@@ -39,7 +39,7 @@ if CAZ == 0 goto 42;
 move forwards;
 CAZ -= 1;
 goto 38;
-write 'green';
+write 'B';
 C = 0;
 run CA in #CA_X_SIZE,#CA_Y_SIZE,#CA_Z_SIZE;
 C += 1;

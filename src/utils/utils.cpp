@@ -466,6 +466,45 @@ std::string utils::getWaterScriptForTape(TMTape3D& tape, unsigned int numberOfSt
     // Step 6: return the code
     return code;
 }
+std::string utils::getBoomScriptForTape(TMTape3D& tape, unsigned int numberOfSteps, unsigned int CASizeX, unsigned int CASizeY, unsigned int CASizeZ, int waterSourceX, int waterSourceY, int waterSourceZ){
+    // Step 1: read tasm template code
+    std::string code;
+    std::string line;
+    std::ifstream input ("tasm/boom-template.tasm");
+    if (input.is_open())
+    {
+        while (getline (input, line))
+        {
+            code += line;
+        }
+        input.close();
+    }
+    // Step 2: get a good position for water source (if the position is not given)
+    if(waterSourceX < 0 || waterSourceY < 0 || waterSourceZ < 0){
+        getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
+        // Step 3: Replace the macros
+        code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceX - (CASizeX/2)))));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 2))));
+        code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceZ - (CASizeZ/2)))));
+        // Step 4: place the water source
+        tape[waterSourceX][waterSourceY][waterSourceZ].symbol = "red";
+    }else{
+        // Step 3: Replace the macros
+        code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(waterSourceX));
+        code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(waterSourceY));
+        code = std::regex_replace(code, std::regex("#CA_Z_POSITION"), std::to_string(waterSourceZ));
+        // Step 4: place the water source
+        tape[waterSourceX][waterSourceY][waterSourceZ].symbol = "red";
+    }
+    // Step 5: replace other macros
+    code = std::regex_replace(code, std::regex("#CA_X_SIZE"), std::to_string(CASizeX));
+    code = std::regex_replace(code, std::regex("#CA_Y_SIZE"), std::to_string(CASizeY));
+    code = std::regex_replace(code, std::regex("#CA_Z_SIZE"), std::to_string(CASizeZ));
+    code = std::regex_replace(code, std::regex("#NUMBER_OF_STEPS"), std::to_string(numberOfSteps));
+
+    // Step 6: return the code
+    return code;
+}
 void utils::tapeToCompletedVoxelSpace(const TMTape3D& tape, CompletedVoxelSpace& voxelSpace){
     CompletedVoxelSpace toReturn;
     for(auto& plane:tape.getCells()){
