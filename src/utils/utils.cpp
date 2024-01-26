@@ -482,6 +482,7 @@ std::string utils::getBoomScriptForTape(TMTape3D& tape, unsigned int numberOfSte
     // Step 2: get a good position for water source (if the position is not given)
     if(waterSourceX < 0 || waterSourceY < 0 || waterSourceZ < 0){
         getCentralTop(tape, waterSourceX, waterSourceY, waterSourceZ);
+        waterSourceY /= 2;
         // Step 3: Replace the macros
         code = std::regex_replace(code, std::regex("#CA_X_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceX - (CASizeX/2)))));
         code = std::regex_replace(code, std::regex("#CA_Y_POSITION"), std::to_string(std::max(0, static_cast<int>(waterSourceY - CASizeY + 2))));

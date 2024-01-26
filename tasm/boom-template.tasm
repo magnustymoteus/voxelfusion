@@ -14,7 +14,7 @@ CA for {'B'} {
     goto 15;
 };
 CA for {'BB', 'red'} {
-    write 'B';
+    write 'BB';
 };
 CA for {'GW', 'G', 'A', 'green', 'X'} {
    if Up == 'red' goto 29;
@@ -28,7 +28,7 @@ CA for {'GW', 'G', 'A', 'green', 'X'} {
    goto 32;
    write 'BB';
    goto 32;
-   write 'B';
+   write 'BB';
 };
 CAX = #CA_Z_POSITION;
 CAY = #CA_Y_POSITION;
